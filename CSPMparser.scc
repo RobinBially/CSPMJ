@@ -1,14 +1,9 @@
-//ACHTUNG soll ein unärer Operator rechts von einem binären Operator stehen
-//und hat gleichzeitig eine geringere Präzedenz, so müssen Klammern gesetzt werden.
-//Dies ist eine Konsequenz aus den Guidelines von SableCC 3.7
-
-
-
-//seq(..) als funktion definiert, auch als konstante verfügbar? siehe protocol.fix.csp
-//TR(seq) = packet.taddr.Reverse...
-//Präzedenzkonflikte mit unären Operatoren vs binäre Operatoren
-//l = <5<3,true> funktioniert immer noch nicht -> Algorithmus für Erkennung von < und ~<~?
-//Was sind korrekte ctl und ltl formeln?
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * A Parser for CSP in JAVA                           		  *
+ * CSPMJ V0.1.160603										  *
+ *															  *
+ * robin.bially@hhu.de		                                  *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 
 Package CSPMparser;
@@ -34,11 +29,7 @@ Helpers
 	blank = (' '|tab);
 
 Tokens
-	
-	/*comments*/
-	eol_comment 	= '--' not_cr_lf* eol;	
-	arb_comment 	= '{-'no_brace*'-}';
-//---------------------------------------------------------------------------------------	
+
 	/*Words*/
 	stop 			= 'STOP';
 	skip 			= 'SKIP';
@@ -124,8 +115,6 @@ Tokens
 	par_r 			= ')';
 	empty_map 		= '(| |)';
 	lge 			= '<='|'>=';
-//	less 			= '<';
-//	greater			= '>';
 	tria_l			= '<';
 	tria_r			= '>';
 	sync_par_l		= '[+';	
@@ -181,25 +170,19 @@ Tokens
 	sf				= 'SF';
 	wef 			= 'WEF'|'wef';
 	sef				= 'SEF'|'sef';
-	
-	
-	/*Zeichenketten*/ 
+//---------------------------------------------------------------------------------------	
+	/*Strings*/ 
 	number 			= '0' | first_digit  digits*;
 	identifier 		= letter letter_digits* '''*;
 	newline			= eol;
-	path			= '"' fp+ '"'; /*"ichbineinetextdatei.txt"*/
-	/*character		= ''' chars ''';
-	string 			= '"' chars+ '"';*/
+	path			= '"' fp+ '"';
 	blank			= blank*;
 
 	
 Ignored Tokens
-	blank,
-	eol_comment,
-	arb_comment;
+	blank;
 
 Productions
-
 
 defs 		 =	 {many_lines} def_nl+ def_no_nl?
 				|{one_line} def_no_nl;
@@ -276,44 +259,50 @@ expression  =	 {new_def} func_id eq proc1
 				|{show_override} show func_id_rek* eq proc1;
 	
 	
-proc1 		=  	{double_pattern} proc1 doubleat proc2 |{c2} proc2;
-proc2 		=  	{hide} proc2 b_slash proc3 |{c3} proc3;
+proc1 		=  	 {double_pattern} proc1 doubleat proc2 
+				|{p2} proc2;
+proc2 		=  	 {hide} proc2 b_slash proc3 
+				|{p3} proc3;
 
-proc3 		=   {ileave} proc3 i_leaving proc4 | {c4} proc4;
-proc4 		=  	{except} proc4 bracket_l [l]:pipe event [r]:pipe tria_r proc5
+proc3 		=    {ileave} proc3 i_leaving proc4 
+				|{p4} proc4;
+proc4 		=  	 {except} proc4 bracket_l [l]:pipe event [r]:pipe tria_r proc5
 				|{gen_par} proc4 bracket_l [lp]:pipe event [rp]:pipe bracket_r proc5
 				|{alph_par} proc4 bracket_l [l]:event dpipe [r]:event bracket_r proc5
 				|{linked_par} proc4 bracket_l link_comp bracket_r proc5
-				|{c5} proc5;				
-proc5 		=  	{int_choice} proc5 i_choice proc6 |{c6} proc6;
-proc6 		=  	{ext_choice} proc6 e_choice proc7 
+				|{p5} proc5;				
+proc5 		=  	 {int_choice} proc5 i_choice proc6 
+				|{p6} proc6;
+proc6 		=  	 {ext_choice} proc6 e_choice proc7 
 				|{sync_ext} proc6 sync_par_l event sync_par_r proc7
-				|{c7} proc7;
-proc7 		= 	{interrupt} proc7 interrupt proc8 
+				|{p7} proc7;
+proc7 		= 	 {interrupt} proc7 interrupt proc8 
 				|{sync_interrupt} proc7 sync_int_l event sync_int_r proc8
-				|{c8} proc8;
-proc8 		= 	{sliding_choice} proc8 timeout proc9 | {c9} proc9;
-proc9 		= 	{seq_comp} proc9 semicolon proc10 | {c10} proc10; 
-proc10		= 	{guard_exp} event guard proc10
+				|{p8} proc8;
+proc8 		= 	 {sliding_choice} proc8 timeout proc9 
+				|{p9} proc9;
+proc9 		= 	 {seq_comp} proc9 semicolon proc10 
+				|{p10} proc10; 
+proc10		= 	 {guard_exp} event guard proc10
 				|{prefix} event prefix proc10
 				|{lambda_term} b_slash arguments at proc10
 				|{let_within} let defs within proc10
 				|{if_else} if bool_exp then proc1 else proc10
 				|{rep} rep proc10
-				|{c11} proc11;				
-proc11 		=	{renaming} proc11 dbracket_l rename_comp dbracket_r
+				|{p11} proc11;				
+proc11 		=	 {renaming} proc11 dbracket_l rename_comp dbracket_r
 				|{e_renaming} proc11 dbracket_l dbracket_r
 				|{event} event;
 							
 							
-event 		= 	{dollar} event dollar event2
+event 		= 	 {dollar} event dollar event2
 				|{event2} event2;
-event2 		= 	{qm} event2 q_mark dot_op
+event2 		= 	 {qm} event2 q_mark dot_op
 				|{ex} event2 excl_mark dot_op
 				|{dot_op} dot_op;
 dot_op 		=	 {dot} dot_op dot colon
 				|{ss} colon;			
-colon 		= 	{colon} bool_exp ddot atom 
+colon 		= 	 {colon} bool_exp ddot atom 
 				|{bool} bool_exp;
 bool_exp 	= 	 {or} bool_exp or bool_exp2 | {c16} bool_exp2;
 bool_exp2 	= 	 {and} bool_exp2 and bool_exp3 |{c17} bool_exp3; 		
@@ -323,15 +312,15 @@ bool_exp4 	= 	 {equal} bool_exp4 equal val_exp
 				|{ordering_less} bool_exp4 tria_l val_exp 
 				|{ordering_greater} bool_exp4 tria_r val_exp 
 				|{val_exp} val_exp;				
-val_exp 	= 	{addition} val_exp plus val_exp1 
+val_exp 	= 	 {addition} val_exp plus val_exp1 
 				|{subtraction} val_exp minus val_exp1
 				|{val_exp1} val_exp1; 			  			
-val_exp1 	= 	{multiplication} val_exp1 mul_div_mod val_exp2 |{c21} val_exp2;
-val_exp2 	= 	{un_minus} minus val_exp2 
+val_exp1 	= 	 {multiplication} val_exp1 mul_div_mod val_exp2 |{c21} val_exp2;
+val_exp2 	= 	 {un_minus} minus val_exp2 
 				|{sequence0} sequence0;		
 sequence0	= 	 {len} hash sequence0 | {sequence1} sequence1;
-sequence1 	=	{cat} sequence1 cat par | {par} par;
-par 		= 	{par_event} par_l proc1 par_r func_id_rek*
+sequence1 	=	 {cat} sequence1 cat par | {par} par;
+par 		= 	 {par} par_l proc1 par_r func_id_rek*
 				|{atom} atom;
 atom 		= 	 {true_false} true_false	 
 				|{num} number
@@ -397,10 +386,11 @@ sequence =	 {empty_seq} tria_l tria_r
 			|{enum_seq} enum_seq
 			|{seq_comp}	seq_comp;
 			
-stmts_seq 			=  {gs} gen_stmt_seq | {ps} pred_stmt_seq;
-gen_stmt_seq 		=  [l]:val_exp arrow_l [r]:val_exp gen_stmt_rek_seq*;					
-gen_stmt_rek_seq 	=  comma [l]:val_exp arrow_l [r]:val_exp
-					  |{back} comma pred_stmt_seq;
+stmts_seq 			=  {gs} gen_stmt_seq 
+					  |{ps} pred_stmt_seq;
+gen_stmt_seq 		=  [l]:val_exp arrow_l [r]:val_exp stmt_rek_seq*;					
+stmt_rek_seq 		=  {gs}comma [l]:val_exp arrow_l [r]:val_exp
+					  |{ps} comma pred_stmt_seq;
 pred_stmt_seq		=  val_exp; 
 
 		
@@ -423,12 +413,13 @@ set = 	{empty_set} brace_l brace_r
 		|{func_set} func_ret_set
 		|{enum_set} enum_set
 		|{set_comp} set_comp;
-		
-stmts_set				= {gs} gen_stmt_set | {ps} pred_stmt_set;
-gen_stmt_set 			= [l]:event arrow_l [r]:proc1 gen_stmt_rek_set*;
-gen_stmt_rek_set 		= comma [l]:event arrow_l [r]:proc1
-						  |{stmt} comma pred_stmt_set;
-pred_stmt_set			= bool_exp;
+
+stmts_set				=    {gs} gen_stmt_set 
+							|{ps} pred_stmt_set;
+gen_stmt_set 			=    [l]:event arrow_l [r]:proc1 stmt_rek_set*;
+stmt_rek_set 			=    {gs}comma [l]:event arrow_l [r]:proc1
+						    |{ps} comma pred_stmt_set;
+pred_stmt_set			=    bool_exp;
 							
 func_ret_set	 =   {union} union par_l [l]:dot_op comma [r]:dot_op par_r
 					|{union2} union2 par_l dot_op par_r
@@ -454,14 +445,15 @@ enum_set   	    =  brace_l [l]:pipe arguments [r]:pipe brace_r;
 set_comp		=  brace_l [l]:pipe arguments [m]:pipe stmts_set [r]:pipe brace_r;
 
 //---------------------------------------------------------------------------------------
-arguments = {a} arguments comma proc1 |{b} proc1;
+arguments =  {arg_rek} arguments comma proc1 
+			|{arg_end} proc1;
 //---------------------------------------------------------------------------------------
 map	 =	  {map} par_l [lp]:pipe[le]:bool_exp imp_r [re]:bool_exp [rp]:pipe par_r
 		  |{emptymap} empty_map;
 //---------------------------------------------------------------------------------------
 /*(e1,e2,...,en)*/
-tuple = par_l event tuple0+ par_r;
-tuple0 = comma event;	 
+tuple 	 = par_l event tuple0+ par_r;
+tuple0	 = comma event;	 
 //---------------------------------------------------------------------------------------		 	 
 //ACHTUNG SET STATEMENTS -> id : {}
 rep = 			 {ext_choice} e_choice rep_stmts at
@@ -474,23 +466,24 @@ rep = 			 {ext_choice} e_choice rep_stmts at
 				|{sync_par} sync_par_l [l]:event sync_par_r rep_stmts at;
 	
 	
-rep_stmts 			= {rgs} rep_gen_stmt| {rps} rep_pred_stmt;
-rep_gen_stmt 		= [la]:atom ddot [ra]:atom rep_gen_stmt_rek*;
-rep_gen_stmt_rek	= {next_gen} comma [la]:atom ddot [ra]:atom
-						|{pred} comma rep_pred_stmt;
-rep_pred_stmt 		= bool_exp;
+rep_stmts 			= 	 {rgs} rep_gen_stmt
+						|{rps} rep_pred_stmt;
+rep_gen_stmt 		= 	 [la]:atom ddot [ra]:atom rep_gen_stmt_rek*;
+rep_gen_stmt_rek	= 	 {gs} comma [la]:atom ddot [ra]:atom
+						|{ps} comma rep_pred_stmt;
+rep_pred_stmt 		= 	 bool_exp;
 //---------------------------------------------------------------------------------------	
-assertion =  {tra_mod} assert [l]:proc1 tra_mod [r]:proc1
-			|{fm} assert [l]:proc1 fail_mod [r]:proc1
-			|{fd} assert [l]:proc1 fail_div [r]:proc1
-			|{ltl} assert [l]:proc1 pipe_equals ltl ddot assert_ltl
-		//	|{ctl} assert [l]:proc1 pipe_equals ctl ddot assert_ctl
-			|{dl_free} assertion_dl
-			|{div_free} assertion_div
-			|{det} assertion_det
-			|{live_free} assertion_ll
-			|{has_trace} assertion_ht
-			|{negated_assertion} not assertion;
+assertion = 	 {tra_mod} assert [l]:proc1 tra_mod [r]:proc1
+				|{fm} assert [l]:proc1 fail_mod [r]:proc1
+				|{fd} assert [l]:proc1 fail_div [r]:proc1
+				|{ltl} assert [l]:proc1 pipe_equals ltl ddot assert_ltl
+			//	|{ctl} assert [l]:proc1 pipe_equals ctl ddot assert_ctl
+				|{dl_free} assertion_dl
+				|{div_free} assertion_div
+				|{det} assertion_det
+				|{live_free} assertion_ll
+				|{has_trace} assertion_ht
+				|{negated_assertion} not assertion;
 			
 assert_ltl 	= 	[lq]:quote ltl0 [rq]:quote;
 ltl0		=	 {implicaton} ltl0 imp_r ltl1

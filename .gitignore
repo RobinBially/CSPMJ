@@ -1,7 +1,6 @@
 #Not Ignored
 !cmdu.exe
 
-
 # Windows image file caches
 Thumbs.db
 ehthumbs.db
@@ -11,12 +10,15 @@ Desktop.ini
 
 # Recycle Bin used on file shares
 $RECYCLE.BIN/
+CSPMparser/
 
 # Windows Installer files
 *.cab
 *.msi
 *.msm
 *.msp
+*.jar
+*.exe
 
 # Windows shortcuts
 *.lnk

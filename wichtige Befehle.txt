@@ -1,9 +1,0 @@
-java -jar sablecc.jar CSPMparser.scc
-javac CSPMparser.java
-java CSPMparser -parse Beispiele\debug.csp
-java CSPMparser -parse -h Beispiele\debug.csp
-java CSPMparser -parseAll 
-java CSPMparser -parseAll -h 				(h Zeigt den StreamEditor an)
-ausführen in sablecc-3.7/lib/
-
-cspmf-windows.exe translate debug.csp --prologOut=debug.csp.pl
