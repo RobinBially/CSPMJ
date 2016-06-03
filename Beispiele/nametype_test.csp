@@ -1,0 +1,34 @@
+nametype Val1 = {1..3}
+nametype Val2 = {8..9}
+nametype Val3 = {0..1}
+
+
+datatype Record = pair.Val1.Val2 | triple.Val1.Val2.Val3
+
+channel r : Record
+
+MAIN = r.pair?v1?v2 -> r.triple!v1!v2?v3 -> MAIN2
+
+-- TEST = r.pair?vw {- this does not work in ProB -}
+--        -> r.triple!vw.0 -> TEST
+
+nametype Pair1 = {1..2}.{1..3}
+
+channel p: Pair1
+
+MAIN2 = p?x 
+  -> p?v1?v2  {- FDR pattern matches v1 with one number, ProB as well -}
+  -> p!v1!v1 
+  -> p!2!3  {- now works with ProB -}
+  -> MAIN3
+
+
+nametype Pair2 = Val1.Val2
+
+channel p2: Pair2
+
+MAIN3 = p2?x
+ -- -> p2!(1.3)  {- field not compatible with protocol -}
+ -- -> p2.(1.3) {- extension operation not defined for value -}
+    -> p2!x
+  -> MAIN

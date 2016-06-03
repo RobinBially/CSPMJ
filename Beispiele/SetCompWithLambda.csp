@@ -1,0 +1,9 @@
+
+PickVals = \S @ { v | v <- S, v>2}
+PickVals2(S) = { v | v <- S, v>2}
+
+channel out:{0..5}
+
+MAIN = MAIN1; MAIN2 
+MAIN1 = [] x : PickVals({1,2,3,4}) @ out!x -> SKIP
+MAIN2 = [] x : PickVals2({1,2,3,4}) @ out!x -> SKIP

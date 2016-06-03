@@ -1,0 +1,9 @@
+-- ReplicatedInterleave
+
+channel out: {0..9}
+
+MAIN = Test1 ; Test2
+
+
+Test1 = ||| i:{0..4} @ out!i -> SKIP
+Test2 = ||| i:{0..4} @ out!1 -> SKIP

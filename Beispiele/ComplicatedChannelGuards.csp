@@ -1,0 +1,6 @@
+-- ComplicatedChannelGuards
+channel out:{0..98}.{0..99}
+
+MAIN = out?x:{8..9}?y:{x,x+1} -> out?x:{2..3}?y:{x..x+1} -> P
+P = out?x:{8..9}?y:{x,9} -> STOP
+

@@ -1,0 +1,9 @@
+-- RecursiveDatatype
+
+datatype tree = Leaf.{0..99} | Node.(tree,tree)
+
+channel out:tree
+
+TEST = out.Leaf.22 -> out!Node.(Leaf.2,Leaf.3) -> out?x -> out!x -> TEST
+
+TEST2 = out?x -> STOP

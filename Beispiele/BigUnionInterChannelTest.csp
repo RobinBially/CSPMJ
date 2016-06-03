@@ -1,0 +1,13 @@
+channel out:{0..9}
+channel out2:{0..9}.{0..9}
+channel outlrg:{0..29999}
+
+
+MAIN = out?v:Inter({{2..29999},{(-29999)..4}}) -> P1
+
+P1 = (Q1 [| {| outlrg |} |] outlrg!1950 -> SKIP); P2
+Q1 = outlrg?v:Union({{1..1000},{990..2000},{300..1950}}) -> SKIP
+
+P2 = out?v:Inter({{ww|ww<-{0..29999},member(ww,{2,3,5,7})},{xx|xx<-{3..10000}}}) -> STOP
+
+-- Test = out?v:{v} -> STOP  -- FDR complains about this !

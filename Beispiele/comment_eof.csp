@@ -1,0 +1,2 @@
+x=1
+-- csp files that end by a comment should also be parsable 

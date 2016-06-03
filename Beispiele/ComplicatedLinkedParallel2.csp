@@ -1,0 +1,17 @@
+
+MAX = 2
+
+channel left,right,in,out:{0..MAX}
+
+channel one:{1..2}.{0..MAX}
+channel two:{0..MAX}
+
+Buff = in?x -> out!x -> Buff
+BuffInc = in?x ->( if x<MAX then out!x+1 -> BuffInc else out!0 -> BuffInc)
+BuffDouble = left?x ->  right!(x*2)% (MAX+1) -> BuffDouble
+BuffMul = one?x?y -> two!(x*y)%(MAX+1) -> BuffMul
+
+MAIN = BuffDouble [ right <-> in ] (BuffInc [ out <-> one.2 ] BuffMul)
+
+
+

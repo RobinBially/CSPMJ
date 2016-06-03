@@ -1,0 +1,1682 @@
+-- ProB State Space Encoded for FDR in CSP
+
+include "/Users/leuschel/svn_root/NewProB/prolog/trunk/examples/CSP/mydemos/SimpleInterruptTimeout.csp"
+
+assert MAIN [FD= Nroot
+assert Nroot [FD= MAIN
+
+--
+
+Nroot =   (  {- start_cspm_MAIN-> -} N0
+ ) 
+
+N0 =  ( gen.0->N1
+ [] stop.0->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,multi_span(9,16,9,17,186,1,src_span(9,1,9,5,171,4)))))-> -} N5
+ ) 
+
+N1 =  ( gen.1->N6
+ [] stop.1->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N7
+ ) 
+
+N2 =  ( SKIP {- N11 ( == STOP) -}
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N8
+ ) 
+
+N3 =  ( gen.11->N13
+ [] stop.11->N4
+ ) 
+
+N4 =  ( SKIP {- N11 ( == STOP) -}
+ ) 
+
+N5 =  ( gen.0->N7
+ [] stop.0->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N6 =  ( gen.2->N15
+ [] stop.2->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N16
+ ) 
+
+N7 =  ( gen.1->N16
+ [] stop.1->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N8 =  ( SKIP {- N11 ( == STOP) -}
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N9 =  ( gen.21->N10
+ [] stop.21->N4
+ ) 
+
+N10 =  ( gen.22->N12
+ [] stop.22->N4
+ ) 
+
+N11 = STOP
+
+N12 =  ( gen.23->N14
+ [] stop.23->N4
+ ) 
+
+N13 =  ( gen.12->N21
+ [] stop.12->N4
+ ) 
+
+N14 =  ( gen.24->N22
+ [] stop.24->N4
+ ) 
+
+N15 =  ( gen.3->N17
+ [] stop.3->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N18
+ ) 
+
+N16 =  ( gen.2->N18
+ [] stop.2->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N17 =  ( gen.4->N23
+ [] stop.4->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N19
+ ) 
+
+N18 =  ( gen.3->N19
+ [] stop.3->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N19 =  ( gen.4->N20
+ [] stop.4->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N20 =  ( gen.5->N24
+ [] stop.5->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N21 =  ( gen.13->N26
+ [] stop.13->N4
+ ) 
+
+N22 =  ( gen.25->N28
+ [] stop.25->N4
+ ) 
+
+N23 =  ( gen.5->N29
+ [] stop.5->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N20
+ ) 
+
+N24 =  ( gen.6->N25
+ [] stop.6->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N25 =  ( gen.7->N27
+ [] stop.7->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N26 =  ( gen.14->N31
+ [] stop.14->N4
+ ) 
+
+N27 =  ( gen.8->N32
+ [] stop.8->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N28 =  ( gen.26->N30
+ [] stop.26->N4
+ ) 
+
+N29 =  ( gen.6->N35
+ [] stop.6->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N24
+ ) 
+
+N30 =  ( gen.27->N37
+ [] stop.27->N4
+ ) 
+
+N31 =  ( gen.15->N38
+ [] stop.15->N4
+ ) 
+
+N32 =  ( gen.9->N33
+ [] stop.9->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N33 =  ( gen.10->N34
+ [] stop.10->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N34 =  ( gen.11->N36
+ [] stop.11->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N35 =  ( gen.7->N39
+ [] stop.7->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N25
+ ) 
+
+N36 =  ( gen.12->N40
+ [] stop.12->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N37 =  ( gen.28->N41
+ [] stop.28->N4
+ ) 
+
+N38 =  ( gen.16->N42
+ [] stop.16->N4
+ ) 
+
+N39 =  ( gen.8->N43
+ [] stop.8->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N27
+ ) 
+
+N40 =  ( gen.13->N44
+ [] stop.13->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N41 =  ( gen.29->N46
+ [] stop.29->N4
+ ) 
+
+N42 =  ( gen.17->N48
+ [] stop.17->N4
+ ) 
+
+N43 =  ( gen.9->N45
+ [] stop.9->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N32
+ ) 
+
+N44 =  ( gen.14->N49
+ [] stop.14->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N45 =  ( gen.10->N47
+ [] stop.10->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N33
+ ) 
+
+N46 =  ( gen.30->N50
+ [] stop.30->N4
+ ) 
+
+N47 =  ( gen.11->N51
+ [] stop.11->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N34
+ ) 
+
+N48 =  ( gen.18->N52
+ [] stop.18->N4
+ ) 
+
+N49 =  ( gen.15->N53
+ [] stop.15->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N50 =  ( gen.31->N54
+ [] stop.31->N4
+ ) 
+
+N51 =  ( gen.12->N55
+ [] stop.12->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N36
+ ) 
+
+N52 =  ( gen.19->N56
+ [] stop.19->N4
+ ) 
+
+N53 =  ( gen.16->N57
+ [] stop.16->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N54 =  ( gen.32->N58
+ [] stop.32->N4
+ ) 
+
+N55 =  ( gen.13->N59
+ [] stop.13->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N40
+ ) 
+
+N56 =  ( gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N57 =  ( gen.17->N60
+ [] stop.17->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N58 =  ( gen.33->N61
+ [] stop.33->N4
+ ) 
+
+N59 =  ( gen.14->N62
+ [] stop.14->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N44
+ ) 
+
+N60 =  ( gen.18->N63
+ [] stop.18->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N61 =  ( gen.34->N64
+ [] stop.34->N4
+ ) 
+
+N62 =  ( gen.15->N65
+ [] stop.15->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N49
+ ) 
+
+N63 =  ( gen.19->N66
+ [] stop.19->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N64 =  ( gen.35->N67
+ [] stop.35->N4
+ ) 
+
+N65 =  ( gen.16->N68
+ [] stop.16->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N53
+ ) 
+
+N66 =  ( gen.20->N71
+ [] stop.20->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N67 =  ( gen.36->N72
+ [] stop.36->N4
+ ) 
+
+N68 =  ( gen.17->N69
+ [] stop.17->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N57
+ ) 
+
+N69 =  ( gen.18->N70
+ [] stop.18->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N60
+ ) 
+
+N70 =  ( gen.19->N73
+ [] stop.19->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N63
+ ) 
+
+N71 =  ( gen.21->N75
+ [] stop.21->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N72 =  ( gen.37->N76
+ [] stop.37->N4
+ ) 
+
+N73 =  ( gen.20->N74
+ [] stop.20->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N66
+ ) 
+
+N74 =  ( gen.21->N78
+ [] stop.21->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N71
+ ) 
+
+N75 =  ( gen.22->N77
+ [] stop.22->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N76 =  ( gen.38->N79
+ [] stop.38->N4
+ ) 
+
+N77 =  ( gen.23->N80
+ [] stop.23->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N78 =  ( gen.22->N81
+ [] stop.22->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N75
+ ) 
+
+N79 =  ( gen.39->N82
+ [] stop.39->N4
+ ) 
+
+N80 =  ( gen.24->N86
+ [] stop.24->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N81 =  ( gen.23->N87
+ [] stop.23->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N77
+ ) 
+
+N82 =  ( gen.40->N83
+ [] stop.40->N4
+ ) 
+
+N83 =  ( gen.41->N84
+ [] stop.41->N4
+ ) 
+
+N84 =  ( gen.42->N85
+ [] stop.42->N4
+ ) 
+
+N85 =  ( gen.43->N88
+ [] stop.43->N4
+ ) 
+
+N86 =  ( gen.25->N89
+ [] stop.25->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N87 =  ( gen.24->N90
+ [] stop.24->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N80
+ ) 
+
+N88 =  ( gen.44->N91
+ [] stop.44->N4
+ ) 
+
+N89 =  ( gen.26->N92
+ [] stop.26->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N90 =  ( gen.25->N93
+ [] stop.25->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N86
+ ) 
+
+N91 =  ( gen.45->N95
+ [] stop.45->N4
+ ) 
+
+N92 =  ( gen.27->N96
+ [] stop.27->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N93 =  ( gen.26->N94
+ [] stop.26->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N89
+ ) 
+
+N94 =  ( gen.27->N97
+ [] stop.27->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N92
+ ) 
+
+N95 =  ( gen.46->N98
+ [] stop.46->N4
+ ) 
+
+N96 =  ( gen.28->N99
+ [] stop.28->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N97 =  ( gen.28->N100
+ [] stop.28->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N96
+ ) 
+
+N98 =  ( gen.47->N101
+ [] stop.47->N4
+ ) 
+
+N99 =  ( gen.29->N102
+ [] stop.29->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N100 =  ( gen.29->N103
+ [] stop.29->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N99
+ ) 
+
+N101 =  ( gen.48->N104
+ [] stop.48->N4
+ ) 
+
+N102 =  ( gen.30->N105
+ [] stop.30->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N103 =  ( gen.30->N106
+ [] stop.30->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N102
+ ) 
+
+N104 =  ( gen.49->N107
+ [] stop.49->N4
+ ) 
+
+N105 =  ( gen.31->N108
+ [] stop.31->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N106 =  ( gen.31->N109
+ [] stop.31->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N105
+ ) 
+
+N107 =  ( gen.50->N110
+ [] stop.50->N4
+ ) 
+
+N108 =  ( gen.32->N111
+ [] stop.32->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N109 =  ( gen.32->N112
+ [] stop.32->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N108
+ ) 
+
+N110 =  ( gen.51->N113
+ [] stop.51->N4
+ ) 
+
+N111 =  ( gen.33->N114
+ [] stop.33->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N112 =  ( gen.33->N115
+ [] stop.33->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N111
+ ) 
+
+N113 =  ( gen.52->N116
+ [] stop.52->N4
+ ) 
+
+N114 =  ( gen.34->N117
+ [] stop.34->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N115 =  ( gen.34->N120
+ [] stop.34->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N114
+ ) 
+
+N116 =  ( gen.53->N118
+ [] stop.53->N4
+ ) 
+
+N117 =  ( gen.35->N121
+ [] stop.35->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N118 =  ( gen.54->N119
+ [] stop.54->N4
+ ) 
+
+N119 =  ( gen.55->N122
+ [] stop.55->N4
+ ) 
+
+N120 =  ( gen.35->N123
+ [] stop.35->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N117
+ ) 
+
+N121 =  ( gen.36->N125
+ [] stop.36->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N122 =  ( gen.56->N124
+ [] stop.56->N4
+ ) 
+
+N123 =  ( gen.36->N126
+ [] stop.36->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N121
+ ) 
+
+N124 =  ( gen.57->N127
+ [] stop.57->N4
+ ) 
+
+N125 =  ( gen.37->N128
+ [] stop.37->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N126 =  ( gen.37->N129
+ [] stop.37->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N125
+ ) 
+
+N127 =  ( gen.58->N130
+ [] stop.58->N4
+ ) 
+
+N128 =  ( gen.38->N131
+ [] stop.38->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N129 =  ( gen.38->N132
+ [] stop.38->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N128
+ ) 
+
+N130 =  ( gen.59->N133
+ [] stop.59->N4
+ ) 
+
+N131 =  ( gen.39->N134
+ [] stop.39->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N132 =  ( gen.39->N135
+ [] stop.39->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N131
+ ) 
+
+N133 =  ( gen.60->N136
+ [] stop.60->N4
+ ) 
+
+N134 =  ( gen.40->N137
+ [] stop.40->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N135 =  ( gen.40->N138
+ [] stop.40->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N134
+ ) 
+
+N136 =  ( gen.61->N139
+ [] stop.61->N4
+ ) 
+
+N137 =  ( gen.41->N140
+ [] stop.41->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N138 =  ( gen.41->N141
+ [] stop.41->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N137
+ ) 
+
+N139 =  ( gen.62->N142
+ [] stop.62->N4
+ ) 
+
+N140 =  ( gen.42->N143
+ [] stop.42->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N141 =  ( gen.42->N144
+ [] stop.42->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N140
+ ) 
+
+N142 =  ( gen.63->N145
+ [] stop.63->N4
+ ) 
+
+N143 =  ( gen.43->N146
+ [] stop.43->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N144 =  ( gen.43->N147
+ [] stop.43->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N143
+ ) 
+
+N145 =  ( gen.64->N148
+ [] stop.64->N4
+ ) 
+
+N146 =  ( gen.44->N149
+ [] stop.44->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N147 =  ( gen.44->N150
+ [] stop.44->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N146
+ ) 
+
+N148 =  ( gen.65->N151
+ [] stop.65->N4
+ ) 
+
+N149 =  ( gen.45->N152
+ [] stop.45->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N150 =  ( gen.45->N153
+ [] stop.45->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N149
+ ) 
+
+N151 =  ( gen.66->N154
+ [] stop.66->N4
+ ) 
+
+N152 =  ( gen.46->N155
+ [] stop.46->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N153 =  ( gen.46->N156
+ [] stop.46->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N152
+ ) 
+
+N154 =  ( gen.67->N157
+ [] stop.67->N4
+ ) 
+
+N155 =  ( gen.47->N158
+ [] stop.47->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N156 =  ( gen.47->N159
+ [] stop.47->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N155
+ ) 
+
+N157 =  ( gen.68->N160
+ [] stop.68->N4
+ ) 
+
+N158 =  ( gen.48->N162
+ [] stop.48->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N159 =  ( gen.48->N161
+ [] stop.48->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N158
+ ) 
+
+N160 =  ( gen.69->N163
+ [] stop.69->N4
+ ) 
+
+N161 =  ( gen.49->N164
+ [] stop.49->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N162
+ ) 
+
+N162 =  ( gen.49->N166
+ [] stop.49->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N163 =  ( gen.70->N167
+ [] stop.70->N4
+ ) 
+
+N164 =  ( gen.50->N165
+ [] stop.50->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N166
+ ) 
+
+N165 =  ( gen.51->N168
+ [] stop.51->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N169
+ ) 
+
+N166 =  ( gen.50->N169
+ [] stop.50->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N167 =  ( gen.71->N170
+ [] stop.71->N4
+ ) 
+
+N168 =  ( gen.52->N172
+ [] stop.52->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N173
+ ) 
+
+N169 =  ( gen.51->N173
+ [] stop.51->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N170 =  ( gen.72->N171
+ [] stop.72->N4
+ ) 
+
+N171 =  ( gen.73->N174
+ [] stop.73->N4
+ ) 
+
+N172 =  ( gen.53->N176
+ [] stop.53->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N177
+ ) 
+
+N173 =  ( gen.52->N177
+ [] stop.52->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N174 =  ( gen.74->N175
+ [] stop.74->N4
+ ) 
+
+N175 =  ( gen.75->N178
+ [] stop.75->N4
+ ) 
+
+N176 =  ( gen.54->N179
+ [] stop.54->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N180
+ ) 
+
+N177 =  ( gen.53->N180
+ [] stop.53->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N178 =  ( gen.76->N182
+ [] stop.76->N4
+ ) 
+
+N179 =  ( gen.55->N183
+ [] stop.55->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N181
+ ) 
+
+N180 =  ( gen.54->N181
+ [] stop.54->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N181 =  ( gen.55->N184
+ [] stop.55->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N182 =  ( gen.77->N185
+ [] stop.77->N4
+ ) 
+
+N183 =  ( gen.56->N186
+ [] stop.56->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N184
+ ) 
+
+N184 =  ( gen.56->N187
+ [] stop.56->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N185 =  ( gen.78->N188
+ [] stop.78->N4
+ ) 
+
+N186 =  ( gen.57->N189
+ [] stop.57->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N187
+ ) 
+
+N187 =  ( gen.57->N190
+ [] stop.57->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N188 =  ( gen.79->N191
+ [] stop.79->N4
+ ) 
+
+N189 =  ( gen.58->N192
+ [] stop.58->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N190
+ ) 
+
+N190 =  ( gen.58->N193
+ [] stop.58->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N191 =  ( gen.80->N194
+ [] stop.80->N4
+ ) 
+
+N192 =  ( gen.59->N195
+ [] stop.59->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N193
+ ) 
+
+N193 =  ( gen.59->N196
+ [] stop.59->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N194 =  ( gen.81->N197
+ [] stop.81->N4
+ ) 
+
+N195 =  ( gen.60->N199
+ [] stop.60->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N196
+ ) 
+
+N196 =  ( gen.60->N200
+ [] stop.60->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N197 =  ( gen.82->N198
+ [] stop.82->N4
+ ) 
+
+N198 =  ( gen.83->N201
+ [] stop.83->N4
+ ) 
+
+N199 =  ( gen.61->N202
+ [] stop.61->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N200
+ ) 
+
+N200 =  ( gen.61->N203
+ [] stop.61->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N201 =  ( gen.84->N204
+ [] stop.84->N4
+ ) 
+
+N202 =  ( gen.62->N206
+ [] stop.62->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N203
+ ) 
+
+N203 =  ( gen.62->N205
+ [] stop.62->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N204 =  ( gen.85->N207
+ [] stop.85->N4
+ ) 
+
+N205 =  ( gen.63->N208
+ [] stop.63->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N206 =  ( gen.63->N209
+ [] stop.63->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N205
+ ) 
+
+N207 =  ( gen.86->N210
+ [] stop.86->N4
+ ) 
+
+N208 =  ( gen.64->N211
+ [] stop.64->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N209 =  ( gen.64->N212
+ [] stop.64->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N208
+ ) 
+
+N210 =  ( gen.87->N213
+ [] stop.87->N4
+ ) 
+
+N211 =  ( gen.65->N214
+ [] stop.65->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N212 =  ( gen.65->N215
+ [] stop.65->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N211
+ ) 
+
+N213 =  ( gen.88->N217
+ [] stop.88->N4
+ ) 
+
+N214 =  ( gen.66->N218
+ [] stop.66->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N215 =  ( gen.66->N216
+ [] stop.66->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N214
+ ) 
+
+N216 =  ( gen.67->N219
+ [] stop.67->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N218
+ ) 
+
+N217 =  ( gen.89->N220
+ [] stop.89->N4
+ ) 
+
+N218 =  ( gen.67->N221
+ [] stop.67->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N219 =  ( gen.68->N223
+ [] stop.68->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N221
+ ) 
+
+N220 =  ( gen.90->N224
+ [] stop.90->N4
+ ) 
+
+N221 =  ( gen.68->N222
+ [] stop.68->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N222 =  ( gen.69->N225
+ [] stop.69->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N223 =  ( gen.69->N227
+ [] stop.69->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N222
+ ) 
+
+N224 =  ( gen.91->N228
+ [] stop.91->N4
+ ) 
+
+N225 =  ( gen.70->N226
+ [] stop.70->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N226 =  ( gen.71->N229
+ [] stop.71->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N227 =  ( gen.70->N230
+ [] stop.70->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N225
+ ) 
+
+N228 =  ( gen.92->N231
+ [] stop.92->N4
+ ) 
+
+N229 =  ( gen.72->N232
+ [] stop.72->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N230 =  ( gen.71->N233
+ [] stop.71->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N226
+ ) 
+
+N231 =  ( gen.93->N234
+ [] stop.93->N4
+ ) 
+
+N232 =  ( gen.73->N235
+ [] stop.73->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N233 =  ( gen.72->N236
+ [] stop.72->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N229
+ ) 
+
+N234 =  ( gen.94->N237
+ [] stop.94->N4
+ ) 
+
+N235 =  ( gen.74->N238
+ [] stop.74->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N236 =  ( gen.73->N239
+ [] stop.73->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N232
+ ) 
+
+N237 =  ( gen.95->N244
+ [] stop.95->N4
+ ) 
+
+N238 =  ( gen.75->N243
+ [] stop.75->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N239 =  ( gen.74->N240
+ [] stop.74->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N235
+ ) 
+
+N240 =  ( gen.75->N241
+ [] stop.75->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N238
+ ) 
+
+N241 =  ( gen.76->N242
+ [] stop.76->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N243
+ ) 
+
+N242 =  ( gen.77->N248
+ [] stop.77->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N245
+ ) 
+
+N243 =  ( gen.76->N245
+ [] stop.76->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N244 =  ( gen.96->N251
+ [] stop.96->N4
+ ) 
+
+N245 =  ( gen.77->N246
+ [] stop.77->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N246 =  ( gen.78->N247
+ [] stop.78->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N247 =  ( gen.79->N249
+ [] stop.79->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N248 =  ( gen.78->N252
+ [] stop.78->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N246
+ ) 
+
+N249 =  ( gen.80->N250
+ [] stop.80->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N250 =  ( gen.81->N253
+ [] stop.81->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N251 =  ( gen.97->N254
+ [] stop.97->N4
+ ) 
+
+N252 =  ( gen.79->N255
+ [] stop.79->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N247
+ ) 
+
+N253 =  ( gen.82->N256
+ [] stop.82->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N254 =  ( gen.98->N257
+ [] stop.98->N4
+ ) 
+
+N255 =  ( gen.80->N258
+ [] stop.80->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N249
+ ) 
+
+N256 =  ( gen.83->N259
+ [] stop.83->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N257 =  ( stop.99->N4
+ ) 
+
+N258 =  ( gen.81->N260
+ [] stop.81->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N250
+ ) 
+
+N259 =  ( gen.84->N261
+ [] stop.84->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N260 =  ( gen.82->N262
+ [] stop.82->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N253
+ ) 
+
+N261 =  ( gen.85->N263
+ [] stop.85->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N262 =  ( gen.83->N265
+ [] stop.83->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N256
+ ) 
+
+N263 =  ( gen.86->N264
+ [] stop.86->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N264 =  ( gen.87->N266
+ [] stop.87->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N265 =  ( gen.84->N267
+ [] stop.84->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N259
+ ) 
+
+N266 =  ( gen.88->N268
+ [] stop.88->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N267 =  ( gen.85->N270
+ [] stop.85->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N261
+ ) 
+
+N268 =  ( gen.89->N269
+ [] stop.89->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N269 =  ( gen.90->N271
+ [] stop.90->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N270 =  ( gen.86->N272
+ [] stop.86->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N263
+ ) 
+
+N271 =  ( gen.91->N273
+ [] stop.91->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N272 =  ( gen.87->N274
+ [] stop.87->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N264
+ ) 
+
+N273 =  ( gen.92->N275
+ [] stop.92->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N274 =  ( gen.88->N276
+ [] stop.88->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N266
+ ) 
+
+N275 =  ( gen.93->N277
+ [] stop.93->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N276 =  ( gen.89->N278
+ [] stop.89->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N268
+ ) 
+
+N277 =  ( gen.94->N279
+ [] stop.94->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N278 =  ( gen.90->N280
+ [] stop.90->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N269
+ ) 
+
+N279 =  ( gen.95->N281
+ [] stop.95->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N280 =  ( gen.91->N282
+ [] stop.91->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N271
+ ) 
+
+N281 =  ( gen.96->N283
+ [] stop.96->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N282 =  ( gen.92->N284
+ [] stop.92->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N273
+ ) 
+
+N283 =  ( gen.97->N285
+ [] stop.97->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N284 =  ( gen.93->N286
+ [] stop.93->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N275
+ ) 
+
+N285 =  ( gen.98->N287
+ [] stop.98->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N286 =  ( gen.94->N288
+ [] stop.94->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N277
+ ) 
+
+N287 =  ( stop.99->N8
+ [] gen.20->N9
+ [] stop.20->N4
+ ) 
+
+N288 =  ( gen.95->N289
+ [] stop.95->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N279
+ ) 
+
+N289 =  ( gen.96->N290
+ [] stop.96->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N281
+ ) 
+
+N290 =  ( gen.97->N291
+ [] stop.97->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N283
+ ) 
+
+N291 =  ( gen.98->N292
+ [] stop.98->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N285
+ ) 
+
+N292 =  ( stop.99->N2
+ [] gen.10->N3
+ [] stop.10->N4
+ )  [>   (  {- tau(timeout(multi_span(9,27,9,29,197,2,src_position(9,16,186,1))))-> -} N287
+ ) 
+
+-- end of ProB Encoding

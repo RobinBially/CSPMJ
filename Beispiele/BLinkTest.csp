@@ -1,0 +1,47 @@
+-- BLinkTest.csp
+
+-- In B we have  SETS  Code; Names
+-- OPERATIONS get(c,n) = PRE c:Code & n:Names THEN ...
+
+--
+-- Version 1:
+--
+-- We use a special function B(.)
+
+datatype BSet = code | names
+datatype Bcode = c1|c2|c3
+datatype Bnames = n1|n2
+B(code) = Bcode
+B(names) = Bnames
+
+ channel get: B(code).B(names)
+
+Test = get?x?z -> STOP
+
+--
+-- Version 2:
+--
+
+datatype Code = B1    -- note Bxxx is recognised as a special datavalue
+datatype Names = B2
+
+channel get2: Code.Names
+
+Test2 = get2?x?z -> STOP
+
+
+--
+-- Version 3:
+--
+-- Comments give clue about which datatypes come from the B
+
+datatype Code3 = c31 | c32
+-- BSET(Code3)  
+datatype Names3 = n31 | n32 | n33
+-- BSET(Names3)
+
+channel get3: Code3.Names3
+
+Test3 = get3?x?z -> STOP
+
+

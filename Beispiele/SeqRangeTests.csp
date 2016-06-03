@@ -1,0 +1,23 @@
+-- Sequence Range Tests
+-- Test whether the tools can handle closed and open ranges
+
+-- all of these processes cannot be used with FDR/ProBe as soon as an open range is used
+
+channel out: {0..99}
+
+Gen(ls) = if ls==<> then
+                SKIP
+            else
+                out!head(ls) -> Gen(tail(ls))
+
+
+channel status: {0..2}
+
+Test(ls) = status!2 -> SKIP []
+           out?x ->( if elem(x,ls) then status!1->Test(ls) else status!0 -> Test(ls))
+
+TestElemInfSeq = Test(<3..>) [| {|out,status.2|} |] (Gen(<2..4>);status!2->SKIP)
+
+TestE = Test(<3..>)
+
+MAIN = Gen(<1,2>) ; Gen(<8..9>) ; TestElemInfSeq ; TestE ; Gen(<55..>)

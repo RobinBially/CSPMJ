@@ -1,0 +1,20 @@
+-- SimpleReplicated
+
+
+channel out:{0..9}
+
+MAIN = MAIN1
+
+MAIN1 = [] x:{2..5} @ out!x -> MAIN2
+
+MAIN2 = |~| x:{3..6} @ out!x -> (MAIN3 ; MAIN4)
+
+MAIN3 = ||| x:{1,3,9} @ out!x -> SKIP
+
+
+MAIN4 = [] x:{2..5} @ Proc4(x)
+
+Proc4(y) = out!y -> SKIP |~| out!0 -> MAIN5
+
+
+MAIN5 = [] x:{} @ out!9 -> STOP

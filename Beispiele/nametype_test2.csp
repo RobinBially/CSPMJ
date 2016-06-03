@@ -1,0 +1,14 @@
+-- nametype_test2
+-- check mixture of assoc/non-assoc tuples in types
+
+nametype Val1 = {1..3}
+nametype Val2 = {8..9}
+nametype Val3 = {0..1}
+
+VVal1 = {4..4}
+nametype TESTT1 = (Val1,VVal1)
+nametype TESTT2 = Val3.VVal1
+channel testt1 : (TESTT1,TESTT2)
+channel out:{0..9}
+MAIN = testt1?x -> treat1(x)
+    treat1(( (v1,vv1),(v3.vv1b))) =  out!v1 -> out!vv1 -> out!v3 -> out!vv1b -> SKIP

@@ -1,0 +1,49 @@
+-- SetCompComplicated
+
+
+channel out:{0..99}
+
+
+SC1 = { x | x<- SC2 }
+SC2 = { y | y<- {0..3}}
+
+Test1 = out?x:SC1 -> SKIP
+
+
+
+
+SC3(z) = { x | x<- SC4(z) }
+SC4(z) = { y | y<- {1..z}}
+
+Test2 = out?x:SC3(4) -> SKIP
+Test2b = out?x:SC4(4) -> SKIP
+
+
+
+-- SC5 = { x | x<- SC2, x<-SC4(4) }  -- poses Problem to our Parser
+SC5 = { x , x1 | x1<- SC2, x<-SC4(4) }
+
+Test3 = out?x:SC5 -> SKIP
+
+
+
+
+Test4(par) = let
+        SC3(z) = { x | x<- SC4(z) }
+        SC4(z) = { y | y<- {par..z}}
+    within 
+        out?x:SC3(par+4) -> SKIP
+
+Test4_5 = Test4(5)
+
+
+SC6 = { x , x1 | x<-SC3(4), x1 <-{x+2..x+3} }  
+Test6 = out?x:SC6 -> SKIP
+
+
+MAIN =  Test1;Test2;Test3;Test4(5);Test6;Test7
+
+
+
+SC7(par) = { x , x1 | x<-SC3(2), x1 <- let f(y) = y+par within {f(x)..f(x+1)} }  
+Test7 = out?x:SC7(5) -> SKIP

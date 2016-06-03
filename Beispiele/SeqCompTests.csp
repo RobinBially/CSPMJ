@@ -1,0 +1,34 @@
+-- SeqCompTests
+
+
+channel out:{0..99}
+
+Seq15 = <1..5>
+SC1 = < x | x<- Seq15 >
+-- SC2 = < y | y<- <1..10>, y % 2 == 0>
+Seq10 = <1..10>
+SC2 = < y | y<- Seq10, (y % 2 == 0)>
+
+Test0 = out?x:set(<1..4>) -> SKIP
+Test1 = out?x:set(SC1) -> SKIP
+Test2 = out?x:set(SC2) -> SKIP
+Test3 = ; z:SC2 @ out!z -> SKIP
+
+OutSeq(<>) = SKIP
+OutSeq(<x>^t) = out!x -> OutSeq(t)
+
+Test4 = OutSeq(SC2)
+SC3 = <z,z+1|z<-Seq10, (z%3==0)>
+Test5 = OutSeq(<z,z+1|z<-Seq10, (z%3==0)>)
+
+TWICE(P) = P;P
+Test6 = TWICE(OutSeq(<z,z+1|z<-Seq10, (z%5==0)>))  
+  -- does work now: needs compilation of setComp & listComp to avoid systematic expansion of set comprehensions
+Test00 = TWICE(Test0)
+
+MAIN = Test0;Test1;Test2;Test3;Test4;Test5; Test6; Test7a; out!99 -> Test7b
+
+SC7(x) = <1,2,3 | (x>3)>
+Test7a = OutSeq(SC7(4))
+Test7b = OutSeq(SC7(3))
+-- Test8 = OutSeq(<3,5|>)  FDR does not parse this, even though the manual accepts it

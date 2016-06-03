@@ -1,0 +1,10 @@
+
+f1(x,y,z) = x+y+z
+
+f2 = \ x,y,z @ x+y+z
+
+channel c:{0..3}
+channel d:{0..99}
+
+MAIN = c?v -> c?w -> d!f1(v,w,w) -> d!f2(v,w,w) 
+   -> MAIN

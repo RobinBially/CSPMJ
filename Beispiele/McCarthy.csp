@@ -1,0 +1,28 @@
+
+
+channel out:{0..999999}
+
+McCarthy(n) = if n>100 then
+                  n-10
+               else
+                  McCarthy(McCarthy(n+11))
+                  
+
+-- Test = out!McCarthy(99) -> STOP
+
+Test(n,m) = if n<m then out!McCarthy(n) -> Test(n+1,m) else STOP
+
+MAIN = Test(0,10000)  
+-- with 10000 on MacIntel Laptop it takes 4.5 seconds to find counter example with TclTk vers
+--            on same computer with probcli it just takes 2.240 secs
+ -- with 30000 on MacIntel, Ubuntu, Parallels: takes 13 seconds to find counter ex; 5.2 secs for 10000
+
+-- Test2 = Test(9950,10000)
+
+{- with FDR and Test(0,9000) on MacIntel with unlimit
+readEventMap failed
+Error during compilation
+Took 18(0+0) seconds
+Server: : failed to compile ISM
+ on Ubuntu, MacIntel Parallels: with 30000 readEventMap failed 9 secs; with 10000 it works (7 secs)
+-}

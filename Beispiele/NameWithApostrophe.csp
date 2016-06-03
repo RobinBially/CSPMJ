@@ -1,0 +1,6 @@
+
+channel left,right:{1..10}
+channel left',right': {1..10}.{0..5}
+
+
+MAIN = left?x -> left'!x!(x/2) -> MAIN

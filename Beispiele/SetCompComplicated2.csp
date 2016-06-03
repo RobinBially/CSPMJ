@@ -1,0 +1,17 @@
+-- SetCompComplicated2
+
+channel out:{0..9}
+channel out2:{0..9}.{0..9}
+channel outlrg:{0..29999}
+
+
+MAIN = out?z:{x*y | x<-{1..2},y <- {3..4}} -> P1
+
+SC1 = {x*y | x<-{1..2},y <- {3..4}}
+
+P1 = out?z:SC1 -> P2
+P2 = out2?z:{x.y | x<-{5..6}, y <-{x..x+1}} -> P3
+P3 = Q3 [| {|outlrg|} |] R3
+Q3 = outlrg?z:{v | v<-{5..29999}} -> Q3
+ -- Note: FDR complains if the set comprehension is larger than the range declared by the channel
+R3 = outlrg!3 -> STOP [] outlrg!7 -> R3 [] outlrg!9 -> STOP

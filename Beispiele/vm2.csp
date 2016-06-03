@@ -1,0 +1,18 @@
+-- vm2.csp
+--
+-- Simon Gay, Royal Holloway, January 1999
+--
+--
+
+{-channel coin, choc
+
+VM = coin -> choc -> VM
+
+-}
+channel insert_coin, coffee, tee, ausgeben
+
+Aut = insert_coin -> Getraenk
+
+Getraenk = coffee -> GibAus [] tee  -> GibAus
+
+GibAus = ausgeben -> Aut

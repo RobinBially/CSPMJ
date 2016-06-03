@@ -1,0 +1,26 @@
+
+datatype phil = plato | sokrates | aristotle
+
+PHILNAMES = phil
+MAXN = 4 --4
+NRS = {0..MAXN}
+
+channel sync: phil.NRS
+channel out: phil.phil.NRS
+
+SYSTEM = || i:PHILNAMES@[{| sync,out |}]  PHIL(i,0)
+-- SYSTEM = || i:PHILNAMES@[{| sync |}]  PHIL(i,0)
+
+SYSTEMs = || i:{plato,sokrates,aristotle}@[{| sync,out |}]  PHIL(i,0)
+
+
+PHIL(i,x) = sync!i!x -> out!i!i!x -> PHIL(i,(x+1) % (MAXN+1)) [] sync?other?y -> out!other!other!y -> PHIL(i,x)
+
+P0 = PHIL(plato,0)
+SYSTEM2 = P0 [ {sync.plato.0, sync.sokrates.0, sync.aristotle.0} || {| sync,out |}] PHIL(sokrates,0)
+SYSTEM3 = SYSTEM2 [ {|sync,out|} || {| sync,out |}] PHIL(aristotle,0)
+
+TEST = (sync!plato!1 -> STOP [] out!plato!plato!2 -> STOP)
+TESTPar = TEST  [ {| sync |} || {| sync |} ]  TEST
+
+MAIN = SYSTEM

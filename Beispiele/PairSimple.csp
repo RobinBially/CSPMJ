@@ -1,0 +1,15 @@
+
+channel left',right':({1..20},{1..10})
+
+ITER = left'?(d,x) -> right'!(d,f(d,x)) -> ITER
+
+P = left'?pair -> right'!pair -> SKIP
+
+f(d,x) = (x + d/x)/2
+
+
+
+channel left,right:({0..1},{1..5},{1..2})
+Q = left?triple -> right!triple -> SKIP
+
+MAIN = P;Q;ITER

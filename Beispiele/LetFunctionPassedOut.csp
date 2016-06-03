@@ -1,0 +1,19 @@
+-- LetFunctionPassedOut
+
+channel req,ack,out:{0..9}
+
+
+other1(req) = ack
+other1(ack) = out
+other1(out) = req
+
+
+Proc1(ch,V,other) = other(ch)!V -> Proc1(other(ch),V,other)
+
+Proc2(x,Y) = let
+  other2(req) = out
+  other2(ack) = req
+  other2(out) = ack
+   within Proc1(x,Y,other2) -- check whether inner function can be passed to outer function
+
+MAIN = Proc1(req,1,other1) [] Proc2(req,2)

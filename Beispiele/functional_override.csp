@@ -1,0 +1,4 @@
+-- functional override
+-- this is OK for now, but be careful when you perform a renaming analysis on the AST
+-- In CSP one should be able to override built-in functions
+head(x,y) = x+y

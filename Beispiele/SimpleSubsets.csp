@@ -1,0 +1,16 @@
+channel out:{0..99}
+
+MySets = Set({1,3,5})
+
+MAIN = Q(MySets) ; ([] x:MySets @ MProc(x))
+MAIN2 = MProc({1,3,7})
+
+MProc(x) = if empty(x) then
+		     SKIP
+		  else
+		  	 [] y:x @ out!y->MProc(diff(x,{y}))
+
+Q(s) = out!0 -> SKIP
+
+
+-- Note: renamed Proc to MProc, as Proc now seems to be reserved

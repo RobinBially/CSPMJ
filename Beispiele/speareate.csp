@@ -1,0 +1,5 @@
+-- this should be "not" parsable!!!
+-- consecutive declarations must be separated by \n
+--s = {1,2,3} ll = <>
+s = {1,2,3} 
+ll = <>

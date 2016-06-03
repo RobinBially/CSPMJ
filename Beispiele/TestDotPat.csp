@@ -1,0 +1,15 @@
+-- TestDotPat
+-- Test if we can handle a pattern match process where inside we need to generate a new auxiliary process
+
+channel out:{0..8}.{0..9}
+
+MAIN = P(1.2)
+
+
+-- compile head needs to return new variables for inner lets
+P(x.y) = out!x!y -> ([] z:{6..7} @ Q(x.z))
+
+Q(x.y) = let 
+            R(v.w) = out!v!w -> ([] zz:{8..9} @ R(v.zz))
+          within
+           out!x!y -> ([] z:{1..2} @ R(x.z))

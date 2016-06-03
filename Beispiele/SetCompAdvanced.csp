@@ -1,0 +1,32 @@
+-- SetCompAdvanced
+
+myunion(a,b) = {v,w | v<-a, w<-b}
+mymember(x,a) = not empty({z|z<-a, z==x})
+myinter(a,b) = {z | z<-a, member(z,b) }
+mymyinter(a,b) = {z | z<-a, mymember(z,b) }
+
+datatype col = red | green | blue
+
+channel in,out:{0..99}
+
+
+MAIN = U({p.1.2,p.2.0}) ; T2({p.1.2,p.0.2}) ;
+       R({p.1.x | x<-{0,1}}) ; P(mymyinter({1,2,4,8},{2,3,4})) ; Q(myunion({2},{4,7}))
+
+Q(S) = in?x : S -> out!x -> SKIP
+
+P(S) = in?x : S -> (mymember(x,{4,7}) & SKIP)
+
+datatype Pair = p.{0..2}.{0..2}
+channel pin,pout: Pair
+
+R(S) = pin?x : S -> pout!x -> SKIP
+
+T1(S) = out!0 -> T1({p.x.2 | p.x.y <- S})
+T2(S) = pin?xx : {p.x.2 | p.x.y <- S} -> SKIP
+-- T(S) = pin?x : {p.x.2 | p.x.y <- S} -> SKIP
+
+f(ww) = ww-1
+
+U(S) = pin?zz : {p.x.f(x) | p.x.y <- S} -> SKIP
+

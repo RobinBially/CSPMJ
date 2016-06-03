@@ -1,0 +1,11 @@
+-- SimpleTransparent
+
+
+transparent diamond
+
+GEN(i) = out!i -> GEN((i+1)%10) [] stop -> STOP
+
+channel out:{0..9}
+channel stop
+
+MAIN = GEN(1) ||| diamond(GEN(5))

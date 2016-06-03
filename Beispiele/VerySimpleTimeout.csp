@@ -1,0 +1,6 @@
+channel a,b,c,d
+
+MAIN = a->SKIP /\ Q
+
+P = a->b->STOP [] b->b->STOP
+Q = c->STOP [] d->c->STOP

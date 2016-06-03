@@ -1,0 +1,29 @@
+MX = 3
+
+channel in,out: {0..6}.{0..MX}
+
+
+
+Gen(i) = in!i?x -> out!i+1!x -> Gen(i) []
+         out!i?x -> out!i+1!(x+1)%MX -> Gen(i)
+
+Alph(i) =  Union({ {| in.i |}, {| out.i, out.i+1 |} })
+Alph2(i) = {| in.i , out.i, out.i+1 |}
+
+Alph0 = {in.0.0, in.0.1, out.0.0, out.0.1, out.1.0, out.1.1}
+
+MAIN2 = || i:{0..1} @ [Alph(i)] Gen(i)
+
+MAIN = Gen(0) [ Alph2(0) || Alph2(1) ] Gen(1)
+
+MAIN4 = in!0?x -> STOP [ {in.0.0, in.0.1} || { in.1.0, in.1.1}] in!1!0 -> STOP
+
+channel a,b,c
+
+MAINa =  a -> STOP [ {b} || {c} ] STOP
+
+Test2 = || i:{0..1} @ [Alph(i)] Gen(i)
+Test3 = || i:{0..2} @ [Alph(i)] Gen(i)
+Test4 = || i:{0..3} @ [Alph(i)] Gen(i)
+Test5 = || i:{0..4} @ [Alph(i)] Gen(i)
+Test6 = || i:{0..5} @ [Alph(i)] Gen(i)

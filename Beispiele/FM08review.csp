@@ -1,0 +1,12 @@
+-- FM08review
+MAIN1 = Sync
+
+channel a:{0..9}
+
+P(k) = a?x -> P(k+1)
+Q(k) = a?y -> Q(k+2)
+
+Sync = P(0) [| {|a|} |] Q(0)
+
+
+TEST = [] x:{1,2} @ a!x -> TEST

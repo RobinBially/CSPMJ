@@ -1,0 +1,44 @@
+channel put : Int
+
+MAIN = T  [] put!1 -> put!2 -> P [] put!0 -> R  []  (put!10 -> STOP ||| put!11 -> STOP)
+
+P = put!3 -> Q(6) [] put!4 -> R2
+
+R = put!4 -> put?z -> STOP [| {put.4} |] put?y -> put!y -> STOP
+
+Q(x) = put!5 -> STOP |~| put!x -> Q(x+1)
+
+channel put2 : Int.Int
+
+R2 = put2!4 -> put2?z -> STOP [| {put2.4.2} |] put2?y -> put2!y -> STOP
+
+datatype TRAINS = Thomas | Gordon
+
+channel go : TRAINS
+
+T = go?t -> go!t->STOP  [| {|go|} |] go!Thomas -> go?t2 -> STOP
+TG2 = go?t -> go!t->STOP  [| {go.Thomas} |] go!Thomas -> go?t2 -> STOP
+
+channel meet: TRAINS.TRAINS
+
+T2 = meet?t1.t2 -> go!t2 -> STOP   [| {|meet|} |] meet?t3.Gordon -> STOP
+
+T3 = T2   [| {|meet|} |]  meet!Thomas?x -> STOP
+
+T4 = meet!Thomas?x ->STOP   [| {|meet|} |] meet!Thomas.Gordon -> STOP
+
+T5(x) = (meet!Thomas!Gordon -> STOP) [[ meet.x <- go ]]
+
+channel a,b,c,d
+
+T6 = (a->d->b->b->STOP)  [ {a,b} || {b,c}  ] (b->c->b->STOP)
+
+
+
+
+channel gen,stop:{0..99}
+
+Test3 = Gen(0) [ {| gen |} || { gen.2,gen.3,gen.4,stop} ] Gen(2)
+
+
+GEN(x) = gen!x -> GEN(x+1) [] stop!x -> SKIP

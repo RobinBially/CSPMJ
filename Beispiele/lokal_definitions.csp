@@ -1,0 +1,6 @@
+-- lokal_definitions
+channel a
+R = let
+         Q = STOP
+       within a-> Q
+Q = a-> a -> SKIP

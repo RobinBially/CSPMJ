@@ -1,0 +1,25 @@
+-- ClosureCompTests
+
+channel out:{0..9}.{0..9}
+
+
+T1 = out!1!1 -> out?x?y -> T2(x,y)
+
+T2(x,y) = out!x!y -> out?x?y -> T2(x,y)
+
+T3 = out?y -> out!y -> T3
+T4 = out?y?z -> out!y!z -> T4
+
+SyncSet = {1,3,5,7}
+
+TEST = out!1?z:{i | i<- SyncSet } -> TEST
+
+MAIN1 =  T1 [| {| out.1, out.3 |} |] T3
+MAIN1b =  T3 [ {| out.1, out.3 |} || {| out.1, out.3 |} ] T3 -- does not work yet?
+MAIN1c =  T4 [ {| out.1, out.3 |} || {| out.1, out.3 |} ] T4
+MAIN2 =  T1 [| {| {out.i | i<- SyncSet} |} |] T3
+ -- Here FDR says: Value {out.3,out.1,out.7,out.5} is not a label.; but with ProBE it works
+ -- Maybe this is a type error !?: FDR considers every item inside {|  |} as an elemnet
+MAIN3 =  T1 [| {| out.i | i<- SyncSet |} |] T3
+MAIN3b =  T3 [ {| out.i | i<- SyncSet |} || {| out.i | i<- SyncSet |} ] T3
+MAIN3c =  T4 [ {| out.i | i<- SyncSet |} || {| out.i | i<- SyncSet |} ] T4

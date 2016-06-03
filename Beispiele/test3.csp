@@ -1,0 +1,1 @@
+ifthentest = if true or false then 6 else if true then 3 else 4

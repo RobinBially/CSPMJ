@@ -1,0 +1,5 @@
+-- letwithin
+channel d:{ -2..10}
+
+--let .. within expressions should be allowed in channel fields
+MAIN = d.(let x=6 within x+2) -> SKIP

@@ -1,0 +1,38 @@
+-- LambdaComplex
+
+f1(x,y,z) = x+y+z
+
+f2 = \ x,y,z @ x+y+z
+
+channel c:{0..3}
+channel d:{0..99}
+
+MAIN1 = c?v -> c?w -> d!f1(v,w,w) -> d!f2(v,w,w) 
+   -> SKIP
+
+MAIN2 = c?v ->  d!((\ x @ x+1)(v+v)) -> SKIP
+
+map(f,s) = < f(x) | x<- s>
+
+twice(n) = n*2
+
+Q(<>) = SKIP
+Q(<h>^t) = d!h -> Q(t)
+
+
+MAIN3 = Q(map(twice,<1,2>)) ;
+     Q(map(\y@y*y , <2,3,4>)) 
+
+
+maps(f,<>) = <>
+maps(f,<h>^t) = <f(h)>^maps(f,t)
+
+MAIN4 = Q(maps(twice,<1,2>)) ;
+     Q(maps(\y@y*y , <2,3,4>)) 
+
+MAIN5(zz) = Q(maps(\ww @ ww*zz, <2,3,4>))
+
+MAIN = MAIN1 ;  MAIN2 ; MAIN3 ; MAIN4; MAIN5(3);MAIN6
+
+MAIN6 = c?x -> ((\y @ d!(y*y)->SKIP)(x)) -- did lead to non-ground state; now corrected
+

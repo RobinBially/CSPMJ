@@ -1,0 +1,3 @@
+datatype baum = stamm.{}
+
+

@@ -1,0 +1,26 @@
+-- SimpleReplicatedLinkedParallel
+
+-- a small example from Roscoe:
+channel left1, right1:{0,1}
+COPY = left1?x -> right1!x -> COPY
+-- or N of them via the corresponding replicated construct
+CN(N) = [right1 <-> left1] i:<1..N> @ COPY
+MAIN1 = CN(3)
+
+-- now a more involved test case with more tricky communication
+MAX = 2 -- with MAX=3 FDR takes a very long time !!
+channel left2,right2: {0..MAX}.{0..1}
+
+DCOPY = left2?x?y -> right2!x!y -> DCOPY
+
+-- TEST = [right2.i <-> left2.i] i:<0..MAX> @ DCOPY   -- Parser should give errror message !
+MAIN = [right2.MAX <-> left2.MAX] i:<0..MAX> @ DCOPY  
+
+TEST2 = DCOPY [right2.MAX <-> left2.MAX] DCOPY
+
+-- an explicit version; easier to trace with the animator
+-- if commented in, FDR will complain about syntax error !?
+--DCOPY2 = left2?x?y -> right2!x!y -> DCOPY2
+--DCOPY3 = left2?x?y -> right2!x!y -> DCOPY3
+--MAINEx =  DCOPY [right2.MAX <-> left2.MAX] DCOPY2 [right2.MAX <-> left2.MAX] DCOPY3
+

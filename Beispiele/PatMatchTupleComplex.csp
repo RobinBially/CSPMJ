@@ -1,0 +1,69 @@
+-- PatMatchTupleComplex
+channel out:{0..99}
+
+{-
+f(x,x.x) = 0
+f(x,x.y) = 1
+f(y,x.y) = 2
+f(x.y,z) = 5+f(y,z)
+-}
+f(y,z) = 3
+
+{- ProBE: just outputs 5 times 0 ! ; so does FDR 2.83  
+   neither gives a warning that variable used more than once -}
+MAIN1 = out!f(2,2.2) -> out!(f(2,2.3.4)) ->
+       out!f(2,3.4.2) -> out!f(2,3.2) -> out!f(2.3,3.3) -> STOP
+
+g(x.y) = g(y)+x
+g(z) = z
+{- FDR 2.83 gives Bad dot pattern match while processing communication !g(3) -}
+{- now leads to an infinite loop in ProB: as repeatedly x and y are unified with
+   the empty tuple -}
+MAIN2 = out!g(3) -> out!g(1.2.3) -> out!g(g(1.5).g(10.4).10) -> STOP
+
+{- still bad dot pattern match with FDR: -}
+MAIN2c = out!g(3) -> STOP 
+{- still bad dot pattern match with FDR: -}
+MAIN2d = out!g(5.6) -> STOP
+
+
+fst(x.y) = x
+{- this works both with ProB and FDR -}
+MAIN3 = out!fst(22.33) -> out!fst(11.22.33.44) -> STOP
+
+
+g2(1.y) = g2(y)+1
+g2(2.y) = g2(y)+2
+g2(3.y) = g2(y)+3
+g2(z) = z
+{- still bad dot pattern match with FDR: -}
+{- ProB gives error message that empty tuple is not an integer -}
+MAIN4 = out!g2(3) -> out!g2(1.2.3) -> out!g2(g2(1.2).g2(1.1).3) -> STOP
+
+
+g2b(1.y) = g2b(y)+1
+g2b(2.y) = g2b(y)+2
+g2b(3.y) = g2b(y)+3
+g2b(z) = 0
+{- still bad dot pattern match with FDR: -}
+{- works with ProB, but currently gives an error message (because code for
+   channel unification is re-used; where it is an error to try to unify
+   channels with incompatible number of dots -}
+MAIN4b = out!g2b(3) -> out!g2b(1.2.1) -> STOP
+
+
+g3(1.y) = 1
+g3(2.y) = 2
+g3(3.y) = 3
+g3(z) = 4
+{- this is accepted by FDR -}
+MAIN5 = out!g3(1.11) -> out!g3(2.22.33) -> STOP
+{- this is accepted -}
+MAIN5b = out!g3(22) -> STOP
+
+g4(x.y) = 3*x
+{- this is accepted by FDR -}
+MAIN6 = out!g4(1.11) -> out!g4(2.22.33) -> STOP
+{- also accepted: here ProB will for the moment probably fail to unify g4(2) -}
+MAIN6b = out!g4(2) -> STOP
+

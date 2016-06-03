@@ -1,0 +1,30 @@
+-- SeqTests
+
+channel in,out:{0..999}
+
+Buff(MSeq) = if MSeq==<> then
+                 in?x -> Buff(<x>)
+             else
+                 out!head(MSeq) -> Buff(tail(MSeq))
+
+
+Test = Buff(<1,2,3,4>)
+
+Test2 = Buff(concat(<<1,2,3>,<4,5,6>>))
+
+SYSTEM  = Buff(<>) [| {|in|} |] in!2 -> in!4 -> in!8 -> in!16 ->STOP
+
+MAIN = TestElem ; SYSTEM
+
+Check(x,MSeq) = if elem(x,MSeq) then out!1 -> SKIP else out!0 -> SKIP
+TestElem = Check(3,<1,2,3,4>) ; Check(1,<1,2,3,4>) ; Check(5,<1,2,3,4>) ; Check(5,<>)
+GetLen = out!length(<1,2,3,4>) -> out!#<1,2,3> -> out!length(<>) -> SKIP
+
+
+
+palin(<x,y>) = (x==y) -- and palin(s)
+palin(<x,z,y>) = (x==y)
+palin(_) = true
+
+TestPalin(s) = if palin(s) then out!1 -> SKIP else out!0 -> SKIP
+TestP = TestPalin(<1,2,1>) ; TestPalin(<1,1>^<2>) ; TestPalin(<1,3>)

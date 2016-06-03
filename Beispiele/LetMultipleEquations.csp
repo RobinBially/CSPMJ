@@ -1,0 +1,30 @@
+-- LetMultipleEquations
+
+channel req,ack,out:{0..9}
+
+-- this function checks whether channel names can be matched upon:
+other(req) = ack
+other(ack) = out
+other(out) = req
+
+
+Proc1(ch,V) = other(ch)!V -> Proc1(other(ch),V)
+Proc2(ch,V) = ch!V -> Proc2(other(ch),V)
+
+Proc3(x,Y) = let
+  other2(req) = out
+  other2(ack) = req
+  other2(out) = ack
+  Proc4(ch,V) = ch!V -> Proc4(other2(ch),V)
+   within Proc4(x,Y) 
+
+
+Proc5(x,Y) = let
+  other2(req) = ack
+  other2(ack) = out
+  other2(out) = ack
+  Proc6(ch,V) = other2(ch)!V -> Proc6(other2(ch),V)
+   within Proc6(x,Y) 
+
+
+MAIN = Proc2(req,1) [] Proc1(req,2) [] Proc3(req,3) [] Proc5(req,5)

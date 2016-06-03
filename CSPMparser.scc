@@ -1,0 +1,564 @@
+//ACHTUNG soll ein unärer Operator rechts von einem binären Operator stehen
+//und hat gleichzeitig eine geringere Präzedenz, so müssen Klammern gesetzt werden.
+//Dies ist eine Konsequenz aus den Guidelines von SableCC 3.7
+
+
+
+//seq(..) als funktion definiert, auch als konstante verfügbar? siehe protocol.fix.csp
+//TR(seq) = packet.taddr.Reverse...
+//Präzedenzkonflikte mit unären Operatoren vs binäre Operatoren
+//l = <5<3,true> funktioniert immer noch nicht -> Algorithmus für Erkennung von < und ~<~?
+//Was sind korrekte ctl und ltl formeln?
+
+
+Package CSPMparser;
+Helpers
+
+	all = [0 .. 0xFFFF];
+	dangle_l = 0x00AB;
+	dangle_r = 0x00BB;
+	chars = [all- ['''+'"']];
+	digits = ['0' .. '9'];
+	first_digit = [digits - '0'];
+	highc = ['A' .. 'Z'];
+	lowc = ['a' .. 'z'];
+	letter = (highc | lowc | '_');
+	letter_digits = (letter|digits);	
+	fp = (letter_digits|'\'|':'|'/'|'.'|'-');
+    tab = 9;
+    cr = 13;
+    lf = 10;
+	not_cr_lf = [all - [cr + lf]];	
+	no_brace = [all - '}'];
+	eol = cr lf | cr | lf;
+	blank = (' '|tab);
+
+Tokens
+	
+	/*comments*/
+	eol_comment 	= '--' not_cr_lf* eol;	
+	arb_comment 	= '{-'no_brace*'-}';
+//---------------------------------------------------------------------------------------	
+	/*Words*/
+	stop 			= 'STOP';
+	skip 			= 'SKIP';
+	chaos 			= 'CHAOS';
+	div				= 'DIV';
+	wait 			= 'WAIT';
+	run				= 'RUN';
+	member 			= 'member';
+	empty 			= 'empty';
+	null 			= 'null';
+	bool_c			= 'Bool';
+	bool_f			= 'bool';
+	if 				= 'if';
+	then 			= 'then';
+	else 			= 'else';
+	let 			= 'let';
+	within 			= 'within';
+	union 			= 'union';
+	inter 			= 'inter';
+	diff 			= 'diff';
+	union2 			= 'Union';
+	inter2 			= 'Inter';
+	card 			= 'card';
+	events 			= 'Events';
+	set2 			= 'Set';
+	head 			= 'head';
+	tail 			= 'tail';
+	concat 			= 'concat';
+	set1 			= 'set';
+	seq 			= 'seq';
+	length 			= 'length';
+	d_type 			= 'datatype';
+	s_type 			= 'subtype';
+	n_type 			= 'nametype';
+	channel 		= 'channel';
+	transparent 	= 'transparent';
+	external		= 'external';
+	assert 			= 'assert';
+	include 		= 'include';
+	print 			= 'print';
+	dl_free 		= 'deadlock free';
+	div_free 		= 'divergence free';
+	det 			= 'deterministic';
+	live_free 		= 'livelock free';
+	has_trace 		= 'has trace';
+	timed 			= 'Timed';
+	mod_defs		= 'module';	
+	exports			= 'exports';
+	endmodule		= 'endmodule';
+	proc 			= 'Proc';
+	char			= 'Char'; 
+	int 			= 'Int';
+	and 			= 'and';
+	or 				= 'or';
+	true_false 		= 'true' | 'false';
+	not 			= 'not';
+	error			= 'error';
+	show			= 'show';
+
+//---------------------------------------------------------------------------------------
+	comma 			= ',';
+	apo 			= ''';
+	quote			= '"';
+	dotdot 			= '..';
+	ddot 			= ':';
+	eq 				= '=';
+	at 				= '@';
+	hash 			= '#';
+	b_slash 		= '\';
+	q_mark 			= '?';
+	excl_mark 		= '!';
+	dollar 			= '$';
+	dpipe 			= '||';
+	pipe 			= '|';
+	doubleat 		= '@@';
+	i_leaving 		= '|||';
+	i_choice  		= '|~|';
+	e_choice  		= '[]';
+	interrupt 		= '/\';
+	timeout			= '[>';
+//-------------------------------------	
+	par_l 			= '(';
+	par_r 			= ')';
+	empty_map 		= '(| |)';
+	lge 			= '<='|'>=';
+//	less 			= '<';
+//	greater			= '>';
+	tria_l			= '<';
+	tria_r			= '>';
+	sync_par_l		= '[+';	
+	sync_par_r		= '+]';
+	sync_int_l 		= '/+';
+	sync_int_r		= '+\';
+	dbracket_l 		= '[[';
+	dbracket_r 		= ']]';
+	dp_bracket 		= ':[';
+	bracket_l 		= '[';
+	bracket_r 		= ']';
+	brace_l 		= '{';
+	brace_r 		= '}';
+//-------------------------------------	
+	guard 			= '&';
+	tilde			= '~';
+	dot 			= '.';
+	semicolon 		= ';';
+	prefix			= '->';
+	arrow_l 		= '<-';
+	cat 			= '^';
+	d_arr 			= '<->';	
+	equi 			= '<=>';
+	imp_r 			= '=>';
+	imp_l 			= '<=';
+	equal			= '=='|'!=';
+	tra_mod 		= '[T=';
+	fail_mod  		= '[F=';
+	fail_div 		= '[FD=';
+	t_mod 			= '[T]';
+	f_mod		    = '[F]'; 
+	f_div		    = '[FD]';
+	pipe_equals		= '|='; 
+	ltl				= 'LTL';
+	ctl				= 'CTL';
+	mul_div_mod 	=  '*' |'/' | '%';
+	plus 			=  '+';
+	minus		    =  '-';
+	
+	/*LTL Operators*/
+	g 				= 'G';
+	f  				= 'F';
+	h 				= 'H';
+	x				= 'X';
+	y 				= 'Y';
+	u				= 'U';
+	w 				= 'W';
+	r				= 'R';
+	o 				= 'O';
+	s 				= 'S';
+	t				= 'T';
+	wf				= 'WF';
+	sf				= 'SF';
+	wef 			= 'WEF'|'wef';
+	sef				= 'SEF'|'sef';
+	
+	
+	/*Zeichenketten*/ 
+	number 			= '0' | first_digit  digits*;
+	identifier 		= letter letter_digits* '''*;
+	newline			= eol;
+	path			= '"' fp+ '"'; /*"ichbineinetextdatei.txt"*/
+	/*character		= ''' chars ''';
+	string 			= '"' chars+ '"';*/
+	blank			= blank*;
+
+	
+Ignored Tokens
+	blank,
+	eol_comment,
+	arb_comment;
+
+Productions
+
+
+defs 		 =	 {many_lines} def_nl+ def_no_nl?
+				|{one_line} def_no_nl;
+def_nl 		 =	 def? newline;
+def_no_nl 	 =	 def;
+def			 =	 {expression} expression 
+				|{include_file} include_file
+				|{d_type_s_type} types
+				|{n_type} ntype
+				|{channel} chan
+				|{assertion} assertion
+				|{print} print_exp
+				|{timed_section} time
+				|{module} module
+				|{trans} transparent id
+				|{ext} external id;
+		
+//---------------------------------------------------------------------------------------
+types			= {dtype} d_type typedef |{stype} s_type typedef;
+typedef 		= id eq clause typedef_rek*;
+clause  		= [clause_name]:id dotted?;
+dotted  		= dot type_exp;
+typedef_rek 	= pipe clause;
+
+ntype = n_type id eq type_exp;	  
+//---------------------------------------------------------------------------------------
+/*Creation of Channels*/
+chan 		= channel id chan_rek?;
+chan_rek 	= {rek} comma id chan_rek? | {double} ddot type_exp;
+//---------------------------------------------------------------------------------------			
+type_exp 		=  	 {dotted} type_exp dot type_exp1
+					|{par} type_exp1;
+type_exp1 		= 	 {par} par_l type_exp type_exps* par_r 
+					|{set_type} type_exp2;
+type_exp2 		=  	 {set} set
+					|{set_name} func_id;
+type_exps  		= 	 comma type_exp;
+
+//---------------------------------------------------------------------------------------
+//Create a function or an identifier		 
+func_id     		=	id func_id_rek*;
+func_id_rek			=	par_l arguments par_r;
+//---------------------------------------------------------------------------------------
+/*Creation of Expressions*/	
+
+expression  =	 {new_def} func_id eq proc1		
+				|{stop_override} stop func_id_rek* eq proc1 			
+				|{skip_override} skip func_id_rek* eq proc1			
+				|{chaos_override} chaos func_id_rek* eq proc1			
+				|{div_override} div	func_id_rek* eq proc1			
+				|{wait_override} wait func_id_rek* eq proc1			
+				|{run_override} run	func_id_rek* eq proc1			
+				|{member_override} member func_id_rek* eq proc1			
+				|{empty_override} empty func_id_rek* eq proc1			
+				|{null_override} null func_id_rek* eq proc1		
+				|{boolc_override} bool_c func_id_rek* eq proc1			
+				|{boolf_override} bool_f func_id_rek* eq proc1			
+				|{union_override} union func_id_rek* eq proc1 			
+				|{inter_override} inter func_id_rek* eq proc1			
+				|{diff_override} diff func_id_rek* eq proc1			
+				|{union2_override} union2 func_id_rek* eq proc1			
+				|{inter2_override} inter2 func_id_rek* eq proc1			
+				|{card_override} card func_id_rek* eq proc1		
+				|{events_override} events func_id_rek* eq proc1			
+				|{set2_override} set2 func_id_rek* eq proc1			
+				|{head_override} head func_id_rek* eq proc1			
+				|{tail_override} tail func_id_rek* eq proc1			
+				|{concat_override} concat func_id_rek* eq proc1			
+				|{set1_override} set1 func_id_rek* eq proc1			
+				|{seq_override} seq func_id_rek* eq proc1			
+				|{length_override} length func_id_rek* eq proc1			
+				|{proc_override} proc func_id_rek* eq proc1			
+				|{error_override} error	func_id_rek* eq proc1		
+				|{show_override} show func_id_rek* eq proc1;
+	
+	
+proc1 		=  	{double_pattern} proc1 doubleat proc2 |{c2} proc2;
+proc2 		=  	{hide} proc2 b_slash proc3 |{c3} proc3;
+
+proc3 		=   {ileave} proc3 i_leaving proc4 | {c4} proc4;
+proc4 		=  	{except} proc4 bracket_l [l]:pipe event [r]:pipe tria_r proc5
+				|{gen_par} proc4 bracket_l [lp]:pipe event [rp]:pipe bracket_r proc5
+				|{alph_par} proc4 bracket_l [l]:event dpipe [r]:event bracket_r proc5
+				|{linked_par} proc4 bracket_l link_comp bracket_r proc5
+				|{c5} proc5;				
+proc5 		=  	{int_choice} proc5 i_choice proc6 |{c6} proc6;
+proc6 		=  	{ext_choice} proc6 e_choice proc7 
+				|{sync_ext} proc6 sync_par_l event sync_par_r proc7
+				|{c7} proc7;
+proc7 		= 	{interrupt} proc7 interrupt proc8 
+				|{sync_interrupt} proc7 sync_int_l event sync_int_r proc8
+				|{c8} proc8;
+proc8 		= 	{sliding_choice} proc8 timeout proc9 | {c9} proc9;
+proc9 		= 	{seq_comp} proc9 semicolon proc10 | {c10} proc10; 
+proc10		= 	{guard_exp} event guard proc10
+				|{prefix} event prefix proc10
+				|{lambda_term} b_slash arguments at proc10
+				|{let_within} let defs within proc10
+				|{if_else} if bool_exp then proc1 else proc10
+				|{rep} rep proc10
+				|{c11} proc11;				
+proc11 		=	{renaming} proc11 dbracket_l rename_comp dbracket_r
+				|{e_renaming} proc11 dbracket_l dbracket_r
+				|{event} event;
+							
+							
+event 		= 	{dollar} event dollar event2
+				|{event2} event2;
+event2 		= 	{qm} event2 q_mark dot_op
+				|{ex} event2 excl_mark dot_op
+				|{dot_op} dot_op;
+dot_op 		=	 {dot} dot_op dot colon
+				|{ss} colon;			
+colon 		= 	{colon} bool_exp ddot atom 
+				|{bool} bool_exp;
+bool_exp 	= 	 {or} bool_exp or bool_exp2 | {c16} bool_exp2;
+bool_exp2 	= 	 {and} bool_exp2 and bool_exp3 |{c17} bool_exp3; 		
+bool_exp3 	= 	 {not} not bool_exp3 |{c18} bool_exp4;
+bool_exp4 	= 	 {equal} bool_exp4 equal val_exp
+				|{ordering_lge} bool_exp4 lge val_exp
+				|{ordering_less} bool_exp4 tria_l val_exp 
+				|{ordering_greater} bool_exp4 tria_r val_exp 
+				|{val_exp} val_exp;				
+val_exp 	= 	{addition} val_exp plus val_exp1 
+				|{subtraction} val_exp minus val_exp1
+				|{val_exp1} val_exp1; 			  			
+val_exp1 	= 	{multiplication} val_exp1 mul_div_mod val_exp2 |{c21} val_exp2;
+val_exp2 	= 	{un_minus} minus val_exp2 
+				|{sequence0} sequence0;		
+sequence0	= 	 {len} hash sequence0 | {sequence1} sequence1;
+sequence1 	=	{cat} sequence1 cat par | {par} par;
+par 		= 	{par_event} par_l proc1 par_r func_id_rek*
+				|{atom} atom;
+atom 		= 	 {true_false} true_false	 
+				|{num} number
+				|{sequence} sequence
+				|{char_const} char
+				|{tuple} tuple
+				|{set} set
+				|{map} map
+				|{func_arithmetic} func_arithmetic
+				|{bool_f} func_ret_bool	
+				|{stop} stop
+				|{skip} skip
+				|{div} div
+				|{wait} wait par_l val_exp par_r
+				|{run} run par_l event par_r
+				|{error} error par_l atom par_r
+				|{show} show par_l proc1 par_r
+				|{chaos} chaos par_l event par_r
+				|{proc_const} proc
+				|{fid} func_id;
+//---------------------------------------------------------------------------------------
+link_comp 			= [l]:event d_arr [r]:event link_comp_rek* comp_rek?;
+link_comp_rek 		= comma [l]:event d_arr [r]:event;
+		
+rename_comp			= [l]:event arrow_l [r]:event rename_comp_rek* comp_rek?;
+rename_comp_rek 	= comma [l]:event arrow_l [r]:event;
+
+comp_rek			= pipe stmts_set;
+//---------------------------------------------------------------------------------------			
+			 
+func_arithmetic =	 {card} card par_l dot_op par_r						
+					|{len} length par_l dot_op par_r
+					|{head} head par_l dot_op par_r
+					|{tail} tail par_l dot_op par_r
+					|{concat} concat par_l dot_op par_r
+					|{bool} bool_f par_l dot_op par_r
+					|{card_const} card 						
+					|{len_const} length
+					|{head_const} head
+					|{tail_const} tail 
+					|{concat_const} concat 
+					|{bool_const} bool_f; 
+
+			
+func_ret_bool  = 	 {member} member par_l [l]:bool_exp comma dot_op par_r
+					|{empty} empty par_l dot_op par_r
+					|{null} null par_l dot_op par_r
+					|{member_const} member
+					|{empty_const} empty
+					|{null_const} null;
+		
+//---------------------------------------------------------------------------------------
+					
+/*Examples: <>, <v,w>, <1..3>,<4..>,<0..99/x|x<-<11>>*/	
+
+sequence =	 {empty_seq} tria_l tria_r
+			|{expl_seq} tria_l inner_sequence tria_r
+			|{list_comp} tria_l [l]:inner_sequence pipe stmts_seq tria_r
+			|{cr_seq} tria_l [l]:val_exp dotdot [r]:val_exp tria_r
+			|{ran_comp} tria_l [l]:val_exp dotdot [r]:val_exp pipe stmts_seq tria_r
+			|{or_seq} tria_l val_exp dotdot tria_r
+			|{inf_compr} tria_l val_exp dotdot pipe stmts_seq tria_r
+			|{enum_seq} enum_seq
+			|{seq_comp}	seq_comp;
+			
+stmts_seq 			=  {gs} gen_stmt_seq | {ps} pred_stmt_seq;
+gen_stmt_seq 		=  [l]:val_exp arrow_l [r]:val_exp gen_stmt_rek_seq*;					
+gen_stmt_rek_seq 	=  comma [l]:val_exp arrow_l [r]:val_exp
+					  |{back} comma pred_stmt_seq;
+pred_stmt_seq		=  val_exp; 
+
+		
+inner_sequence 		= {inner} inner_sequence comma val_exp
+					  |{end} val_exp;
+					  
+enum_seq 	  		=  tria_l [l]:pipe arguments [r]:pipe tria_r;
+seq_comp  			=  tria_l [l]:pipe arguments [m]:pipe stmts_set [r]:pipe tria_r;
+				 
+//---------------------------------------------------------------------------------------
+				 
+/*Examples: {v,w,x,y,z}, {m..n}, {m..},{x*2..64|x<-{8,4}}*/
+set = 	{empty_set} brace_l brace_r
+		|{set} brace_l arguments brace_r
+		|{closed_range} brace_l [l]:val_exp dotdot [r]:val_exp brace_r
+		|{open_range} brace_l val_exp dotdot brace_r
+		|{set_comprehension} brace_l arguments pipe stmts_set brace_r
+		|{ranged_comprehension} brace_l [l]:val_exp dotdot [r]:val_exp pipe stmts_set brace_r
+		|{infinite_comprehension} brace_l val_exp dotdot pipe stmts_set brace_r
+		|{func_set} func_ret_set
+		|{enum_set} enum_set
+		|{set_comp} set_comp;
+		
+stmts_set				= {gs} gen_stmt_set | {ps} pred_stmt_set;
+gen_stmt_set 			= [l]:event arrow_l [r]:proc1 gen_stmt_rek_set*;
+gen_stmt_rek_set 		= comma [l]:event arrow_l [r]:proc1
+						  |{stmt} comma pred_stmt_set;
+pred_stmt_set			= bool_exp;
+							
+func_ret_set	 =   {union} union par_l [l]:dot_op comma [r]:dot_op par_r
+					|{union2} union2 par_l dot_op par_r
+					|{diff} diff par_l [l]:dot_op comma [r]:dot_op par_r
+					|{inter} inter par_l [l]:dot_op comma [r]:dot_op par_r
+					|{inter2} inter2 par_l dot_op par_r
+					|{set2} set2 par_l dot_op par_r
+					|{set1} set1 par_l dot_op par_r
+					|{seq} seq par_l dot_op par_r
+					|{union_const} union
+					|{union2_const} union2
+					|{diff_const} diff 
+					|{inter_const} inter 
+					|{inter2_const} inter2 
+					|{set2_const} set2 
+					|{set1_const} set1 
+					|{seq_const} seq 				
+					|{events} events
+					|{bool} bool_c
+					|{int} int;
+				
+enum_set   	    =  brace_l [l]:pipe arguments [r]:pipe brace_r;
+set_comp		=  brace_l [l]:pipe arguments [m]:pipe stmts_set [r]:pipe brace_r;
+
+//---------------------------------------------------------------------------------------
+arguments = {a} arguments comma proc1 |{b} proc1;
+//---------------------------------------------------------------------------------------
+map	 =	  {map} par_l [lp]:pipe[le]:bool_exp imp_r [re]:bool_exp [rp]:pipe par_r
+		  |{emptymap} empty_map;
+//---------------------------------------------------------------------------------------
+/*(e1,e2,...,en)*/
+tuple = par_l event tuple0+ par_r;
+tuple0 = comma event;	 
+//---------------------------------------------------------------------------------------		 	 
+//ACHTUNG SET STATEMENTS -> id : {}
+rep = 			 {ext_choice} e_choice rep_stmts at
+				|{int_choice} i_choice rep_stmts at
+				|{i_leave} i_leaving rep_stmts at
+				|{seq_comp} semicolon rep_stmts at
+				|{alp_par} dpipe rep_stmts at bracket_l event bracket_r
+				|{sharing} bracket_l [l]:pipe val_exp [r]:pipe bracket_r rep_stmts at
+				|{linked_par} bracket_l link_comp bracket_r rep_stmts at
+				|{sync_par} sync_par_l [l]:event sync_par_r rep_stmts at;
+	
+	
+rep_stmts 			= {rgs} rep_gen_stmt| {rps} rep_pred_stmt;
+rep_gen_stmt 		= [la]:atom ddot [ra]:atom rep_gen_stmt_rek*;
+rep_gen_stmt_rek	= {next_gen} comma [la]:atom ddot [ra]:atom
+						|{pred} comma rep_pred_stmt;
+rep_pred_stmt 		= bool_exp;
+//---------------------------------------------------------------------------------------	
+assertion =  {tra_mod} assert [l]:proc1 tra_mod [r]:proc1
+			|{fm} assert [l]:proc1 fail_mod [r]:proc1
+			|{fd} assert [l]:proc1 fail_div [r]:proc1
+			|{ltl} assert [l]:proc1 pipe_equals ltl ddot assert_ltl
+		//	|{ctl} assert [l]:proc1 pipe_equals ctl ddot assert_ctl
+			|{dl_free} assertion_dl
+			|{div_free} assertion_div
+			|{det} assertion_det
+			|{live_free} assertion_ll
+			|{has_trace} assertion_ht
+			|{negated_assertion} not assertion;
+			
+assert_ltl 	= 	[lq]:quote ltl0 [rq]:quote;
+ltl0		=	 {implicaton} ltl0 imp_r ltl1
+				|{l1} ltl1;
+ltl1		=	 {or} ltl1 or ltl2
+				|{l2} ltl2; 
+ltl2		= 	 {and} ltl2 guard ltl3
+				|{l3} ltl3;
+ltl3 		=	 {trigger} ltl3 r ltl4
+				|{release} ltl3 t ltl4 
+				|{l4} ltl4;
+ltl4		=	 {weak_until} ltl4 w ltl5
+				|{l5} ltl5;
+ltl5 		=	 {since} ltl5 s ltl6
+				|{until} ltl5 u ltl6
+				|{l6} ltl6;
+ltl6		=	 {yesterday} y ltl6
+				|{next}	x ltl6
+				|{l7} ltl7;
+ltl7		=	 {once} o ltl7
+				|{finally} f ltl7
+				|{l8} ltl8;
+ltl8		=	 {globally} g ltl8
+				|{history} h ltl8
+				|{l9} ltl9;
+ltl9		=	 {not} not ltl9
+				|{l10} ltl10;
+ltl10		=	 {par} par_l ltl0 par_r
+				|{weak_fairness} wf par_l operation par_r
+				|{strong_fairness} sf par_l operation par_r
+				|{l11} ltl11;						
+ltl11		=	 {wef_allop} wef
+				|{sef_allop} sef
+				|{true_false} true_false
+				|{id} id2;
+
+operation 	= tilde;
+//assert_ctl =
+			
+assertion_dl =  	  {dl_main} assert proc1 dp_bracket dl_free bracket_r
+					 |{fm} assert proc1 dp_bracket dl_free f_mod bracket_r
+					 |{fd} assert proc1 dp_bracket dl_free f_div bracket_r;
+					 
+assertion_div =  	 {div_main} assert proc1 dp_bracket div_free bracket_r
+					|{fd} assert proc1 dp_bracket div_free f_div bracket_r;
+					 
+assertion_det = 	 {det_main} assert proc1 dp_bracket det bracket_r
+					|{fm} assert proc1 dp_bracket det f_mod bracket_r
+					|{fd} assert proc1 dp_bracket det f_div bracket_r;
+							
+assertion_ll = 		assert proc1 dp_bracket live_free bracket_r;
+
+assertion_ht = 	{trace_main} assert proc1 dp_bracket has_trace bracket_r [r]:ddot val_exp
+				|{tra_mod} assert proc1 dp_bracket has_trace t_mod bracket_r [r]:ddot val_exp
+				|{fm} assert proc1 dp_bracket has_trace f_mod bracket_r [r]:ddot val_exp
+				|{fd} assert proc1 dp_bracket has_trace f_div bracket_r [r]:ddot val_exp;
+	
+//---------------------------------------------------------------------------------------	
+print_exp 	= 	 {pe} print proc1;
+//---------------------------------------------------------------------------------------
+time =  timed par_l proc1 par_r brace_l defs brace_r;
+//---------------------------------------------------------------------------------------
+module = mod_defs id [ls]:defs exports [rs]:defs endmodule;
+//---------------------------------------------------------------------------------------
+/*Include File if path is valid*/
+include_file = include path;	
+//---------------------------------------------------------------------------------------
+id		= {id} identifier
+		  |{g}g|{f}f|{h}h|{x}x|{y}y|{u}u|{w}w |{r}r|{o}o|{s}s|{t}t|{wf}wf
+		  |{sf}sf|{wef}wef|{sef}sef|{ltl}ltl|{ctl}ctl; //anything but ltl/ctl
+id2 	= identifier;

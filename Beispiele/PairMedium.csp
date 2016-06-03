@@ -1,0 +1,23 @@
+
+channel left',right':({1..20},{1..10})
+
+ITER = left'?(d,x) -> right'!(d,f(d,x)) -> ITER
+ITER2 = left'?(d,5) -> right'!(d,f(d,5)) -> SKIP  {- check partial pattern matching -}
+
+P = left'?pair -> right'!pair -> SKIP
+
+f(d,x) = (x + d/x)/2
+
+datatype COL = red | green
+
+channel left,right:({0..1},{1..5},{1..2},COL)
+Q = left?(x,2,y,red) -> right!(x,x+y,y,green) -> Q
+
+-- RR = left?(1,2,3,red) -> STOP
+-- ProB will complain that input contains no variable if above line commented in
+
+MAIN = ITER2;Q
+
+-- Our Parser will complain about the following:
+-- channel mix:({0..1},{1..3}).COL
+-- M = mix?pair?COL -> mix!pair!red -> STOP

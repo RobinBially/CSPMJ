@@ -1,0 +1,22 @@
+-- SimpleIfThenElse
+
+channel gen:{0..9}
+channel stop:{0..9}
+channel finish:{0..9}
+
+MAIN = GEN(0) ; GEN(0)
+
+GEN(x) = if x<8 and not(x<0) and true then
+            if x==2 or x==4 then
+               gen!x -> GEN(x+2)
+            else
+               gen!x -> GEN(x+1) [] stop!x -> SKIP
+         else
+            finish!x -> SKIP
+
+Test = T(1)
+T(y) =  y<4 & gen!y -> T(y+1)
+
+TRACE = gen.0 -> gen.1 -> gen.2 -> gen.4 -> gen.6 -> gen.7 -> finish.8 -> gen.0 -> gen.1 -> gen.2 -> gen.4 -> stop.6 -> SKIP ; STOP
+
+assert MAIN [T= TRACE

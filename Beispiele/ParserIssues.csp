@@ -1,0 +1,22 @@
+-- ParserIssues
+
+channel c: Bool
+channel i:Int
+
+--x = <false, 5>3, true> -- is not parsable by FDR3, but by CSPMF
+x1 = <false,true,true>
+-- x2 = < x | x <- <y | y <- <1..10>, (y >4) >, x>8 > -- is not parsable by FDR3, but by CSPMF
+
+P(ch,<>) = SKIP
+P(ch,x) = ch.head(x) -> P(ch,tail(x))
+
+P1 = P(c,x1)
+
+procs = <P(i,<1,2,3>),P(c,<>), (c.true -> SKIP)>
+
+Procs(<>) = STOP
+Procs(ps) = head(ps);Procs(tail(ps))
+
+Procs1 = Procs(procs)
+
+assert Procs1 [T= i.1->i.2->i.3->c.false -> STOP

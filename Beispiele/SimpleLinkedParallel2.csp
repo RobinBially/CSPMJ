@@ -1,0 +1,134 @@
+
+channel in,out,left,right:{0..1}
+
+Buff = in?x -> out!(x+1)%2 -> Buff
+
+
+MAIN = Buff [ out <-> in ] (Buff [ out <-> in ] Buff)
+
+
+
+-- ProB State Space Encoded for FDR in CSP
+--
+assert MAIN [FD= Nroot
+assert Nroot [FD= MAIN
+
+
+
+Nroot =   (  {- start_cspm_MAIN-> -} N5105
+ ) 
+
+N5105 = in.0->N5106
+ [] in.1->N5107
+
+
+N5106 =   (  {- tau(link(io([dot(int(1))],out),io([dot(int(1))],in)))-> -} N5108
+ ) 
+
+N5107 =   (  {- tau(link(io([dot(int(0))],out),io([dot(int(0))],in)))-> -} N5117
+ ) 
+
+N5108 =   (  {- tau(link(io([dot(int(0))],out),io([dot(int(0))],in)))-> -} N5111
+ )  [] in.0->N5109
+ [] in.1->N5110
+
+
+N5109 =   (  {- tau(link(io([dot(int(0))],out),io([dot(int(0))],in)))-> -} N5122
+ ) 
+
+N5110 =   (  {- tau(link(io([dot(int(0))],out),io([dot(int(0))],in)))-> -} N5112
+ ) 
+
+N5111 = in.0->N5122
+ [] in.1->N5112
+ [] out.1->N5130
+
+
+N5112 =   (  {- tau(link(io([dot(int(0))],out),io([dot(int(0))],in)))-> -} N5113
+ )  [] out.1->N5114
+
+
+N5113 = in.0->N5115
+ [] in.1->N5116
+ [] out.1->N5117
+
+
+N5114 =   (  {- tau(link(io([dot(int(0))],out),io([dot(int(0))],in)))-> -} N5117
+ ) 
+
+N5115 = out.1->N5118
+
+
+N5116 = out.1->N5126
+
+
+N5117 =   (  {- tau(link(io([dot(int(1))],out),io([dot(int(1))],in)))-> -} N5129
+ )  [] in.0->N5118
+ [] in.1->N5126
+
+
+N5118 =   (  {- tau(link(io([dot(int(1))],out),io([dot(int(1))],in)))-> -} N5119
+ ) 
+
+N5119 =   (  {- tau(link(io([dot(int(1))],out),io([dot(int(1))],in)))-> -} N5120
+ )  [] out.0->N5121
+
+
+N5120 = in.0->N5131
+ [] in.1->N5132
+ [] out.0->N5108
+
+
+N5121 =   (  {- tau(link(io([dot(int(1))],out),io([dot(int(1))],in)))-> -} N5108
+ ) 
+
+N5122 =   (  {- tau(link(io([dot(int(1))],out),io([dot(int(1))],in)))-> -} N5123
+ )  [] out.1->N5121
+
+
+N5123 = in.0->N5124
+ [] in.1->N5125
+ [] out.1->N5108
+
+
+N5124 = out.1->N5109
+
+
+N5125 = out.1->N5110
+
+
+N5126 =   (  {- tau(link(io([dot(int(1))],out),io([dot(int(1))],in)))-> -} N5127
+ ) 
+
+N5127 =   (  {- tau(link(io([dot(int(0))],out),io([dot(int(0))],in)))-> -} N5128
+ )  [] out.0->N5114
+
+
+N5128 = in.0->N5133
+ [] in.1->N5134
+ [] out.0->N5117
+
+
+N5129 = in.0->N5119
+ [] in.1->N5127
+ [] out.0->N5130
+
+
+N5130 = in.0->N5121
+ [] in.1->N5114
+
+
+N5131 = out.0->N5109
+
+
+N5132 = out.0->N5110
+
+
+N5133 = out.0->N5118
+
+
+N5134 = out.0->N5126
+
+
+-- end of ProB Encoding
+

@@ -1,0 +1,18 @@
+
+fib(n) = if n<2 then
+            1
+         else
+         	fib(n-1)+fib(n-2)
+         	
+channel out:{0..999999}
+channel out2:{0..}
+
+MAIN =  out!fib(2) -> out!fib(10) -> out!fib(20) -> out!fib(25) -> STOP
+
+-- 0.84 secs with ProB; 26060 calls per sec
+-- 6 seconds with FDR; 21891 recursive calls = 3649 calls per sec
+
+-- for fib(25) FDR seems to be faster ??  check
+-- for fib(25) about 5 seconds for ProB 
+-- 2*fib(25)-1 recursive calls =  242785; about 50,000 recursive calls per second
+-- (a simple Prolog vanilla interpreter can do 0.4 seconds; a direct Prolog impl. 0.03 seconds)

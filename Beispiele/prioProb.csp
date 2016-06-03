@@ -1,0 +1,3 @@
+channel out,e
+TestFact2 = out!(if true then e else 2) -> SKIP  -- Sollte ohne Klammern gehen
+TestFact2 = out!-e -> SKIP   

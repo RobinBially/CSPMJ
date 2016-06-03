@@ -1,0 +1,8 @@
+--Robin Bially
+{-TESTESTTEST-}
+
+datatype Bphils = p1 | p2 | p3
+
+channel think,eat,TakeLeftFork,TakeRightFork,DropFork: Bphils 
+
+MAIN = PHIL(p1) ||| PHIL2 ||| PHIL3

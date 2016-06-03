@@ -1,0 +1,4 @@
+ MAIN1 = Counter(n+2) [ left.i <-> right.(i%m)| i<-{1..n} ] Replicator
+ MAIN2 = Counter(2) [ left.1 <-> right.2 ] Replicator
+ MAIN3 = Counter(2) [ left.i <-> right.(i%m)| i<-{2..3} ] Replicator
+ MAIN4 = Counter(2) [[ left.2 <- left.12 | i<-{2..3}]]

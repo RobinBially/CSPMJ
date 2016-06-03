@@ -1,0 +1,6 @@
+channel link,out:{0..9}
+
+
+MAIN = [| {| link |} |] x:{1..3} @ P(x)
+
+P(x) = out!x -> P(x) [] link?z -> out!z -> P(x)

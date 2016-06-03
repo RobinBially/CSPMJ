@@ -1,0 +1,130 @@
+
+{-
+--
+Teste Kommentare
+
+-}
+
+---
+
+-- {-
+
+datatype baum = stamm.{1..3}.{k,w}| blatt.{42..}
+channel c : Int.Int
+datatype X = Y.Int.Bool
+nametype X = {0..1}.{0..1}
+subtype SubType = Y.Bool
+P = {<3,4>..<<{},{7,8%2}>,<6,9,8>,<>^<1,2>>}
+Q = {69,<>}
+--U = <>><>
+G = 1+Bool
+T = not 3 and 42 or false
+--K = 3<<>
+include "E:\OneDrive\Uni\Bachelorarbeit\sablecc-3.7\lib\CSPMparser.java"
+
+letwithin_test = 
+					let
+							Q = 1
+					within
+							P
+
+ifthentest =
+				if true or false
+				then
+						x->P 
+				else if true 
+				then P 
+				else Q
+				
+channel x, y : {0..1}.Bool
+nametype X = {1..}.{2,3}
+A(x) = c?t->c!b->A(x)
+B(y) = g?i:Bool->h$z->i$j.3:{1..3}->A(x) ||| B(x)
+B(y) = g?i:{}->B
+B(y) = c?x.1.2:{}->B
+RN = A(x) [[c<-c']]
+print head(<5..>)
+assert A [T= B
+assert A [F= B
+assert A [FD= B
+assert P :[deadlock free]
+assert P :[deadlock free [F]]
+assert P :[deadlock free [FD]]
+assert P :[divergence free]
+assert P :[divergence free [FD]]
+assert P :[deterministic]
+assert P :[deterministic [F]]
+assert P :[deterministic [FD]]
+assert P :[livelock free]
+assert P :[has trace]: <a, b, c>
+assert P :[has trace [F]]: <a, b, c>
+assert P :[has trace[T]]: <a, b, c>
+assert P :[has trace [FD]]: <a, b, c>
+assert STOP |~| a -> STOP :[has trace [F]]: <a>
+MAP = (| 9 => 4 |)
+emptymap = (| |)
+U = d?x?y:{1..3} -> P
+O = d$x?y -> P(x,y)
+U = c$x -> P(x)
+O = d?x.y -> P(x,y)
+U = d?x!False -> P(x)
+O = d?x : {0.True, 1.False} -> P(x)
+U = c?x : {0} -> P(x)
+O = c?x -> P(x)
+P(ch,<>) = SKIP
+P(ch,x) = ch.head(x) -> P(ch,tail(x))
+P1 = P(c,x1)
+procs = <P(i,<1,2,3>),P(c,<>)>
+Procs(<>) = STOP
+Procs(ps) = head(ps);Procs(tail(ps))
+Procs1 = Procs(procs)
+assert Procs1 [T= i.1->i.2->i.3->c.false -> STOP
+T = a->b->c->STOP 
+test = [] op : {1} @ P 
+test = [] op : {1} @ true & [] i : op @ STOP
+MAIN = GETSET [| {|get|} |] GEN(0)
+f(x.red) = f(x-1.green)
+f(x.green) = f(x-1.red)
+X = A [] B
+X = A [{}||{}]B
+module A
+   X = 2
+   Y = X + 2
+exports
+   Z = 2 + Y + X
+endmodule
+
+Timed(OneStep){
+   P = a -> P
+}
+P' = a -> tock -> P' [] tock -> P'
+
+SYSTEM = SERVICE
+[
+{|board37A,alight37A,alight37B,board111A,alight111A,alight111B,pay70,pay90|}
+|| 
+{|board37A,alight37A,alight37B,board111A,alight111A,alight111B,pay70,pay90|}
+]PASS
+
+LPHILS(n) =
+  let
+    L(0) =
+      FORK [right<->left] PHIL
+    L(n) =
+      let
+        HALF = LPHILS(n-1)
+      within HALF [right<->left] HALF
+--    transparent normal  -- transparent only allowed at toplevel
+  within normal(L(n) [[ ]])
+  
+ f(x.red) = f(x-1.green)
+ 
+Alpha(i) = Union({{done},
+		  {| move_left.i-k | k <- {0, 1} |},
+		  {| move_right.i+k | k <- {0, 1} |},
+		  {| hop_left.i-k | k <- {0, 1, 2} |},
+		  {| hop_right.i+k | k <- {0, 1, 2} |}})
+		  
+len = #StartBoard-1
+
+assert P |= LTL :"(WF(~) & WF(~)) & (SF(~) or SF(~)) => f"

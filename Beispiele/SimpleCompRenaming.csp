@@ -1,0 +1,8 @@
+channel left:{0..99}
+
+n = 30
+m = 7
+
+Counter(x) = if x>0 then left!x -> Counter(x-1) else SKIP
+
+MAIN = Counter(n+2) [[ left.i <- left.(i%m)| i<-{1..n} ]]
