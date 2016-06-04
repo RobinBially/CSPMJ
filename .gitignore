@@ -1,6 +1,7 @@
 #Not Ignored
 !cmdu.exe
 
+
 # Windows image file caches
 Thumbs.db
 ehthumbs.db
@@ -17,8 +18,11 @@ CSPMparser/
 *.msi
 *.msm
 *.msp
-*.jar
 *.exe
+
+# Java Files
+*.class
+*.jar
 
 # Windows shortcuts
 *.lnk
