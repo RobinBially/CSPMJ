@@ -10,6 +10,7 @@ Package CSPMparser;
 Helpers
 
 	all = [0 .. 0xFFFF];
+	all_wq = [all - '"'];
 	dangle_l = 0x00AB;
 	dangle_r = 0x00BB;
 	chars = [all- ['''+'"']];
@@ -19,7 +20,7 @@ Helpers
 	lowc = ['a' .. 'z'];
 	letter = (highc | lowc | '_');
 	letter_digits = (letter|digits);	
-	fp = (letter_digits|'\'|':'|'/'|'.'|'-');
+	
     tab = 9;
     cr = 13;
     lf = 10;
@@ -154,28 +155,12 @@ Tokens
 	plus 			=  '+';
 	minus		    =  '-';
 	
-	/*LTL Operators*/
-	g 				= 'G';
-	f  				= 'F';
-	h 				= 'H';
-	x				= 'X';
-	y 				= 'Y';
-	u				= 'U';
-	w 				= 'W';
-	r				= 'R';
-	o 				= 'O';
-	s 				= 'S';
-	t				= 'T';
-	wf				= 'WF';
-	sf				= 'SF';
-	wef 			= 'WEF'|'wef';
-	sef				= 'SEF'|'sef';
 //---------------------------------------------------------------------------------------	
 	/*Strings*/ 
-	number 			= '0' | first_digit  digits*;
+	number 			= '0' | first_digit digits*;
 	identifier 		= letter letter_digits* '''*;
 	nl				= eol;
-	path			= '"' fp+ '"';
+	all_in_quotes	= '"' all_wq* '"';
 	blank			= blank*;
 
 	
@@ -476,52 +461,15 @@ rep_pred_stmt 		= 	 bool_exp;
 assertion = 	 {tra_mod} assert [l]:proc1 tra_mod [r]:proc1
 				|{fm} assert [l]:proc1 fail_mod [r]:proc1
 				|{fd} assert [l]:proc1 fail_div [r]:proc1
-				|{ltl} assert [l]:proc1 pipe_equals ltl ddot assert_ltl
-			//	|{ctl} assert [l]:proc1 pipe_equals ctl ddot assert_ctl
+				|{ltl} assert proc1 pipe_equals ltl ddot all_in_quotes
+				|{ctl} assert proc1 pipe_equals ctl ddot all_in_quotes
 				|{dl_free} assertion_dl
 				|{div_free} assertion_div
 				|{det} assertion_det
 				|{live_free} assertion_ll
 				|{has_trace} assertion_ht
 				|{negated_assertion} not assertion;
-			
-assert_ltl 	= 	[lq]:quote ltl0 [rq]:quote;
-ltl0		=	 {implicaton} ltl0 imp_r ltl1
-				|{l1} ltl1;
-ltl1		=	 {or} ltl1 or ltl2
-				|{l2} ltl2; 
-ltl2		= 	 {and} ltl2 guard ltl3
-				|{l3} ltl3;
-ltl3 		=	 {trigger} ltl3 r ltl4
-				|{release} ltl3 t ltl4 
-				|{l4} ltl4;
-ltl4		=	 {weak_until} ltl4 w ltl5
-				|{l5} ltl5;
-ltl5 		=	 {since} ltl5 s ltl6
-				|{until} ltl5 u ltl6
-				|{l6} ltl6;
-ltl6		=	 {yesterday} y ltl6
-				|{next}	x ltl6
-				|{l7} ltl7;
-ltl7		=	 {once} o ltl7
-				|{finally} f ltl7
-				|{l8} ltl8;
-ltl8		=	 {globally} g ltl8
-				|{history} h ltl8
-				|{l9} ltl9;
-ltl9		=	 {not} not ltl9
-				|{l10} ltl10;
-ltl10		=	 {par} par_l ltl0 par_r
-				|{weak_fairness} wf par_l operation par_r
-				|{strong_fairness} sf par_l operation par_r
-				|{l11} ltl11;						
-ltl11		=	 {wef_allop} wef
-				|{sef_allop} sef
-				|{true_false} true_false
-				|{id} id2;
 
-operation 	= tilde;
-//assert_ctl =
 			
 assertion_dl =  	  {dl_main} assert proc1 dp_bracket dl_free bracket_r
 					 |{fm} assert proc1 dp_bracket dl_free f_mod bracket_r
@@ -549,9 +497,8 @@ time =  timed par_l proc1 par_r brace_l defs brace_r;
 module = mod_defs id [ls]:defs exports [rs]:defs endmodule;
 //---------------------------------------------------------------------------------------
 /*Include File if path is valid*/
-include_file = include path;	
+include_file = include all_in_quotes;	
 //---------------------------------------------------------------------------------------
-id		= {id} identifier
-		  |{g}g|{f}f|{h}h|{x}x|{y}y|{u}u|{w}w |{r}r|{o}o|{s}s|{t}t|{wf}wf
-		  |{sf}sf|{wef}wef|{sef}sef|{ltl}ltl|{ctl}ctl; //anything but ltl/ctl
-id2 	= identifier;
+id		=  {id} identifier
+		  |{ltl}ltl|{ctl}ctl;
+id2 	=  identifier;

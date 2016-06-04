@@ -75,9 +75,11 @@ public int parseFilesInFolder(File folder, Boolean help)
 					newstream = se.editTokens();
 					StringReader sr = new StringReader(newstream);
 					BufferedReader br = new BufferedReader(sr); 
-					Lexer l = new Lexer(new PushbackReader(br,20000));
+					Lexer l = new Lexer(new PushbackReader(br,100000));
 					Parser p = new Parser(l);
 					Start tree = p.parse();
+					Typechecker ts = new Typechecker();
+					tree.apply(ts);
 					if(help)
 					System.out.println("\nParsing für "+fileEntry.getName()+" erfolgreich.\n");
 					else
@@ -91,6 +93,7 @@ public int parseFilesInFolder(File folder, Boolean help)
 					int spalte = Integer.parseInt(pos[1]);
 					String h = sync(zeile,spalte,e);
 					throw new RuntimeException("\n"+h);
+				//	throw new RuntimeException("\n"+e.getMessage());
 				}
 			}
 		}
@@ -109,9 +112,11 @@ public void parseFile(String s, Boolean help)
 		newstream = se.editTokens();
 		StringReader sr = new StringReader(newstream);
 		BufferedReader br = new BufferedReader(sr); 
-		Lexer l = new Lexer(new PushbackReader(br,16384));
+		Lexer l = new Lexer(new PushbackReader(br,100000));
 		Parser p = new Parser(l);
 		Start tree = p.parse();
+		Typechecker ts = new Typechecker();
+		tree.apply(ts);
 		System.out.println("\nIhr CSP_M-Code konnte erfolgreich geparst werden.");
 
 	} 	

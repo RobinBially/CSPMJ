@@ -127,4 +127,5 @@ Alpha(i) = Union({{done},
 		  
 len = #StartBoard-1
 
-assert P |= LTL :"(WF(~) & WF(~)) & (SF(~) or SF(~)) => f"
+assert P |= LTL : "true"
+assert P |= CTL : "true & false => AX deadlock"

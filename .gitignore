@@ -12,6 +12,7 @@ Desktop.ini
 # Recycle Bin used on file shares
 $RECYCLE.BIN/
 CSPMparser/
+ltl_ctl/
 
 # Windows Installer files
 *.cab
