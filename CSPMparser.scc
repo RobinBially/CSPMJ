@@ -174,7 +174,7 @@ Tokens
 	/*Strings*/ 
 	number 			= '0' | first_digit  digits*;
 	identifier 		= letter letter_digits* '''*;
-	newline			= eol;
+	nl				= eol;
 	path			= '"' fp+ '"';
 	blank			= blank*;
 
@@ -186,7 +186,7 @@ Productions
 
 defs 		 =	 {many_lines} def_nl+ def_no_nl?
 				|{one_line} def_no_nl;
-def_nl 		 =	 def? newline;
+def_nl 		 =	 def? nl;
 def_no_nl 	 =	 def;
 def			 =	 {expression} expression 
 				|{include_file} include_file
@@ -286,8 +286,8 @@ proc9 		= 	 {seq_comp} proc9 semicolon proc10
 proc10		= 	 {guard_exp} event guard proc10
 				|{prefix} event prefix proc10
 				|{lambda_term} b_slash arguments at proc10
-				|{let_within} let defs within proc10
-				|{if_else} if bool_exp then proc1 else proc10
+				|{let_within} let defs within nl? proc10
+				|{if_else} if bool_exp [a]:nl? [b]:then [c]:nl? proc1 [d]:nl? else [e]:nl? proc10
 				|{rep} rep proc10
 				|{p11} proc11;				
 proc11 		=	 {renaming} proc11 dbracket_l rename_comp dbracket_r

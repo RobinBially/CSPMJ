@@ -12,9 +12,9 @@ public class StreamEdit
 {
 	public String s;
 	public Boolean help;
-	public StreamEdit(String ts, Boolean h)
+	public StreamEdit(String tokenstream, Boolean h)
 	{
-		s = ts;
+		s = tokenstream;
 		help = h;
 	}
 	
@@ -22,36 +22,16 @@ public class StreamEdit
 	public String editTokens()
 	{
 		String newstream = deleteNewlines();
-		//newstream = replaceSequentialPars(newstream);
 		printNewStream(newstream);
 		return newstream;
 	}
 		
-
-/*	public String replaceSequentialPars(String edit)
-	{		
-		String teststring = "<5<(<3><<4>><5>),(<5>)>";
 	
-		teststring = teststring.replaceAll(",\u0020*<",",~<~");
-		teststring = teststring.replaceAll(">\u0020*,","~>~,");
-		teststring = teststring.replaceAll("=\u0020*<","= ~<~");
-		teststring = teststring.replaceAll(">\u0020*(\r|\n)+","~>~\n");
-		teststring = teststring.replaceAll(">\u0020*\\)","~>~\\)");
-		teststring = teststring.replaceAll("\\(\u0020*<","\\(~<~");
-		teststring = teststring.replaceAll("<(^>|^<)*~>~","~<~(^>|^<)*~>~");
-		teststring = teststring.replaceAll("<\\u0020*(^>|^<)\\u0020*<","");
-	    teststring = teststring.replaceAll("<\\u0020*(^>|^<)\\u0020*<","");
-		System.out.println(teststring);
-		return teststring;
-		
-	}*/
-	
-	
-	public void printNewStream(String tokenstream)
+	public void printNewStream(String stream)
 	{
 		if(help)
 		{
-			char[] ca = tokenstream.toCharArray();
+			char[] ca = stream.toCharArray();
 			int i = 1;
 			int j = 0;
 			System.out.print("Line "+i+": ");
@@ -88,55 +68,46 @@ public class StreamEdit
 	
 	public String deleteNewlines()
 	{
-		String tokenstream = getStringFromFile(s);		
-		String newStr = tokenstream;
-		
-		
-		//Löschen von Kommentaren
-		newStr = deleteComments(newStr);
-				
-		/*Rekursives Löschen von whitespaces 
-		*zwischen/vor/hinter newlines bis keine Änderung mehr auftritt*
-		*Außerdem Löschen von doppelten Vorkommen von newlines*/
-		Boolean replaceable = tokenstream.contains("\t");
+		String ts = getStringFromFile(s);		
+	
+		//Delete comments
+		ts = deleteComments(ts);
+		//Delete Tabs	
+		ts = ts.replaceAll("\t","");
+			
+		Boolean replaceable = false;
 		Boolean replaceable2 = false;
 		Boolean replaceable3 = false;
 	
-		while(replaceable)
-		{
-			newStr = newStr.replace("\t", "");
-			replaceable = newStr.contains("\t");
-		}
-			
 		//Löschen von überflüssigem whitespace vor und hinter newlines
-		replaceable = containsLeftNewline(newStr);
+		replaceable = containsLeftNewline(ts);
 		while(replaceable)
 		{	
-			newStr = newStr.replace("\r\n ", "\r\n");	
-			newStr = newStr.replace("\r ", "\r");	
-			newStr = newStr.replace("\n ", "\n");				
-			replaceable = containsLeftNewline(newStr);
+			ts = ts.replace("\r\n ", "\r\n");	
+			ts = ts.replace("\r ", "\r");	
+			ts = ts.replace("\n ", "\n");				
+			replaceable = containsLeftNewline(ts);
 		}
 		
-		replaceable2 = containsRightNewline(newStr); 
+		replaceable2 = containsRightNewline(ts); 
 		while(replaceable2) 						
 		{
-			newStr = newStr.replace(" \r\n", "\r\n");
-			newStr = newStr.replace(" \r", "\r");
-			newStr = newStr.replace(" \n", "\n");
-			replaceable2 = containsRightNewline(newStr);
+			ts = ts.replace(" \r\n", "\r\n");
+			ts = ts.replace(" \r", "\r");
+			ts = ts.replace(" \n", "\n");
+			replaceable2 = containsRightNewline(ts);
 		}
 				
 		//Löschen von doppelten Newline-Zeichen
-		replaceable3 = containsDoubleNewline(newStr);
+		replaceable3 = containsDoubleNewline(ts);
 		while(replaceable3)
 		{
-			newStr = newStr.replace("\r\n\r\n","\r\n");
-			newStr = newStr.replace("\r\r","\r");
-			newStr = newStr.replace("\n\n","\n");
-			replaceable3 = containsDoubleNewline(newStr);
+			ts = ts.replace("\r\n\r\n","\r\n");
+			ts = ts.replace("\r\r","\r");
+			ts = ts.replace("\n\n","\n");
+			replaceable3 = containsDoubleNewline(ts);
 		}
-		tokenstream = newStr;
+
 				
 		//Löschen von newlines vor Operatoren und Zeichen
 		ArrayList<String> op_before = new ArrayList<String>();
@@ -153,9 +124,9 @@ public class StreamEdit
 			String cr = "\r"+op_before.get(i);
 			String lf = "\n"+op_before.get(i);
 			
-			tokenstream = tokenstream.replace(crlf," "+op_before.get(i));
-			tokenstream = tokenstream.replace(cr," "+op_before.get(i));
-			tokenstream = tokenstream.replace(lf," "+op_before.get(i));
+			ts = ts.replace(crlf,""+op_before.get(i));
+			ts = ts.replace(cr,""+op_before.get(i));
+			ts = ts.replace(lf,""+op_before.get(i));
 		}
 				
 		//Löschen von newlines hinter Operatoren und Zeichen
@@ -165,8 +136,6 @@ public class StreamEdit
 		op_behind.add("<");
 		op_behind.add("{");
 		op_behind.add("[[");
-		op_behind.add("let");
-		op_behind.add("within");
 		op_behind.add(":");
 		op_behind.add(",");
 		op_behind.add("=");
@@ -178,16 +147,13 @@ public class StreamEdit
 			String cr = op_behind.get(i)+"\r";
 			String lf = op_behind.get(i)+"\n";
 			
-			tokenstream = tokenstream.replace(crlf,op_behind.get(i)+" ");
-			tokenstream = tokenstream.replace(cr,op_behind.get(i)+" ");
-			tokenstream = tokenstream.replace(lf,op_behind.get(i)+" ");
+			ts = ts.replace(crlf,op_behind.get(i)+"");
+			ts = ts.replace(cr,op_behind.get(i)+"");
+			ts = ts.replace(lf,op_behind.get(i)+"");
 		}
-
 		
 		//Löschen von newlines hinter und vor allen unären Operatoren
 		ArrayList<String> binop = new ArrayList<String>();	
-		binop.add("then");
-		binop.add("else");
 		binop.add("|");
 		binop.add("||");
 		binop.add("|]");
@@ -197,8 +163,6 @@ public class StreamEdit
 		binop.add(">=");
 		binop.add("==");
 		binop.add("!=");
-	//	binop.add("and");
-	//	binop.add("or");
 		binop.add("+");
 		binop.add("*");
 		binop.add("/");
@@ -216,8 +180,7 @@ public class StreamEdit
 		binop.add(".");
 		binop.add("<-");
 		binop.add("@@");
-		
-		
+			
 		for(int i = 0; i<binop.size();i++)
 		{
 			String crlf_before = "\r\n"+binop.get(i);
@@ -228,15 +191,15 @@ public class StreamEdit
 			String cr_behind = binop.get(i)+"\r";
 			String lf_behind = binop.get(i)+"\n";
 
-			tokenstream = tokenstream.replace(crlf_before," "+binop.get(i));
-			tokenstream = tokenstream.replace(cr_before," "+binop.get(i));
-			tokenstream = tokenstream.replace(lf_before," "+binop.get(i));
-			tokenstream = tokenstream.replace(crlf_behind,binop.get(i)+" ");
-			tokenstream = tokenstream.replace(cr_behind,binop.get(i)+" ");
-			tokenstream = tokenstream.replace(lf_behind,binop.get(i)+" ");
+			ts = ts.replace(crlf_before,""+binop.get(i));
+			ts = ts.replace(cr_before,""+binop.get(i));
+			ts = ts.replace(lf_before,""+binop.get(i));
+			ts = ts.replace(crlf_behind,binop.get(i)+"");
+			ts = ts.replace(cr_behind,binop.get(i)+"");
+			ts = ts.replace(lf_behind,binop.get(i)+"");
 		}
 
-		return tokenstream;		
+		return ts;		
 	}
 	
 	//Deletes content in range l-r in Chararray
@@ -248,6 +211,7 @@ public class StreamEdit
 		}
 		return q;
 	}
+
 	
 	public String deleteComments(String ts)
 	{
@@ -260,9 +224,13 @@ public class StreamEdit
 			if(c[i] == '{' && c[i+1] == '-')
 			{
 				int v = 0;
+				int count_crlf = 0;
+				int count_cr = 0;
+				int count_lf = 0;
 				boolean b = true;
 				while(b)
 				{
+
 					if(c[i+v] == '-' && c[i+v+1] == '}')
 					{
 						c = delRange(i,i+v+1,c);
@@ -366,9 +334,5 @@ public class StreamEdit
 			{return true;}
 			else {return false;}
 	}
-	
-	public static void main(String[] args)
-	{
-		
-	}
+
 }
