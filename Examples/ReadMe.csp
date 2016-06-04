@@ -2,23 +2,3 @@ channel ReadMe
 MAIN = ReadMe->STOP
 
 -- Check out the examples provided for a feel what is already supported
-
--- Things that are not yet implemented are:
---  * Set operations (union,...)
---  * sequence comprehensions, pattern matching with ^
---  * linked parallel
---  * CHAOS
---  * Replicated operators
---  * Tuples
---  * nametypes   (in protocol.fix.csp)
---  * Lambda Terms
-
--- Also the parser currently does not support:
---  * using the same symbol in two different ways (e.g., x as a channel and Process name)
---  * using the same variable twice inside a Process:  ch?x -> ch?x -> ...
-
--- The enumeration of input values does not yet
---   support non-injective renaming functions (i.e., input values that are hidden by
---   the renaming will not be enumerated)
-   
-  

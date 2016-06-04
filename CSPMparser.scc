@@ -1,6 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * A Parser for CSP in JAVA                           		  *
- * CSPMJ V0.1.160603										  *
+ * CSPMJ V0.1.1606XX										  *
  *															  *
  * robin.bially@hhu.de		                                  *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -89,7 +89,6 @@ Tokens
 	not 			= 'not';
 	error			= 'error';
 	show			= 'show';
-
 //---------------------------------------------------------------------------------------
 	comma 			= ',';
 	apo 			= ''';
@@ -154,7 +153,6 @@ Tokens
 	mul_div_mod 	=  '*' |'/' | '%';
 	plus 			=  '+';
 	minus		    =  '-';
-	
 //---------------------------------------------------------------------------------------	
 	/*Strings*/ 
 	number 			= '0' | first_digit digits*;
@@ -192,7 +190,7 @@ clause  		= [clause_name]:id dotted?;
 dotted  		= dot type_exp;
 typedef_rek 	= pipe clause;
 
-ntype = n_type id eq type_exp;	  
+ntype 			= n_type id eq type_exp;	  
 //---------------------------------------------------------------------------------------
 /*Creation of Channels*/
 chan 		= channel id chan_rek?;
