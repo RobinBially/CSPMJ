@@ -78,22 +78,30 @@ public int parseFilesInFolder(File folder, Boolean help)
 					Lexer l = new Lexer(new PushbackReader(br,100000));
 					Parser p = new Parser(l);
 					Start tree = p.parse();
-					Typechecker ts = new Typechecker();
-					tree.apply(ts);
+					TreeLogicChecker tlc = new TreeLogicChecker();
+					tree.apply(tlc);
 					if(help)
 					System.out.println("\nParsing für "+fileEntry.getName()+" erfolgreich.\n");
 					else
 					System.out.println("Parsing für "+fileEntry.getName()+" erfolgreich.\n");
 					i++;
+//					Typechecker ts = new Typechecker();
+//					tree.apply(ts);
 				} 	
 				catch (Exception e) 
 				{
-					String[] pos = getPosFromException(e);
-					int zeile  = Integer.parseInt(pos[0]);
-					int spalte = Integer.parseInt(pos[1]);
-					String h = sync(zeile,spalte,e);
-					throw new RuntimeException("\n"+h);
-				//	throw new RuntimeException("\n"+e.getMessage());
+					if(e.getMessage().startsWith("["))
+					{
+						String[] pos = getPosFromException(e);
+						int zeile  = Integer.parseInt(pos[0]);
+						int spalte = Integer.parseInt(pos[1]);
+						String h = sync(zeile,spalte,e);
+						throw new RuntimeException("\n"+h);
+					}
+					else
+					{
+						throw new RuntimeException("\n"+e.getMessage());
+					}
 				}
 			}
 		}
@@ -115,18 +123,26 @@ public void parseFile(String s, Boolean help)
 		Lexer l = new Lexer(new PushbackReader(br,100000));
 		Parser p = new Parser(l);
 		Start tree = p.parse();
-		Typechecker ts = new Typechecker();
-		tree.apply(ts);
+		TreeLogicChecker tlc = new TreeLogicChecker();
+		tree.apply(tlc);
+//		Typechecker ts = new Typechecker();
+//		tree.apply(ts);
 		System.out.println("\nIhr CSP_M-Code konnte erfolgreich geparst werden.");
-
 	} 	
 	catch (Exception e) 
 	{
-		String[] pos = getPosFromException(e);
-		int zeile  = Integer.parseInt(pos[0]);
-		int spalte = Integer.parseInt(pos[1]);
-		String h = sync(zeile,spalte,e);
-		throw new RuntimeException("\n"+h);
+		if(e.getMessage().startsWith("["))
+		{
+			String[] pos = getPosFromException(e);
+			int zeile  = Integer.parseInt(pos[0]);
+			int spalte = Integer.parseInt(pos[1]);
+			String h = sync(zeile,spalte,e);
+			throw new RuntimeException("\n"+h);
+		}
+		else
+		{
+			throw new RuntimeException("\n"+e.getMessage());
+		}
 	}		
 }
 

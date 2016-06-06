@@ -1,1 +1,5 @@
-include "/Users/leuschel/svn_root/NewProB/prolog/trunk/examples/CSP/mydemos/SimpleInterruptTimeout.csp"
+x = 1+2
+y = -2
+z = 5>4
+a = 5<4
+c = 5 == 3

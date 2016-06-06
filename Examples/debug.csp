@@ -17,9 +17,8 @@ subtype SubType = Y.Bool
 P = {<3,4>..<<{},{7,8%2}>,<6,9,8>,<>^<1,2>>}
 Q = {69,<>}
 --U = <>><>
-G = 1+Bool
-T = not 3 and 42 or false
---K = 3<<>
+G = 1+2
+T = not true and 3>4 or false
 include "E:\OneDrive\Uni\Bachelorarbeit\sablecc-3.7\lib\CSPMparser.java"
 
 letwithin_test = 
@@ -87,12 +86,12 @@ f(x.red) = f(x-1.green)
 f(x.green) = f(x-1.red)
 X = A [] B
 X = A [{}||{}]B
-module A
+{- module A
    X = 2
    Y = X + 2
 exports
    Z = 2 + Y + X
-endmodule
+endmodule-}
 
 Timed(OneStep){
    P = a -> P
@@ -105,7 +104,7 @@ SYSTEM = SERVICE
 || 
 {|board37A,alight37A,alight37B,board111A,alight111A,alight111B,pay70,pay90|}
 ]PASS
-
+{-
 LPHILS(n) =
   let
     L(0) =
@@ -125,7 +124,7 @@ Alpha(i) = Union({{done},
 		  {| hop_left.i-k | k <- {0, 1, 2} |},
 		  {| hop_right.i+k | k <- {0, 1, 2} |}})
 		  
-len = #StartBoard-1
+len = #StartBoard-1	-}
 
 assert P |= LTL : "true"
 assert P |= CTL : "true & false => AX deadlock"

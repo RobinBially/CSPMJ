@@ -10,10 +10,9 @@ Package CSPMparser;
 Helpers
 
 	all = [0 .. 0xFFFF];
-	all_wq = [all - '"'];
 	dangle_l = 0x00AB;
 	dangle_r = 0x00BB;
-	chars = [all- ['''+'"']];
+	char = [all- ['''+'"']];
 	digits = ['0' .. '9'];
 	first_digit = [digits - '0'];
 	highc = ['A' .. 'Z'];
@@ -81,7 +80,7 @@ Tokens
 	exports			= 'exports';
 	endmodule		= 'endmodule';
 	proc 			= 'Proc';
-	char			= 'Char'; 
+	char_const		= 'Char'; 
 	int 			= 'Int';
 	and 			= 'and';
 	or 				= 'or';
@@ -158,7 +157,8 @@ Tokens
 	number 			= '0' | first_digit digits*;
 	identifier 		= letter letter_digits* '''*;
 	nl				= eol;
-	all_in_quotes	= '"' all_wq* '"';
+	string			= '"' char* '"';
+	char			= ''' char ''';
 	blank			= blank*;
 
 	
@@ -268,7 +268,7 @@ proc9 		= 	 {seq_comp} proc9 semicolon proc10
 				|{p10} proc10; 
 proc10		= 	 {guard_exp} event guard proc10
 				|{prefix} event prefix proc10
-				|{lambda_term} b_slash arguments at proc10
+				|{lambda_term} b_slash arguments at proc10 
 				|{let_within} let defs within nl? proc10
 				|{if_else} if bool_exp [a]:nl? [b]:then [c]:nl? proc1 [d]:nl? else [e]:nl? proc10
 				|{rep} rep proc10
@@ -286,10 +286,13 @@ event2 		= 	 {qm} event2 q_mark dot_op
 dot_op 		=	 {dot} dot_op dot colon
 				|{ss} colon;			
 colon 		= 	 {colon} bool_exp ddot atom 
-				|{bool} bool_exp;
-bool_exp 	= 	 {or} bool_exp or bool_exp2 | {c16} bool_exp2;
-bool_exp2 	= 	 {and} bool_exp2 and bool_exp3 |{c17} bool_exp3; 		
-bool_exp3 	= 	 {not} not bool_exp3 |{c18} bool_exp4;
+				|{bool_exp} bool_exp;
+bool_exp 	= 	 {or} bool_exp or bool_exp2 
+				|{bool_exp2} bool_exp2;
+bool_exp2 	= 	 {and} bool_exp2 and bool_exp3 
+				|{bool_exp3} bool_exp3; 		
+bool_exp3 	= 	 {not} not bool_exp3 
+				|{bool_exp4} bool_exp4;
 bool_exp4 	= 	 {equal} bool_exp4 equal val_exp
 				|{ordering_lge} bool_exp4 lge val_exp
 				|{ordering_less} bool_exp4 tria_l val_exp 
@@ -298,17 +301,20 @@ bool_exp4 	= 	 {equal} bool_exp4 equal val_exp
 val_exp 	= 	 {addition} val_exp plus val_exp1 
 				|{subtraction} val_exp minus val_exp1
 				|{val_exp1} val_exp1; 			  			
-val_exp1 	= 	 {multiplication} val_exp1 mul_div_mod val_exp2 |{c21} val_exp2;
+val_exp1 	= 	 {multiplication} val_exp1 mul_div_mod val_exp2 
+				|{val_exp2} val_exp2;
 val_exp2 	= 	 {un_minus} minus val_exp2 
 				|{sequence0} sequence0;		
 sequence0	= 	 {len} hash sequence0 | {sequence1} sequence1;
 sequence1 	=	 {cat} sequence1 cat par | {par} par;
-par 		= 	 {par} par_l proc1 par_r func_id_rek*
+par 		= 	 {par} par_l proc1 par_r func_id_rek?
 				|{atom} atom;
 atom 		= 	 {true_false} true_false	 
 				|{num} number
 				|{sequence} sequence
-				|{char_const} char
+				|{char_const} char_const
+				|{string} string
+				|{char} char
 				|{tuple} tuple
 				|{set} set
 				|{map} map
@@ -459,8 +465,8 @@ rep_pred_stmt 		= 	 bool_exp;
 assertion = 	 {tra_mod} assert [l]:proc1 tra_mod [r]:proc1
 				|{fm} assert [l]:proc1 fail_mod [r]:proc1
 				|{fd} assert [l]:proc1 fail_div [r]:proc1
-				|{ltl} assert proc1 pipe_equals ltl ddot all_in_quotes
-				|{ctl} assert proc1 pipe_equals ctl ddot all_in_quotes
+				|{ltl} assert proc1 pipe_equals ltl ddot string
+				|{ctl} assert proc1 pipe_equals ctl ddot string
 				|{dl_free} assertion_dl
 				|{div_free} assertion_div
 				|{det} assertion_det
@@ -495,8 +501,7 @@ time =  timed par_l proc1 par_r brace_l defs brace_r;
 module = mod_defs id [ls]:defs exports [rs]:defs endmodule;
 //---------------------------------------------------------------------------------------
 /*Include File if path is valid*/
-include_file = include all_in_quotes;	
+include_file = include string;	
 //---------------------------------------------------------------------------------------
 id		=  {id} identifier
 		  |{ltl}ltl|{ctl}ctl;
-id2 	=  identifier;
