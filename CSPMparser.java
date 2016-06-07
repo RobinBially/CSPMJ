@@ -16,6 +16,7 @@ public class CSPMparser
 {
 public String newstream;
 public String currentFile;
+public int workcount;
 
 public String getExtension(String filename)
 {
@@ -68,29 +69,37 @@ public int parseFilesInFolder(File folder, Boolean help)
 				System.out.println("Analysiere Syntax für "+fileEntry.getName()+":");
 				else
 				System.out.println("Analysiere Syntax für "+fileEntry.getName()+"...");
+				workcount = 0;
 				try 
 				{
 					StreamEdit se = new StreamEdit(fileEntry.toString(),help);
 					currentFile = getStringFromFile(fileEntry.toString());
 					newstream = se.editTokens();
+					workcount++;
 					StringReader sr = new StringReader(newstream);
 					BufferedReader br = new BufferedReader(sr); 
 					Lexer l = new Lexer(new PushbackReader(br,100000));
 					Parser p = new Parser(l);
 					Start tree = p.parse();
+					workcount++;
 					TreeLogicChecker tlc = new TreeLogicChecker();
 					tree.apply(tlc);
+					workcount++;
 					if(help)
 					System.out.println("\nParsing für "+fileEntry.getName()+" erfolgreich.\n");
 					else
 					System.out.println("Parsing für "+fileEntry.getName()+" erfolgreich.\n");
 					i++;
-//					Typechecker ts = new Typechecker();
-//					tree.apply(ts);
+			//		Typechecker ts = new Typechecker();
+			//		tree.apply(ts);
 				} 	
 				catch (Exception e) 
 				{
-					if(e.getMessage().startsWith("["))
+					if(workcount == 0)//Error in StreamEdit
+					{
+						throw new RuntimeException("\n"+e.getMessage());
+					}
+					else if(workcount == 1) //Parsing Error
 					{
 						String[] pos = getPosFromException(e);
 						int zeile  = Integer.parseInt(pos[0]);
@@ -98,7 +107,7 @@ public int parseFilesInFolder(File folder, Boolean help)
 						String h = sync(zeile,spalte,e);
 						throw new RuntimeException("\n"+h);
 					}
-					else
+					else if(workcount > 1)
 					{
 						throw new RuntimeException("\n"+e.getMessage());
 					}
@@ -113,35 +122,43 @@ public int parseFilesInFolder(File folder, Boolean help)
 public void parseFile(String s, Boolean help)
 {
 	System.out.println("Analysiere Syntax:");
+	workcount = 0;
 	try 
 	{							
 		StreamEdit se = new StreamEdit(s, help);
 		currentFile = getStringFromFile(s);
 		newstream = se.editTokens();
+		workcount++;
 		StringReader sr = new StringReader(newstream);
 		BufferedReader br = new BufferedReader(sr); 
 		Lexer l = new Lexer(new PushbackReader(br,100000));
 		Parser p = new Parser(l);
 		Start tree = p.parse();
+		workcount++;
 		TreeLogicChecker tlc = new TreeLogicChecker();
 		tree.apply(tlc);
+		workcount++;
 //		Typechecker ts = new Typechecker();
 //		tree.apply(ts);
 		System.out.println("\nIhr CSP_M-Code konnte erfolgreich geparst werden.");
 	} 	
 	catch (Exception e) 
 	{
-		if(e.getMessage().startsWith("["))
+		if(workcount == 0)//Error in StreamEdit
+		{
+			throw new RuntimeException("\nworkcount 0: "+e.getMessage());
+		}
+		else if(workcount == 1) //Parsing Error
 		{
 			String[] pos = getPosFromException(e);
 			int zeile  = Integer.parseInt(pos[0]);
 			int spalte = Integer.parseInt(pos[1]);
 			String h = sync(zeile,spalte,e);
-			throw new RuntimeException("\n"+h);
+			throw new RuntimeException("\n\nworkcount 1: "+h);
 		}
-		else
+		else if(workcount > 1)
 		{
-			throw new RuntimeException("\n"+e.getMessage());
+			throw new RuntimeException("\nworkcount >1: "+e.getMessage());
 		}
 	}		
 }

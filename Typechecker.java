@@ -614,13 +614,71 @@ public class Typechecker extends DepthFirstAdapter
     }
 
 
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
     @Override
     public void caseAGuardExpProc10(AGuardExpProc10 node)
     {
         inAGuardExpProc10(node);
-        if(node.getEvent() != null)
+        if(node.getDotOp() != null)
         {
-            node.getEvent().apply(this);
+            node.getDotOp().apply(this);
+			if(!(nodeMap.get(node.getDotOp()).toString().equals("bool")))
+			{
+				throw new RuntimeException("TypeError, expecting 'bool' at: "
+											+node.toString());
+			}
         }
         if(node.getGuard() != null)
         {
@@ -629,10 +687,17 @@ public class Typechecker extends DepthFirstAdapter
         if(node.getProc10() != null)
         {
             node.getProc10().apply(this);
+			if(!(nodeMap.get(node.getProc10()).toString().equals("proc")))
+			{
+				throw new RuntimeException("TypeError, expecting 'proc' at: "
+											+node.toString());
+			}
         }
+		nodeMap.put(node,"proc");
+		nodeMap.remove(node.getProc10());
+		nodeMap.remove(node.getDotOp());
         outAGuardExpProc10(node);
     }
-
 
     @Override
     public void caseAPrefixProc10(APrefixProc10 node)
@@ -641,6 +706,11 @@ public class Typechecker extends DepthFirstAdapter
         if(node.getEvent() != null)
         {
             node.getEvent().apply(this);
+			if(!(nodeMap.get(node.getEvent()).toString().equals("event")))
+			{
+				throw new RuntimeException("TypeError, expecting 'event' at: "
+											+node.toString());
+			}
         }
         if(node.getPrefix() != null)
         {
@@ -649,7 +719,15 @@ public class Typechecker extends DepthFirstAdapter
         if(node.getProc10() != null)
         {
             node.getProc10().apply(this);
+			if(!(nodeMap.get(node.getProc10()).toString().equals("proc")))
+			{
+				throw new RuntimeException("TypeError, expecting 'proc' at: "
+											+node.toString());
+			}
         }
+		nodeMap.put(node,"proc");
+		nodeMap.remove(node.getProc10());
+		nodeMap.remove(node.getEvent());
         outAPrefixProc10(node);
     }
 
@@ -677,7 +755,6 @@ public class Typechecker extends DepthFirstAdapter
         outALambdaTermProc10(node);
     }
 
-
     @Override
     public void caseALetWithinProc10(ALetWithinProc10 node)
     {
@@ -701,7 +778,14 @@ public class Typechecker extends DepthFirstAdapter
         if(node.getProc10() != null)
         {
             node.getProc10().apply(this);
+			if(!(nodeMap.get(node.getProc10()).toString().equals("proc")))
+			{
+				throw new RuntimeException("TypeError, expecting 'proc' at:"
+										+node.toString());
+			}
         }
+		nodeMap.put(node,"proc");
+		nodeMap.remove(node.getProc10());
         outALetWithinProc10(node);
     }
 
@@ -717,42 +801,60 @@ public class Typechecker extends DepthFirstAdapter
         if(node.getBoolExp() != null)
         {
             node.getBoolExp().apply(this);
+			if(!(nodeMap.get(node.getBoolExp()).toString().equals("bool")))
+			{
+				throw new RuntimeException("TypeError, expecting 'bool' at: "
+										+node.toString());
+			}
         }
         if(node.getA() != null)
         {
             node.getA().apply(this);
         }
+		if(node.getThen() != null)
+        {
+            node.getThen().apply(this);
+        }
         if(node.getB() != null)
         {
             node.getB().apply(this);
+        }
+        if(node.getProc1() != null)
+        {
+            node.getProc1().apply(this);
+			if(!(nodeMap.get(node.getProc1()).toString().equals("proc")))
+			{
+				throw new RuntimeException("TypeError, expecting 'proc' at:"
+										+node.toString());
+			}
         }
         if(node.getC() != null)
         {
             node.getC().apply(this);
         }
-        if(node.getProc1() != null)
+        if(node.getElse() != null)
         {
-            node.getProc1().apply(this);
+            node.getElse().apply(this);
         }
         if(node.getD() != null)
         {
             node.getD().apply(this);
         }
-        if(node.getElse() != null)
-        {
-            node.getElse().apply(this);
-        }
-        if(node.getE() != null)
-        {
-            node.getE().apply(this);
-        }
         if(node.getProc10() != null)
         {
             node.getProc10().apply(this);
+			if(!(nodeMap.get(node.getProc10()).toString().equals("proc")))
+			{
+				throw new RuntimeException("TypeError, expecting 'proc' at:"
+										+node.toString());
+			}
         }
+		nodeMap.put(node,"proc");
+		nodeMap.remove(node.getProc1());
+		nodeMap.remove(node.getBoolExp());
+		nodeMap.remove(node.getProc10());
         outAIfElseProc10(node);
     }
-
 
     @Override
     public void caseARepProc10(ARepProc10 node)
@@ -765,7 +867,14 @@ public class Typechecker extends DepthFirstAdapter
         if(node.getProc10() != null)
         {
             node.getProc10().apply(this);
+			if(!(nodeMap.get(node.getProc10()).toString().equals("proc")))
+			{
+				throw new RuntimeException("TypeError, expecting 'proc' at:"
+										+node.toString());
+			}
         }
+		nodeMap.put(node,"proc");
+		nodeMap.remove(node.getProc10());
         outARepProc10(node);
     }
 
@@ -777,6 +886,8 @@ public class Typechecker extends DepthFirstAdapter
         if(node.getProc11() != null)
         {
             node.getProc11().apply(this);
+			nodeMap.put(node, nodeMap.get(node.getProc11()));
+			nodeMap.remove(node.getProc11());
         }
         outAP11Proc10(node);
     }
@@ -789,6 +900,11 @@ public class Typechecker extends DepthFirstAdapter
         if(node.getProc11() != null)
         {
             node.getProc11().apply(this);
+			if(!(nodeMap.get(node.getProc11()).toString().equals("proc")))
+			{
+				throw new RuntimeException("TypeError, expecting 'proc' at:"
+										+node.toString());
+			}
         }
         if(node.getDbracketL() != null)
         {
@@ -802,6 +918,8 @@ public class Typechecker extends DepthFirstAdapter
         {
             node.getDbracketR().apply(this);
         }
+		nodeMap.put(node, "proc");
+		nodeMap.remove(node.getProc11());
         outARenamingProc11(node);
     }
 
@@ -813,6 +931,11 @@ public class Typechecker extends DepthFirstAdapter
         if(node.getProc11() != null)
         {
             node.getProc11().apply(this);
+			if(!(nodeMap.get(node.getProc11()).toString().equals("proc")))
+			{
+				throw new RuntimeException("TypeError, expecting 'proc' at:"
+										+node.toString());
+			}
         }
         if(node.getDbracketL() != null)
         {
@@ -822,82 +945,98 @@ public class Typechecker extends DepthFirstAdapter
         {
             node.getDbracketR().apply(this);
         }
+		nodeMap.put(node, "proc");
+		nodeMap.remove(node.getProc11());
         outAERenamingProc11(node);
     }
-
-
-    @Override
+	
+	@Override
     public void caseAEventProc11(AEventProc11 node)
     {
         inAEventProc11(node);
         if(node.getEvent() != null)
         {
             node.getEvent().apply(this);
+			nodeMap.put(node, node.getEvent());
+			nodeMap.remove(node.getEvent());
         }
         outAEventProc11(node);
     }
-
-
-    @Override
-    public void caseADollarEvent(ADollarEvent node)
-    {
-        inADollarEvent(node);
-        if(node.getEvent() != null)
-        {
-            node.getEvent().apply(this);
-        }
-        if(node.getDollar() != null)
-        {
-            node.getDollar().apply(this);
-        }
-        if(node.getEvent2() != null)
-        {
-            node.getEvent2().apply(this);
-        }
-        outADollarEvent(node);
-    }
-
+	
+//End Procs
+//***************************************************************************************
+//***************************************************************************************
+//***************************************************************************************
+//***************************************************************************************
 
     @Override
-    public void caseAEvent2Event(AEvent2Event node)
+    public void caseAEventEvent(AEventEvent node)
     {
-        inAEvent2Event(node);
-        if(node.getEvent2() != null)
-        {
-            node.getEvent2().apply(this);
-        }
-        outAEvent2Event(node);
-    }
-
-
-    @Override
-    public void caseAQmEvent2(AQmEvent2 node)
-    {
-        inAQmEvent2(node);
-        if(node.getEvent2() != null)
-        {
-            node.getEvent2().apply(this);
-        }
-        if(node.getQMark() != null)
-        {
-            node.getQMark().apply(this);
-        }
+        inAEventEvent(node);
+		int i = 0;
+		int j = 0;
         if(node.getDotOp() != null)
         {
             node.getDotOp().apply(this);
         }
-        outAQmEvent2(node);
+        {
+            List<PField1> copy = new ArrayList<PField1>(node.getField1());
+            for(PField1 e : copy)
+            {
+				i++;
+                e.apply(this);
+            }
+        }
+        {
+            List<PField2> copy = new ArrayList<PField2>(node.getField2());
+            for(PField2 e : copy)
+            {
+				j++;
+                e.apply(this);
+            }
+        }
+		if(i == 0 && j == 0)
+		{
+			nodeMap.put(node, nodeMap.get(node.getDotOp()));
+			nodeMap.remove(node.getDotOp());
+		}
+        outAEventEvent(node);
     }
 
+    @Override
+    public void caseANondetRestField1(ANondetRestField1 node)
+    {
+        inANondetRestField1(node);
+        if(node.getDollar() != null)
+        {
+            node.getDollar().apply(this);
+        }
+        if(node.getDotRest() != null)
+        {
+            node.getDotRest().apply(this);
+        }
+        outANondetRestField1(node);
+    }
 
     @Override
-    public void caseAExEvent2(AExEvent2 node)
+    public void caseAInputRestField2(AInputRestField2 node)
     {
-        inAExEvent2(node);
-        if(node.getEvent2() != null)
+        inAInputRestField2(node);
+        if(node.getQMark() != null)
         {
-            node.getEvent2().apply(this);
+            node.getQMark().apply(this);
         }
+        if(node.getDotRest() != null)
+        {
+            node.getDotRest().apply(this);
+        }
+        outAInputRestField2(node);
+    }
+
+    @Override
+    public void caseAOutputField2(AOutputField2 node)
+    {
+        inAOutputField2(node);
         if(node.getExclMark() != null)
         {
             node.getExclMark().apply(this);
@@ -906,21 +1045,72 @@ public class Typechecker extends DepthFirstAdapter
         {
             node.getDotOp().apply(this);
         }
-        outAExEvent2(node);
+        outAOutputField2(node);
     }
-
 
     @Override
-    public void caseADotOpEvent2(ADotOpEvent2 node)
+    public void caseADotRestDotRest(ADotRestDotRest node)
     {
-        inADotOpEvent2(node);
-        if(node.getDotOp() != null)
+        inADotRestDotRest(node);
+        if(node.getBoolExp() != null)
         {
-            node.getDotOp().apply(this);
+            node.getBoolExp().apply(this);
         }
-        outADotOpEvent2(node);
+        if(node.getDot() != null)
+        {
+            node.getDot().apply(this);
+        }
+        if(node.getDotRest() != null)
+        {
+            node.getDotRest().apply(this);
+        }
+        outADotRestDotRest(node);
     }
 
+    @Override
+    public void caseARestDotRest(ARestDotRest node)
+    {
+        inARestDotRest(node);
+        if(node.getRestricted() != null)
+        {
+            node.getRestricted().apply(this);
+			nodeMap.put(node, nodeMap.get(node.getRestricted()));
+			nodeMap.remove(node.getRestricted());
+        }
+        outARestDotRest(node);
+    }
+
+    @Override
+    public void caseABoolExpDotRest(ABoolExpDotRest node)
+    {
+        inABoolExpDotRest(node);
+        if(node.getBoolExp() != null)
+        {
+            node.getBoolExp().apply(this);
+			nodeMap.put(node, nodeMap.get(node.getBoolExp()));
+			nodeMap.remove(node.getBoolExp());
+        }
+        outABoolExpDotRest(node);
+    }
+
+    @Override
+    public void caseARestricted(ARestricted node)
+    {
+        inARestricted(node);
+        if(node.getBoolExp() != null)
+        {
+            node.getBoolExp().apply(this);
+        }
+        if(node.getDdot() != null)
+        {
+            node.getDdot().apply(this);
+        }
+        if(node.getAtom() != null)
+        {
+            node.getAtom().apply(this);
+        }
+        outARestricted(node);
+    }
 
     @Override
     public void caseADotDotOp(ADotDotOp node)
@@ -934,65 +1124,41 @@ public class Typechecker extends DepthFirstAdapter
         {
             node.getDot().apply(this);
         }
-        if(node.getColon() != null)
+        if(node.getBoolExp() != null)
         {
-            node.getColon().apply(this);
+            node.getBoolExp().apply(this);
         }
         outADotDotOp(node);
     }
-
 
     @Override
     public void caseASsDotOp(ASsDotOp node)
     {
         inASsDotOp(node);
-        if(node.getColon() != null)
+        if(node.getBoolExp() != null)
         {
-            node.getColon().apply(this);
+            node.getBoolExp().apply(this);
+			nodeMap.put(node, nodeMap.get(node.getBoolExp()));
+			nodeMap.remove(node.getBoolExp());
         }
         outASsDotOp(node);
     }
-
-
-    @Override
-    public void caseAColonColon(AColonColon node)
-    {
-        inAColonColon(node);
-        if(node.getBoolExp() != null)
-        {
-            node.getBoolExp().apply(this);
-        }
-        if(node.getDdot() != null)
-        {
-            node.getDdot().apply(this);
-        }
-        if(node.getAtom() != null)
-        {
-            node.getAtom().apply(this);
-        }
-        outAColonColon(node);
-    }
-
-
-    @Override
-    public void caseABoolExpColon(ABoolExpColon node)
-    {
-        inABoolExpColon(node);
-        if(node.getBoolExp() != null)
-        {
-            node.getBoolExp().apply(this);
-        }
-        outABoolExpColon(node);
-    }
-
 
     @Override
     public void caseAOrBoolExp(AOrBoolExp node)
     {
         inAOrBoolExp(node);
+		String a = "";
+		String b = "";
         if(node.getBoolExp() != null)
         {
             node.getBoolExp().apply(this);
+			a = nodeMap.get(node.getBoolExp()).toString();
+			if(!a.equals("bool"))
+			{
+				throw new RuntimeException("TypeError, expecting: 'bool' or 'bool'"+
+												"at: "+node.toString());
+			}
         }
         if(node.getOr() != null)
         {
@@ -1001,7 +1167,16 @@ public class Typechecker extends DepthFirstAdapter
         if(node.getBoolExp2() != null)
         {
             node.getBoolExp2().apply(this);
+			b = nodeMap.get(node.getBoolExp2()).toString();
+			if(!b.equals("bool"))
+			{
+				throw new RuntimeException("TypeError, expecting: 'bool' or 'bool'"+
+												"at: "+node.toString());
+			}
         }
+		nodeMap.put(node,"bool");
+		nodeMap.remove(node.getBoolExp());
+		nodeMap.remove(node.getBoolExp2());
         outAOrBoolExp(node);
     }
 
@@ -1013,6 +1188,8 @@ public class Typechecker extends DepthFirstAdapter
         if(node.getBoolExp2() != null)
         {
             node.getBoolExp2().apply(this);
+			nodeMap.put(node,nodeMap.get(node.getBoolExp2()));
+			nodeMap.remove(node.getBoolExp2());
         }
         outABoolExp2BoolExp(node);
     }
@@ -1022,9 +1199,17 @@ public class Typechecker extends DepthFirstAdapter
     public void caseAAndBoolExp2(AAndBoolExp2 node)
     {
         inAAndBoolExp2(node);
+		String a = "";
+		String b = "";
         if(node.getBoolExp2() != null)
         {
             node.getBoolExp2().apply(this);
+			a = nodeMap.get(node.getBoolExp2()).toString();
+			if(!(a.equals("bool")))
+			{
+				throw new RuntimeException("TypeError, expecting: 'bool' and 'bool'"+
+												"at: "+node.toString());
+			}
         }
         if(node.getAnd() != null)
         {
@@ -1033,7 +1218,16 @@ public class Typechecker extends DepthFirstAdapter
         if(node.getBoolExp3() != null)
         {
             node.getBoolExp3().apply(this);
+			b = nodeMap.get(node.getBoolExp3()).toString();
+			if(!(b.equals("bool")))
+			{
+				throw new RuntimeException("TypeError, expecting: 'bool' and 'bool'"+
+												"at: "+node.toString());
+			}
         }
+		nodeMap.put(node,"bool");
+		nodeMap.remove(node.getBoolExp2());
+		nodeMap.remove(node.getBoolExp3());
         outAAndBoolExp2(node);
     }
 
@@ -1045,12 +1239,13 @@ public class Typechecker extends DepthFirstAdapter
         if(node.getBoolExp3() != null)
         {
             node.getBoolExp3().apply(this);
+			nodeMap.put(node,nodeMap.get(node.getBoolExp3()));
+			nodeMap.remove(node.getBoolExp3());
         }
         outABoolExp3BoolExp2(node);
     }
 
-
-    @Override
+	@Override
     public void caseANotBoolExp3(ANotBoolExp3 node)
     {
         inANotBoolExp3(node);
@@ -1061,10 +1256,17 @@ public class Typechecker extends DepthFirstAdapter
         if(node.getBoolExp3() != null)
         {
             node.getBoolExp3().apply(this);
+			String a = nodeMap.get(node.getBoolExp3()).toString();
+			if(!(a.equals("bool")))
+			{
+				throw new RuntimeException("TypeError, expecting: not 'bool'"+
+												"at: "+node.toString());
+			}
         }
+		nodeMap.put(node,"bool");
+		nodeMap.remove(node.getBoolExp3());
         outANotBoolExp3(node);
     }
-
 
     @Override
     public void caseABoolExp4BoolExp3(ABoolExp4BoolExp3 node)
@@ -1073,16 +1275,12 @@ public class Typechecker extends DepthFirstAdapter
         if(node.getBoolExp4() != null)
         {
             node.getBoolExp4().apply(this);
+			nodeMap.put(node,nodeMap.get(node.getBoolExp4()));
+			nodeMap.remove(node.getBoolExp4());
         }
         outABoolExp4BoolExp3(node);
     }
 
-
-	
-//***************************************************************************************
-//***************************************************************************************
-//***************************************************************************************	
-	
     @Override
     public void caseAEqualBoolExp4(AEqualBoolExp4 node)
     {
@@ -1107,6 +1305,12 @@ public class Typechecker extends DepthFirstAdapter
 				throw new RuntimeException("TypeError: Everything but 'proc' supported.");
 			}
         }
+		String a = nodeMap.get(node.getValExp()).toString();
+		String b = nodeMap.get(node.getBoolExp4()).toString();
+		if(!(b.equals(a)))
+		{
+			throw new RuntimeException("Different Types at: "+node.toString());
+		}
 		nodeMap.put(node, "bool");
 		nodeMap.remove(node.getValExp());
 		nodeMap.remove(node.getBoolExp4());
@@ -1126,7 +1330,7 @@ public class Typechecker extends DepthFirstAdapter
 				|| help.equals("int") || help.equals("char")))
 			{
 				throw new RuntimeException("TypeError, expecting:"+
-				"(|a=>b|), <a>, {a}, int, char");
+				"(|a=>b|), <a>, {a}, int, char, at: "+node.toString());
 			}
         }
         if(node.getLge() != null)
@@ -1141,9 +1345,15 @@ public class Typechecker extends DepthFirstAdapter
 				|| help.equals("int") || help.equals("char")))
 			{
 				throw new RuntimeException("TypeError, expecting:"+
-				"(|a=>b|), <a>, {a}, int, char");
+				"(|a=>b|), <a>, {a}, int, char, at: "+node.toString());
 			}
         }
+		String a = nodeMap.get(node.getValExp()).toString();
+		String b = nodeMap.get(node.getBoolExp4()).toString();
+		if(!(b.equals(a)))
+		{
+			throw new RuntimeException("Different Types at: "+node.toString());
+		}
 		nodeMap.put(node,"bool");
 		nodeMap.remove(node.getValExp());
 		nodeMap.remove(node.getBoolExp4());
@@ -1163,7 +1373,7 @@ public class Typechecker extends DepthFirstAdapter
 				|| help.equals("int") || help.equals("char")))
 			{
 				throw new RuntimeException("TypeError, expecting:"+
-				"(|a=>b|), <a>, {a}, int, char");
+				"(|a=>b|), <a>, {a}, int, char, at: "+node.toString());
 			}
         }
         if(node.getTriaL() != null)
@@ -1178,13 +1388,14 @@ public class Typechecker extends DepthFirstAdapter
 				|| help.equals("int") || help.equals("char")))
 			{
 				throw new RuntimeException("TypeError, expecting:"+
-				"(|a=>b|), <a>, {a}, int, char ");
+				"(|a=>b|), <a>, {a}, int, char, at: "+node.toString());
 			}
         }
-		if(!(nodeMap.get(node.getValExp()).toString()
-			.equals(nodeMap.get(node.getBoolExp4()).toString())))
+		String a = nodeMap.get(node.getValExp()).toString();
+		String b = nodeMap.get(node.getBoolExp4()).toString();
+		if(!(b.equals(a)))
 		{
-			throw new RuntimeException("Different types!");
+			throw new RuntimeException("Different Types at: "+node.toString());
 		}
 		nodeMap.put(node,"bool");
 		nodeMap.remove(node.getValExp());
@@ -1206,7 +1417,7 @@ public class Typechecker extends DepthFirstAdapter
 				|| help.equals("int") || help.equals("char")))
 			{
 				throw new RuntimeException("TypeError, expecting:"+
-				"(|a=>b|), <a>, {a}, int, char ");
+				"(|a=>b|), <a>, {a}, int, char, at: "+node.toString());
 			}
         }
         if(node.getTriaR() != null)
@@ -1221,13 +1432,14 @@ public class Typechecker extends DepthFirstAdapter
 				|| help.equals("int") || help.equals("char")))
 			{
 				throw new RuntimeException("TypeError, expecting:"+
-				"(|a=>b|), <a>, {a}, int, char ");
+				"(|a=>b|), <a>, {a}, int, char, at: "+node.toString());
 			}
         }
-		if(!(nodeMap.get(node.getValExp()).toString()
-			.equals(nodeMap.get(node.getBoolExp4()).toString())))
+		String a = nodeMap.get(node.getValExp()).toString();
+		String b = nodeMap.get(node.getBoolExp4()).toString();
+		if(!(b.equals(a)))
 		{
-			throw new RuntimeException("Different types!");
+			throw new RuntimeException("Different Types at: "+node.toString());
 		}
 		nodeMap.put(node,"bool");
 		nodeMap.remove(node.getValExp());
@@ -1258,7 +1470,7 @@ public class Typechecker extends DepthFirstAdapter
             node.getValExp().apply(this);
 			if(!(nodeMap.get(node.getValExp()).toString().equals("int")))
 			{
-				throw new RuntimeException("TypeError, expecting: 'int'");
+				throw new RuntimeException("TypeError, expecting: 'int' at: "+node.toString());
 			}
         }
         if(node.getPlus() != null)
@@ -1270,7 +1482,7 @@ public class Typechecker extends DepthFirstAdapter
             node.getValExp1().apply(this);
 			if(!(nodeMap.get(node.getValExp1()).toString().equals("int")))
 			{
-				throw new RuntimeException("TypeError, expecting: 'int'");
+				throw new RuntimeException("TypeError, expecting: 'int' at: "+node.toString());
 			}
         }
 		nodeMap.put(node,"int");
@@ -1289,7 +1501,7 @@ public class Typechecker extends DepthFirstAdapter
             node.getValExp().apply(this);
 			if(!nodeMap.get(node.getValExp()).toString().equals("int"))
 			{
-				throw new RuntimeException("TypeError, expecting: 'int'");
+				throw new RuntimeException("TypeError, expecting: 'int' at: "+node.toString());
 			}
         }
         if(node.getMinus() != null)
@@ -1301,7 +1513,7 @@ public class Typechecker extends DepthFirstAdapter
             node.getValExp1().apply(this);
 			if(!nodeMap.get(node.getValExp1()).toString().equals("int"))
 			{
-				throw new RuntimeException("TypeError, expecting: 'int'");
+				throw new RuntimeException("TypeError, expecting: 'int' at: "+node.toString());
 			}
         }
 		nodeMap.put(node,"int");
@@ -1334,7 +1546,7 @@ public class Typechecker extends DepthFirstAdapter
             node.getValExp1().apply(this);
 			if(!nodeMap.get(node.getValExp1()).toString().equals("int"))
 			{
-				throw new RuntimeException("TypeError, expecting: 'int'");
+				throw new RuntimeException("TypeError, expecting: 'int' at: "+node.toString());
 			}
         }
         if(node.getMulDivMod() != null)
@@ -1346,7 +1558,7 @@ public class Typechecker extends DepthFirstAdapter
             node.getValExp2().apply(this);		
 			if(!nodeMap.get(node.getValExp1()).toString().equals("int"))
 			{
-				throw new RuntimeException("TypeError, expecting: 'int'");
+				throw new RuntimeException("TypeError, expecting: 'int' at: "+node.toString());
 			}
         }
 		nodeMap.put(node,"int");
@@ -1387,7 +1599,7 @@ public class Typechecker extends DepthFirstAdapter
 			}
 			else
 			{
-				throw new RuntimeException("TypeError, expecting: 'int'");
+				throw new RuntimeException("TypeError, expecting: 'int' at: "+node.toString());
 			}
         }
         outAUnMinusValExp2(node);
@@ -1425,7 +1637,7 @@ public class Typechecker extends DepthFirstAdapter
 			}
 			else
 			{
-				throw new RuntimeException("TypeError, expecting: '<a>'");
+				throw new RuntimeException("TypeError, expecting: <a> at: "+node.toString());
 			}
         }
         outALenSequence0(node);
@@ -1450,9 +1662,15 @@ public class Typechecker extends DepthFirstAdapter
     public void caseACatSequence1(ACatSequence1 node)
     {
         inACatSequence1(node);
+		String a = nodeMap.get(node.getPar()).toString();
+		String b = nodeMap.get(node.getSequence1()).toString();
         if(node.getSequence1() != null)
         {
             node.getSequence1().apply(this);
+			if(!(a.startsWith("<")))
+			{
+				throw new RuntimeException("TypeError, expecting: <a> at: "+node.toString());
+			}		
         }
         if(node.getCat() != null)
         {
@@ -1461,17 +1679,22 @@ public class Typechecker extends DepthFirstAdapter
         if(node.getPar() != null)
         {
             node.getPar().apply(this);
-			if(nodeMap.get(node.getPar()).equals(nodeMap.get(node.getSequence1())))
+			if(!(b.startsWith("<")))
 			{
-				nodeMap.put(node, nodeMap.get(node.getPar()));
-				nodeMap.remove(node.getSequence1());
-				nodeMap.remove(node.getPar());
+				throw new RuntimeException("TypeError, expecting: <a> at: "+node.toString());
 			}
-			else
-			{
-				throw new RuntimeException("TypeError, expecting: <a>^<a>");
-			}
+
         }
+		if(a.equals(b))
+		{
+			nodeMap.put(node, nodeMap.get(node.getPar()));
+			nodeMap.remove(node.getSequence1());
+			nodeMap.remove(node.getPar());
+		}
+		else
+		{
+			throw new RuntimeException("Different Types at: "+node.toString());
+		}
         outACatSequence1(node);
     }
 
@@ -1586,7 +1809,7 @@ public class Typechecker extends DepthFirstAdapter
 		if(count == 0)
 		{
 			nodeMap.put(node, nodeMap.get(node.getId()));
-			nodeMap.remove(nodeMap.get(node.getId()));
+			nodeMap.remove(node.getId());
 		}
         outAFuncId(node);
     }

@@ -211,36 +211,19 @@ func_id_rek			=	par_l arguments par_r;
 //---------------------------------------------------------------------------------------
 /*Creation of Expressions*/	
 
-expression  =	 {new_def} func_id eq proc1		
-				|{stop_override} stop func_id_rek* eq proc1 			
-				|{skip_override} skip func_id_rek* eq proc1			
-				|{chaos_override} chaos func_id_rek* eq proc1			
-				|{div_override} div	func_id_rek* eq proc1			
-				|{wait_override} wait func_id_rek* eq proc1			
-				|{run_override} run	func_id_rek* eq proc1			
-				|{member_override} member func_id_rek* eq proc1			
-				|{empty_override} empty func_id_rek* eq proc1			
-				|{null_override} null func_id_rek* eq proc1		
-				|{boolc_override} bool_c func_id_rek* eq proc1			
-				|{boolf_override} bool_f func_id_rek* eq proc1			
-				|{union_override} union func_id_rek* eq proc1 			
-				|{inter_override} inter func_id_rek* eq proc1			
-				|{diff_override} diff func_id_rek* eq proc1			
-				|{union2_override} union2 func_id_rek* eq proc1			
-				|{inter2_override} inter2 func_id_rek* eq proc1			
-				|{card_override} card func_id_rek* eq proc1		
-				|{events_override} events func_id_rek* eq proc1			
-				|{set2_override} set2 func_id_rek* eq proc1			
-				|{head_override} head func_id_rek* eq proc1			
-				|{tail_override} tail func_id_rek* eq proc1			
-				|{concat_override} concat func_id_rek* eq proc1			
-				|{set1_override} set1 func_id_rek* eq proc1			
-				|{seq_override} seq func_id_rek* eq proc1			
-				|{length_override} length func_id_rek* eq proc1			
-				|{proc_override} proc func_id_rek* eq proc1			
-				|{error_override} error	func_id_rek* eq proc1		
-				|{show_override} show func_id_rek* eq proc1;
-	
+expression  =	 {new_def} func_id eq proc1	
+				|{override} override;
+override 	= 	 {stop} stop override2 |{skip} skip override2 |{chaos} chaos override2			
+				|{div} div	override2 |{wait} wait override2 |{run} run	override2			
+				|{member} member override2 |{empty} empty override2	|{null} null override2		
+				|{boolc} bool_c override2 |{boolf} bool_f override2	|{union} union override2 			
+				|{inter} inter override2 |{diff} diff override2	|{union2} union2 override2			
+				|{inter2} inter2 override2 |{card} card override2 |{events} events override2			
+				|{set2} set2 override2 |{head} head override2 |{tail} tail override2			
+				|{concat} concat override2 |{set1} set1 override2 |{seq} seq override2			
+				|{length} length override2 |{proc} proc override2 |{error} error override2		
+				|{show} show override2;
+override2	= 	func_id_rek* eq proc1;	
 	
 proc1 		=  	 {double_pattern} proc1 doubleat proc2 
 				|{p2} proc2;
@@ -266,27 +249,28 @@ proc8 		= 	 {sliding_choice} proc8 timeout proc9
 				|{p9} proc9;
 proc9 		= 	 {seq_comp} proc9 semicolon proc10 
 				|{p10} proc10; 
-proc10		= 	 {guard_exp} event guard proc10
+proc10		= 	 {guard_exp} dot_op guard proc10
 				|{prefix} event prefix proc10
 				|{lambda_term} b_slash arguments at proc10 
 				|{let_within} let defs within nl? proc10
-				|{if_else} if bool_exp [a]:nl? [b]:then [c]:nl? proc1 [d]:nl? else [e]:nl? proc10
+				|{if_else} if bool_exp [a]:nl? then [b]:nl? proc1 [c]:nl? else [d]:nl? proc10
 				|{rep} rep proc10
 				|{p11} proc11;				
 proc11 		=	 {renaming} proc11 dbracket_l rename_comp dbracket_r
 				|{e_renaming} proc11 dbracket_l dbracket_r
 				|{event} event;
-							
-							
-event 		= 	 {dollar} event dollar event2
-				|{event2} event2;
-event2 		= 	 {qm} event2 q_mark dot_op
-				|{ex} event2 excl_mark dot_op
-				|{dot_op} dot_op;
-dot_op 		=	 {dot} dot_op dot colon
-				|{ss} colon;			
-colon 		= 	 {colon} bool_exp ddot atom 
+			
+event 		= 	 {event} dot_op field1* field2*;				
+field1 		= 	 {nondet_rest} dollar dot_rest;
+field2		=	 {input_rest} q_mark dot_rest
+				|{output} excl_mark dot_op;
+dot_rest 	= 	 {dot_rest} bool_exp dot dot_rest 
+				|{rest} restricted
 				|{bool_exp} bool_exp;
+restricted  =	  bool_exp ddot atom;
+dot_op 		=	 {dot} dot_op dot bool_exp
+				|{ss} bool_exp;				
+				
 bool_exp 	= 	 {or} bool_exp or bool_exp2 
 				|{bool_exp2} bool_exp2;
 bool_exp2 	= 	 {and} bool_exp2 and bool_exp3 
