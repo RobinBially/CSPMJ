@@ -206,8 +206,7 @@ type_exps  		= 	 comma type_exp;
 
 //---------------------------------------------------------------------------------------
 //Create a function or an identifier		 
-func_id     		=	id func_id_rek*;
-func_id_rek			=	par_l arguments par_r;
+func_id     		=	id tuple*;
 //---------------------------------------------------------------------------------------
 /*Creation of Expressions*/	
 
@@ -223,7 +222,7 @@ override 	= 	 {stop} stop override2 |{skip} skip override2 |{chaos} chaos overri
 				|{concat} concat override2 |{set1} set1 override2 |{seq} seq override2			
 				|{length} length override2 |{proc} proc override2 |{error} error override2		
 				|{show} show override2;
-override2	= 	func_id_rek* eq proc1;	
+override2	= 	tuple* eq proc1;	
 	
 proc1 		=  	 {double_pattern} proc1 doubleat proc2 
 				|{p2} proc2;
@@ -251,7 +250,7 @@ proc9 		= 	 {seq_comp} proc9 semicolon proc10
 				|{p10} proc10; 
 proc10		= 	 {guard_exp} dot_op guard proc10
 				|{prefix} event prefix proc10
-				|{lambda_term} b_slash arguments at proc10 
+				|{lambda_term} b_slash inner_tuple at proc10 
 				|{let_within} let defs within nl? proc10
 				|{if_else} if bool_exp [a]:nl? then [b]:nl? proc1 [c]:nl? else [d]:nl? proc10
 				|{rep} rep proc10
@@ -290,16 +289,13 @@ val_exp1 	= 	 {multiplication} val_exp1 mul_div_mod val_exp2
 val_exp2 	= 	 {un_minus} minus val_exp2 
 				|{sequence0} sequence0;		
 sequence0	= 	 {len} hash sequence0 | {sequence1} sequence1;
-sequence1 	=	 {cat} sequence1 cat par | {par} par;
-par 		= 	 {par} par_l proc1 par_r func_id_rek?
-				|{atom} atom;
+sequence1 	=	 {cat} sequence1 cat atom | {atom} atom;
 atom 		= 	 {true_false} true_false	 
 				|{num} number
 				|{sequence} sequence
 				|{char_const} char_const
 				|{string} string
 				|{char} char
-				|{tuple} tuple
 				|{set} set
 				|{map} map
 				|{func_arithmetic} func_arithmetic
@@ -313,7 +309,13 @@ atom 		= 	 {true_false} true_false
 				|{show} show par_l proc1 par_r
 				|{chaos} chaos par_l event par_r
 				|{proc_const} proc
+				|{tuple} [tuple]:tuple [lambda]:tuple?
 				|{fid} func_id;
+//---------------------------------------------------------------------------------------
+/*(e1,e2,...,en) different types possible*/
+tuple 	 		=  {tuple} par_l inner_tuple par_r;
+inner_tuple 	=  {inner_start} proc1 comma inner_tuple
+				  |{inner_end} proc1;
 //---------------------------------------------------------------------------------------
 link_comp 			= [l]:event d_arr [r]:event link_comp_rek* comp_rek?;
 link_comp_rek 		= comma [l]:event d_arr [r]:event;
@@ -345,13 +347,11 @@ func_ret_bool  = 	 {member} member par_l [l]:bool_exp comma dot_op par_r
 					|{empty_const} empty
 					|{null_const} null;
 		
-//---------------------------------------------------------------------------------------
-					
+//---------------------------------------------------------------------------------------					
 /*Examples: <>, <v,w>, <1..3>,<4..>,<0..99/x|x<-<11>>*/	
-
 sequence =	 {empty_seq} tria_l tria_r
 			|{expl_seq} tria_l inner_sequence tria_r
-			|{list_comp} tria_l [l]:inner_sequence pipe stmts_seq tria_r
+			|{list_comp} tria_l inner_sequence pipe stmts_seq tria_r
 			|{cr_seq} tria_l [l]:val_exp dotdot [r]:val_exp tria_r
 			|{ran_comp} tria_l [l]:val_exp dotdot [r]:val_exp pipe stmts_seq tria_r
 			|{or_seq} tria_l val_exp dotdot tria_r
@@ -366,15 +366,14 @@ stmt_rek_seq 		=  {gs}comma [l]:val_exp arrow_l [r]:val_exp
 					  |{ps} comma pred_stmt_seq;
 pred_stmt_seq		=  val_exp; 
 
-		
-inner_sequence 		= {inner} inner_sequence comma val_exp
-					  |{end} val_exp;
+inner_sequence 			=  inner_sequence_rek;		
+inner_sequence_rek		=  {start} val_exp comma inner_sequence_rek
+						  |{end} val_exp;
 					  
 enum_seq 	  		=  tria_l [l]:pipe arguments [r]:pipe tria_r;
 seq_comp  			=  tria_l [l]:pipe arguments [m]:pipe stmts_set [r]:pipe tria_r;
 				 
-//---------------------------------------------------------------------------------------
-				 
+//---------------------------------------------------------------------------------------				 
 /*Examples: {v,w,x,y,z}, {m..n}, {m..},{x*2..64|x<-{8,4}}*/
 set = 	{empty_set} brace_l brace_r
 		|{set} brace_l arguments brace_r
@@ -418,15 +417,13 @@ enum_set   	    =  brace_l [l]:pipe arguments [r]:pipe brace_r;
 set_comp		=  brace_l [l]:pipe arguments [m]:pipe stmts_set [r]:pipe brace_r;
 
 //---------------------------------------------------------------------------------------
-arguments =  {arg_rek} arguments comma proc1 
-			|{arg_end} proc1;
+// e1,e2,...,en    all of type a!
+arguments		= arguments_rek;
+arguments_rek	=  {arg_start} proc1 comma arguments_rek
+				  |{arg_end} proc1;
 //---------------------------------------------------------------------------------------
 map	 =	  {map} par_l [lp]:pipe[le]:bool_exp imp_r [re]:bool_exp [rp]:pipe par_r
 		  |{emptymap} empty_map;
-//---------------------------------------------------------------------------------------
-/*(e1,e2,...,en)*/
-tuple 	 = par_l event tuple0+ par_r;
-tuple0	 = comma event;	 
 //---------------------------------------------------------------------------------------		 	 
 //ACHTUNG SET STATEMENTS -> id : {}
 rep = 			 {ext_choice} e_choice rep_stmts at
