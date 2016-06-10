@@ -8,12 +8,18 @@
 --c = 5!=5
 --d = true and false
 --e = a:b
-
 --a = {3,5,6,7,9}
 --b = {{true},{false}}
 --b = {{1},{true},{false,true}}
---a	= (3,{t},6,7,true)
+--a	= (3,{t},6,7,True)
 --a = <3>
---b = ({<3>},true,(test))
-b = (3,(3))
+--b = ({<3>},True,(test))
+--b = (3,(3))
+--b = ((3,(true,false)),(3),{(true,false)},<1..3>)
 --a = c?x:{z | z <- {1,2}}!((Y.0),true)?r:{z | z <- {1..10}, z%2==0}
+--a = show((1,2,(3),4),2,{True},(1,2,(3),4))
+--a = error("Dies ist ein Test")
+--a	= length({1,2,3})
+--a = Seq({3})
+--a = seq({True})
+a   = set(<{1,2},{3}>)

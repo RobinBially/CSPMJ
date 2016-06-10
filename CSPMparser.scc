@@ -29,8 +29,8 @@ Helpers
 	blank = (' '|tab);
 
 Tokens
-
-	/*Words*/
+//***************************************************************************************
+//Predefined functions and constants
 	stop 			= 'STOP';
 	skip 			= 'SKIP';
 	chaos 			= 'CHAOS';
@@ -40,27 +40,39 @@ Tokens
 	member 			= 'member';
 	empty 			= 'empty';
 	null 			= 'null';
-	bool_c			= 'Bool';
-	bool_f			= 'bool';
+	bool_const		= 'Bool';
+	bool_func		= 'bool';
+	diff 			= 'diff';
+	card 			= 'card';
+	events 			= 'Events';
+	head 			= 'head';
+	tail 			= 'tail';
+	concat 			= 'concat';
+	union1 			= 'union';
+	union2 			= 'Union';
+	inter1			= 'inter';
+	inter2 			= 'Inter';
+	set1 			= 'set';
+	set2 			= 'Set';
+	seq1 			= 'seq';
+	seq2			= 'Seq';
+	length 			= 'length';
+	proc 			= 'Proc';
+	char_const		= 'Char'; 
+	int_const 		= 'Int';
+	error			= 'error';
+	show			= 'show';
+	true_const		= 'True';
+	false_const		= 'False';
+	ltl				= 'LTL';
+	ctl				= 'CTL';
+//***************************************************************************************
+//CSPM command words	
 	if 				= 'if';
 	then 			= 'then';
 	else 			= 'else';
 	let 			= 'let';
 	within 			= 'within';
-	union 			= 'union';
-	inter 			= 'inter';
-	diff 			= 'diff';
-	union2 			= 'Union';
-	inter2 			= 'Inter';
-	card 			= 'card';
-	events 			= 'Events';
-	set2 			= 'Set';
-	head 			= 'head';
-	tail 			= 'tail';
-	concat 			= 'concat';
-	set1 			= 'set';
-	seq 			= 'seq';
-	length 			= 'length';
 	d_type 			= 'datatype';
 	s_type 			= 'subtype';
 	n_type 			= 'nametype';
@@ -79,15 +91,10 @@ Tokens
 	mod_defs		= 'module';	
 	exports			= 'exports';
 	endmodule		= 'endmodule';
-	proc 			= 'Proc';
-	char_const		= 'Char'; 
-	int 			= 'Int';
 	and 			= 'and';
 	or 				= 'or';
-	true_false 		= 'true' | 'false';
 	not 			= 'not';
-	error			= 'error';
-	show			= 'show';
+
 //---------------------------------------------------------------------------------------
 	comma 			= ',';
 	apo 			= ''';
@@ -147,8 +154,6 @@ Tokens
 	f_mod		    = '[F]'; 
 	f_div		    = '[FD]';
 	pipe_equals		= '|='; 
-	ltl				= 'LTL';
-	ctl				= 'CTL';
 	mul_div_mod 	=  '*' |'/' | '%';
 	plus 			=  '+';
 	minus		    =  '-';
@@ -205,24 +210,64 @@ type_exp2 		=  	 {set} set
 type_exps  		= 	 comma type_exp;
 
 //---------------------------------------------------------------------------------------
-//Create a function or an identifier		 
-func_id     		=	id tuple*;
+//Create a function or an identifier
+
+//  ACHTUNG: Aufteilung in tuple+ und !tuple muss erfolgen: tuple* führt dazu, dass
+//  keine Unterscheidung bei channel c erfolgen kann, z.B.:
+//  f::(<a>)->bool und f(<3>):: bool, dann wäre eine Funktion mit Argumenten als
+//  channel-Name erlaubt. Analyse des Namens an Ort und Stelle ist zu aufwändig.	
+	 
+func_id	=    {id} identifier tuple+
+			|{ltl} ltl tuple+
+			|{ctl} ctl tuple+
+			|{stop} stop tuple+
+			|{skip} skip tuple+
+			|{chaos} chaos tuple+		
+			|{div} div tuple+
+			|{wait} wait tuple+
+			|{run} run tuple+			
+			|{member} member tuple+
+			|{empty} empty tuple+
+			|{null} null tuple+	
+			|{bool_const} bool_const tuple+
+			|{bool_func} bool_func tuple+
+			|{union1} union1 tuple+			
+			|{inter1} inter1 tuple+
+			|{diff} diff tuple+
+			|{union2} union2 tuple+		
+			|{inter2} inter2 tuple+ 
+			|{card} card tuple+
+			|{events} events tuple+	
+			|{set2} set2 tuple+
+			|{head} head tuple+
+			|{tail} tail tuple+			
+			|{concat} concat tuple+ 
+			|{set1} set1 tuple+
+			|{seq1} seq1 tuple+			
+			|{length} length tuple+
+			|{proc} proc tuple+
+			|{char_const} char_const tuple+
+			|{error} error tuple+		
+			|{show} show tuple+
+			|{int_const} int_const tuple+
+			|{true_const} true_const tuple+
+			|{false_const} false_const tuple+
+			|{seq2} seq2 tuple+
+			|{identifier} id;
+					
+id 		=	 {id} identifier |{ltl} ltl |{ctl} ctl |{stop} stop |{skip} skip 
+			|{chaos} chaos |{div} div |{wait} wait |{run} run |{member} member 
+			|{empty} empty |{null} null |{bool_const} bool_const |{bool_func} bool_func
+			|{union1} union1 |{inter1} inter1 |{diff} diff |{union2} union2 		
+			|{inter2} inter2 |{card} card |{events} events |{set2} set2 
+			|{head} head |{tail} tail |{concat} concat |{set1} set1 
+			|{seq1} seq1 |{length} length |{proc} proc |{char_const} char_const 
+			|{error} error |{show} show |{int_const} int_const
+			|{true_const} true_const |{false_const} false_const | {seq2} seq2;
 //---------------------------------------------------------------------------------------
 /*Creation of Expressions*/	
 
-expression  =	 {new_def} func_id eq proc1	
-				|{override} override;
-override 	= 	 {stop} stop override2 |{skip} skip override2 |{chaos} chaos override2			
-				|{div} div	override2 |{wait} wait override2 |{run} run	override2			
-				|{member} member override2 |{empty} empty override2	|{null} null override2		
-				|{boolc} bool_c override2 |{boolf} bool_f override2	|{union} union override2 			
-				|{inter} inter override2 |{diff} diff override2	|{union2} union2 override2			
-				|{inter2} inter2 override2 |{card} card override2 |{events} events override2			
-				|{set2} set2 override2 |{head} head override2 |{tail} tail override2			
-				|{concat} concat override2 |{set1} set1 override2 |{seq} seq override2			
-				|{length} length override2 |{proc} proc override2 |{error} error override2		
-				|{show} show override2;
-override2	= 	tuple* eq proc1;	
+expression  =	 {new_def} func_id eq proc1;
 	
 proc1 		=  	 {double_pattern} proc1 doubleat proc2 
 				|{p2} proc2;
@@ -290,25 +335,12 @@ val_exp2 	= 	 {un_minus} minus val_exp2
 				|{sequence0} sequence0;		
 sequence0	= 	 {len} hash sequence0 | {sequence1} sequence1;
 sequence1 	=	 {cat} sequence1 cat atom | {atom} atom;
-atom 		= 	 {true_false} true_false	 
-				|{num} number
+atom 		= 	 {num} number
 				|{sequence} sequence
-				|{char_const} char_const
 				|{string} string
 				|{char} char
 				|{set} set
 				|{map} map
-				|{func_arithmetic} func_arithmetic
-				|{bool_f} func_ret_bool	
-				|{stop} stop
-				|{skip} skip
-				|{div} div
-				|{wait} wait par_l val_exp par_r
-				|{run} run par_l event par_r
-				|{error} error par_l atom par_r
-				|{show} show par_l proc1 par_r
-				|{chaos} chaos par_l event par_r
-				|{proc_const} proc
 				|{tuple} [tuple]:tuple [lambda]:tuple?
 				|{fid} func_id;
 //---------------------------------------------------------------------------------------
@@ -324,28 +356,6 @@ rename_comp			= [l]:event arrow_l [r]:event rename_comp_rek* comp_rek?;
 rename_comp_rek 	= comma [l]:event arrow_l [r]:event;
 
 comp_rek			= pipe stmts_set;
-//---------------------------------------------------------------------------------------			
-			 
-func_arithmetic =	 {card} card par_l dot_op par_r						
-					|{len} length par_l dot_op par_r
-					|{head} head par_l dot_op par_r
-					|{tail} tail par_l dot_op par_r
-					|{concat} concat par_l dot_op par_r
-					|{bool} bool_f par_l dot_op par_r
-					|{card_const} card 						
-					|{len_const} length
-					|{head_const} head
-					|{tail_const} tail 
-					|{concat_const} concat 
-					|{bool_const} bool_f; 
-
-			
-func_ret_bool  = 	 {member} member par_l [l]:bool_exp comma dot_op par_r
-					|{empty} empty par_l dot_op par_r
-					|{null} null par_l dot_op par_r
-					|{member_const} member
-					|{empty_const} empty
-					|{null_const} null;
 		
 //---------------------------------------------------------------------------------------					
 /*Examples: <>, <v,w>, <1..3>,<4..>,<0..99/x|x<-<11>>*/	
@@ -382,7 +392,6 @@ set = 	{empty_set} brace_l brace_r
 		|{set_comprehension} brace_l arguments pipe stmts_set brace_r
 		|{ranged_comprehension} brace_l [l]:val_exp dotdot [r]:val_exp pipe stmts_set brace_r
 		|{infinite_comprehension} brace_l val_exp dotdot pipe stmts_set brace_r
-		|{func_set} func_ret_set
 		|{enum_set} enum_set
 		|{set_comp} set_comp;
 
@@ -393,25 +402,6 @@ stmt_rek_set 			=    {gs}comma [l]:event arrow_l [r]:proc1
 						    |{ps} comma pred_stmt_set;
 pred_stmt_set			=    bool_exp;
 							
-func_ret_set	 =   {union} union par_l [l]:dot_op comma [r]:dot_op par_r
-					|{union2} union2 par_l dot_op par_r
-					|{diff} diff par_l [l]:dot_op comma [r]:dot_op par_r
-					|{inter} inter par_l [l]:dot_op comma [r]:dot_op par_r
-					|{inter2} inter2 par_l dot_op par_r
-					|{set2} set2 par_l dot_op par_r
-					|{set1} set1 par_l dot_op par_r
-					|{seq} seq par_l dot_op par_r
-					|{union_const} union
-					|{union2_const} union2
-					|{diff_const} diff 
-					|{inter_const} inter 
-					|{inter2_const} inter2 
-					|{set2_const} set2 
-					|{set1_const} set1 
-					|{seq_const} seq 				
-					|{events} events
-					|{bool} bool_c
-					|{int} int;
 				
 enum_set   	    =  brace_l [l]:pipe arguments [r]:pipe brace_r;
 set_comp		=  brace_l [l]:pipe arguments [m]:pipe stmts_set [r]:pipe brace_r;
@@ -425,7 +415,7 @@ arguments_rek	=  {arg_start} proc1 comma arguments_rek
 map	 =	  {map} par_l [lp]:pipe[le]:bool_exp imp_r [re]:bool_exp [rp]:pipe par_r
 		  |{emptymap} empty_map;
 //---------------------------------------------------------------------------------------		 	 
-//ACHTUNG SET STATEMENTS -> id : {}
+//ACHTUNG SET STATEMENTS -> identifier : {}
 rep = 			 {ext_choice} e_choice rep_stmts at
 				|{int_choice} i_choice rep_stmts at
 				|{i_leave} i_leaving rep_stmts at
@@ -483,6 +473,3 @@ module = mod_defs id [ls]:defs exports [rs]:defs endmodule;
 //---------------------------------------------------------------------------------------
 /*Include File if path is valid*/
 include_file = include string;	
-//---------------------------------------------------------------------------------------
-id		=  {id} identifier
-		  |{ltl}ltl|{ctl}ctl;

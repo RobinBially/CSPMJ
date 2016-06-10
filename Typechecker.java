@@ -27,9 +27,7 @@ public class Typechecker extends DepthFirstAdapter
 	private int argDepth = -1;
 	private ArrayList<ArrayList<String>> innerseq = new ArrayList<ArrayList<String>>();
 	private int seqDepth = -1;
-	private String currentTuple = "";
-	private int tupleDepth = -1;
-
+	
     @Override
     public void caseATypedef(ATypedef node)
     {
@@ -60,7 +58,6 @@ public class Typechecker extends DepthFirstAdapter
                 e.apply(this);
             }
         }
-	//	System.out.println(currentDatatype+"    "+symbolIndex+"      "+node.getClause().toString());
         outATypedef(node);
     }
 
@@ -117,7 +114,6 @@ public class Typechecker extends DepthFirstAdapter
 		//	datanodeMap.get(currentDatatype).add(symbolIndex,node.getClause().toString());
 		//	symbolIndex++;
             node.getClause().apply(this);
-		//	System.out.println(currentDatatype+" "+symbolIndex+"  "+node.getClause().toString());
         }
         outATypedefRek(node);
     }
@@ -1874,18 +1870,6 @@ public class Typechecker extends DepthFirstAdapter
 
 //***************************************************************************************
 //Atoms	
-
-	@Override
-    public void caseATrueFalseAtom(ATrueFalseAtom node)
-    {
-        inATrueFalseAtom(node);
-        if(node.getTrueFalse() != null)
-        {
-            node.getTrueFalse().apply(this);
-			nodeMap.put(node,"bool");
-        }
-        outATrueFalseAtom(node);
-    }
 	
 	@Override
     public void caseANumAtom(ANumAtom node)
@@ -1919,17 +1903,13 @@ public class Typechecker extends DepthFirstAdapter
         if(node.getTuple() != null)
         {
             node.getTuple().apply(this);
-			nodeMap.put(node, currentTuple);
-			if(tupleDepth<0)
-			{
-				System.out.println(currentTuple);
-				currentTuple = "";
-			}
+			nodeMap.put(node, nodeMap.get(node.getTuple()));
         }
         if(node.getLambda() != null)
         {
             node.getLambda().apply(this);
         }
+		nodeMap.remove(node.getTuple());
         outATupleAtom(node);
     }
 	
@@ -1959,48 +1939,776 @@ public class Typechecker extends DepthFirstAdapter
         outASequenceAtom(node);
     }
 	
+   @Override
+    public void caseAStringAtom(AStringAtom node)
+    {
+        inAStringAtom(node);
+        if(node.getString() != null)
+        {
+            node.getString().apply(this);
+			nodeMap.put(node,"<char>");
+        }
+        outAStringAtom(node);
+    }
+		
 //***************************************************************************************
 //Function and ID	
-	@Override
-    public void caseAFuncId(AFuncId node)
+    @Override
+    public void caseAIdFuncId(AIdFuncId node)
     {
-        inAFuncId(node);
-		int count = 0;
-        if(node.getId() != null)
+        inAIdFuncId(node);
+        if(node.getIdentifier() != null)
         {
-            node.getId().apply(this);
+            node.getIdentifier().apply(this);
         }
         {
             List<PTuple> copy = new ArrayList<PTuple>(node.getTuple());
             for(PTuple e : copy)
             {
-				count++;
                 e.apply(this);
             }
         }
-		if(count == 0)
-		{
-			nodeMap.put(node, nodeMap.get(node.getId()));
-			nodeMap.remove(node.getId());
-		}
-        outAFuncId(node);
+        outAIdFuncId(node);
+    }
+
+    @Override
+    public void caseALtlFuncId(ALtlFuncId node)
+    {
+        inALtlFuncId(node);
+        if(node.getLtl() != null)
+        {
+            node.getLtl().apply(this);
+        }
+        {
+            List<PTuple> copy = new ArrayList<PTuple>(node.getTuple());
+            for(PTuple e : copy)
+            {
+                e.apply(this);
+            }
+        }
+        outALtlFuncId(node);
+    }
+
+    @Override
+    public void caseACtlFuncId(ACtlFuncId node)
+    {
+        inACtlFuncId(node);
+        if(node.getCtl() != null)
+        {
+            node.getCtl().apply(this);
+        }
+        {
+            List<PTuple> copy = new ArrayList<PTuple>(node.getTuple());
+            for(PTuple e : copy)
+            {
+                e.apply(this);
+            }
+        }
+        outACtlFuncId(node);
+    }
+
+    @Override
+    public void caseAStopFuncId(AStopFuncId node)
+    {
+        inAStopFuncId(node);
+        if(node.getStop() != null)
+        {
+            node.getStop().apply(this);
+        }
+        {
+            List<PTuple> copy = new ArrayList<PTuple>(node.getTuple());
+            for(PTuple e : copy)
+            {
+                e.apply(this);
+            }
+        }
+        outAStopFuncId(node);
+    }
+
+    @Override
+    public void caseASkipFuncId(ASkipFuncId node)
+    {
+        inASkipFuncId(node);
+        if(node.getSkip() != null)
+        {
+            node.getSkip().apply(this);
+        }
+        {
+            List<PTuple> copy = new ArrayList<PTuple>(node.getTuple());
+            for(PTuple e : copy)
+            {
+                e.apply(this);
+            }
+        }
+        outASkipFuncId(node);
+    }
+
+    @Override
+    public void caseAChaosFuncId(AChaosFuncId node)
+    {
+        inAChaosFuncId(node);
+        if(node.getChaos() != null)
+        {
+            node.getChaos().apply(this);
+        }
+        {
+            List<PTuple> copy = new ArrayList<PTuple>(node.getTuple());
+            for(PTuple e : copy)
+            {
+                e.apply(this);
+            }
+        }
+        outAChaosFuncId(node);
+    }
+
+    @Override
+    public void caseADivFuncId(ADivFuncId node)
+    {
+        inADivFuncId(node);
+        if(node.getDiv() != null)
+        {
+            node.getDiv().apply(this);
+        }
+        {
+            List<PTuple> copy = new ArrayList<PTuple>(node.getTuple());
+            for(PTuple e : copy)
+            {
+                e.apply(this);
+            }
+        }
+        outADivFuncId(node);
+    }
+
+    @Override
+    public void caseAWaitFuncId(AWaitFuncId node)
+    {
+        inAWaitFuncId(node);
+        if(node.getWait() != null)
+        {
+            node.getWait().apply(this);
+        }
+        {
+            List<PTuple> copy = new ArrayList<PTuple>(node.getTuple());
+            for(PTuple e : copy)
+            {
+                e.apply(this);
+            }
+        }
+        outAWaitFuncId(node);
+    }
+
+    @Override
+    public void caseARunFuncId(ARunFuncId node)
+    {
+        inARunFuncId(node);
+        if(node.getRun() != null)
+        {
+            node.getRun().apply(this);
+        }
+        {
+            List<PTuple> copy = new ArrayList<PTuple>(node.getTuple());
+            for(PTuple e : copy)
+            {
+                e.apply(this);
+            }
+        }
+        outARunFuncId(node);
     }
 	
-	@Override
+    @Override
+    public void caseAMemberFuncId(AMemberFuncId node)
+    {
+        inAMemberFuncId(node);
+        if(node.getMember() != null)
+        {
+            node.getMember().apply(this);
+        }
+        {
+            List<PTuple> copy = new ArrayList<PTuple>(node.getTuple());
+            for(PTuple e : copy)
+            {
+                e.apply(this);
+            }
+        }
+        outAMemberFuncId(node);
+    }
+
+    @Override
+    public void caseAEmptyFuncId(AEmptyFuncId node)
+    {
+        inAEmptyFuncId(node);
+        if(node.getEmpty() != null)
+        {
+            node.getEmpty().apply(this);
+        }
+        {
+            List<PTuple> copy = new ArrayList<PTuple>(node.getTuple());
+            for(PTuple e : copy)
+            {
+                e.apply(this);
+            }
+        }
+        outAEmptyFuncId(node);
+    }
+
+    @Override
+    public void caseANullFuncId(ANullFuncId node)
+    {
+        inANullFuncId(node);
+        if(node.getNull() != null)
+        {
+            node.getNull().apply(this);
+        }
+        {
+            List<PTuple> copy = new ArrayList<PTuple>(node.getTuple());
+            for(PTuple e : copy)
+            {
+                e.apply(this);
+            }
+        }
+        outANullFuncId(node);
+    }
+	
+    @Override
+    public void caseABoolConstFuncId(ABoolConstFuncId node)
+    {
+        inABoolConstFuncId(node);
+        if(node.getBoolConst() != null)
+        {
+            node.getBoolConst().apply(this);
+        }
+        {
+            List<PTuple> copy = new ArrayList<PTuple>(node.getTuple());
+            for(PTuple e : copy)
+            {
+                e.apply(this);
+            }
+        }
+        outABoolConstFuncId(node);
+    }
+
+    @Override
+    public void caseABoolFuncFuncId(ABoolFuncFuncId node)
+    {
+        inABoolFuncFuncId(node);
+        if(node.getBoolFunc() != null)
+        {
+            node.getBoolFunc().apply(this);
+        }
+        {
+            List<PTuple> copy = new ArrayList<PTuple>(node.getTuple());
+            for(PTuple e : copy)
+            {
+                e.apply(this);
+            }
+        }
+        outABoolFuncFuncId(node);
+    }
+
+    @Override
+    public void caseAUnion1FuncId(AUnion1FuncId node)
+    {
+        inAUnion1FuncId(node);
+        if(node.getUnion1() != null)
+        {
+            node.getUnion1().apply(this);
+        }
+        {
+            List<PTuple> copy = new ArrayList<PTuple>(node.getTuple());
+            for(PTuple e : copy)
+            {
+                e.apply(this);
+            }
+        }
+        outAUnion1FuncId(node);
+    }
+
+    @Override
+    public void caseAInter1FuncId(AInter1FuncId node)
+    {
+        inAInter1FuncId(node);
+        if(node.getInter1() != null)
+        {
+            node.getInter1().apply(this);
+        }
+        {
+            List<PTuple> copy = new ArrayList<PTuple>(node.getTuple());
+            for(PTuple e : copy)
+            {
+                e.apply(this);
+            }
+        }
+        outAInter1FuncId(node);
+    }
+	
+    @Override
+    public void caseADiffFuncId(ADiffFuncId node)
+    {
+        inADiffFuncId(node);
+        if(node.getDiff() != null)
+        {
+            node.getDiff().apply(this);
+        }
+        {
+            List<PTuple> copy = new ArrayList<PTuple>(node.getTuple());
+            for(PTuple e : copy)
+            {
+                e.apply(this);
+            }
+        }
+        outADiffFuncId(node);
+    }
+
+    @Override
+    public void caseAUnion2FuncId(AUnion2FuncId node)
+    {
+        inAUnion2FuncId(node);
+        if(node.getUnion2() != null)
+        {
+            node.getUnion2().apply(this);
+        }
+        {
+            List<PTuple> copy = new ArrayList<PTuple>(node.getTuple());
+            for(PTuple e : copy)
+            {
+                e.apply(this);
+            }
+        }
+        outAUnion2FuncId(node);
+    }
+
+    @Override
+    public void caseAInter2FuncId(AInter2FuncId node)
+    {
+        inAInter2FuncId(node);
+        if(node.getInter2() != null)
+        {
+            node.getInter2().apply(this);
+        }
+        {
+            List<PTuple> copy = new ArrayList<PTuple>(node.getTuple());
+            for(PTuple e : copy)
+            {
+                e.apply(this);
+            }
+        }
+        outAInter2FuncId(node);
+    }
+
+    @Override
+    public void caseACardFuncId(ACardFuncId node)
+    {
+        inACardFuncId(node);
+        if(node.getCard() != null)
+        {
+            node.getCard().apply(this);
+        }
+        {
+            List<PTuple> copy = new ArrayList<PTuple>(node.getTuple());
+            for(PTuple e : copy)
+            {
+                e.apply(this);
+            }
+        }
+        outACardFuncId(node);
+    }
+
+    @Override
+    public void caseAEventsFuncId(AEventsFuncId node)
+    {
+        inAEventsFuncId(node);
+        if(node.getEvents() != null)
+        {
+            node.getEvents().apply(this);
+        }
+        {
+            List<PTuple> copy = new ArrayList<PTuple>(node.getTuple());
+            for(PTuple e : copy)
+            {
+                e.apply(this);
+            }
+        }
+        outAEventsFuncId(node);
+    }
+
+    @Override
+    public void caseASet2FuncId(ASet2FuncId node)
+    {
+        inASet2FuncId(node);
+        if(node.getSet2() != null)
+        {
+            node.getSet2().apply(this);
+        }
+        {
+            List<PTuple> copy = new ArrayList<PTuple>(node.getTuple());
+            for(PTuple e : copy)
+            {
+                e.apply(this);
+            }
+        }
+        outASet2FuncId(node);
+    }
+
+    @Override
+    public void caseAHeadFuncId(AHeadFuncId node)
+    {
+        inAHeadFuncId(node);
+        if(node.getHead() != null)
+        {
+            node.getHead().apply(this);
+        }
+        {
+            List<PTuple> copy = new ArrayList<PTuple>(node.getTuple());
+            for(PTuple e : copy)
+            {
+                e.apply(this);
+            }
+        }
+        outAHeadFuncId(node);
+    }
+
+    @Override
+    public void caseATailFuncId(ATailFuncId node)
+    {
+        inATailFuncId(node);
+        if(node.getTail() != null)
+        {
+            node.getTail().apply(this);
+        }
+        {
+            List<PTuple> copy = new ArrayList<PTuple>(node.getTuple());
+            for(PTuple e : copy)
+            {
+                e.apply(this);
+            }
+        }
+        outATailFuncId(node);
+    }
+
+    @Override
+    public void caseAConcatFuncId(AConcatFuncId node)
+    {
+        inAConcatFuncId(node);
+        if(node.getConcat() != null)
+        {
+            node.getConcat().apply(this);
+        }
+        {
+            List<PTuple> copy = new ArrayList<PTuple>(node.getTuple());
+            for(PTuple e : copy)
+            {
+                e.apply(this);
+            }
+        }
+        outAConcatFuncId(node);
+    }
+
+    @Override
+    public void caseASet1FuncId(ASet1FuncId node)
+    {
+        inASet1FuncId(node);
+        if(node.getSet1() != null)
+        {
+            node.getSet1().apply(this);
+        }
+        {
+            List<PTuple> copy = new ArrayList<PTuple>(node.getTuple());
+            for(PTuple e : copy)
+            {
+                e.apply(this);
+				String a = nodeMap.get(e).toString();
+				if(copy.size() == 1
+						&& a.startsWith("(<"))
+				{
+					String s = "{";
+					char[] c = a.toCharArray();
+					for(int i = 2;i<c.length-2;i++)
+					{
+						s += c[i]; 
+					}
+					s += "}";
+					System.out.println(s);
+					nodeMap.put(node,s);
+				}
+				else
+				{
+
+				}
+				nodeMap.remove(e);
+            }
+        }
+        outASet1FuncId(node);
+    }
+
+    @Override
+    public void caseASeq1FuncId(ASeq1FuncId node)
+    {
+        inASeq1FuncId(node);
+        if(node.getSeq1() != null)
+        {
+            node.getSeq1().apply(this);
+        }
+        {
+            List<PTuple> copy = new ArrayList<PTuple>(node.getTuple());
+            for(PTuple e : copy)
+            {
+                e.apply(this);
+				String a = nodeMap.get(e).toString();
+				if(copy.size() == 1
+						&& a.startsWith("({"))
+				{
+					String s = "<";
+					char[] c = a.toCharArray();
+					for(int i = 2;i<c.length-2;i++)
+					{
+						s += c[i]; 
+					}
+					s += ">";
+					System.out.println(s);
+					nodeMap.put(node,s);
+				}
+				else
+				{
+
+				}
+				nodeMap.remove(e);  
+            }
+        }
+        outASeq1FuncId(node);
+    }
+
+    @Override
+    public void caseALengthFuncId(ALengthFuncId node)
+    {
+        inALengthFuncId(node);
+        if(node.getLength() != null)
+        {
+            node.getLength().apply(this);
+        }
+        {
+            List<PTuple> copy = new ArrayList<PTuple>(node.getTuple());
+			int count = 0;
+
+            for(PTuple e : copy)
+            {
+                e.apply(this);
+				String a = nodeMap.get(e).toString();
+				if(copy.size() == 1
+						&& getTupleLength(a) == 1
+						&& a.startsWith("(<"))
+				{
+					nodeMap.put(node,"int");
+				}
+				else
+				{
+
+				}
+				nodeMap.remove(e);
+            }
+
+        }
+        outALengthFuncId(node);
+    }
+
+    @Override
+    public void caseAProcFuncId(AProcFuncId node)
+    {
+        inAProcFuncId(node);
+        if(node.getProc() != null)
+        {
+            node.getProc().apply(this);
+        }
+        {
+            List<PTuple> copy = new ArrayList<PTuple>(node.getTuple());
+            for(PTuple e : copy)
+            {
+                e.apply(this);
+            }
+        }
+        outAProcFuncId(node);
+    }
+
+    @Override
+    public void caseACharConstFuncId(ACharConstFuncId node)
+    {
+        inACharConstFuncId(node);
+        if(node.getCharConst() != null)
+        {
+            node.getCharConst().apply(this);
+        }
+        {
+            List<PTuple> copy = new ArrayList<PTuple>(node.getTuple());
+            for(PTuple e : copy)
+            {
+                e.apply(this);
+            }
+        }
+        outACharConstFuncId(node);
+    }
+
+    @Override
+    public void caseAErrorFuncId(AErrorFuncId node)
+    {
+        inAErrorFuncId(node);
+        if(node.getError() != null)
+        {
+            node.getError().apply(this);
+        }
+        {
+            List<PTuple> copy = new ArrayList<PTuple>(node.getTuple());
+            for(PTuple e : copy)
+            {
+                e.apply(this);
+				String a = nodeMap.get(e).toString();
+				if(copy.size() == 1
+						&& getTupleLength(a) == 1
+						&& a.equals("(<char>)"))
+				{
+					nodeMap.put(node,"<char>");
+				}
+				nodeMap.remove(e);
+            }
+        }
+        outAErrorFuncId(node);
+    }
+
+    @Override
+    public void caseAShowFuncId(AShowFuncId node)
+    {
+        inAShowFuncId(node);
+        if(node.getShow() != null)
+        {
+            node.getShow().apply(this);
+        }
+        {
+            List<PTuple> copy = new ArrayList<PTuple>(node.getTuple());
+            for(PTuple e : copy)
+            {
+                e.apply(this);
+				String a = nodeMap.get(e).toString();
+				if(copy.size() == 1 && getTupleLength(a) == 1)
+				{
+					nodeMap.put(node,"<char>");
+				}
+				nodeMap.remove(e);
+            }
+        }
+        outAShowFuncId(node);
+    }
+
+    @Override
+    public void caseAIntConstFuncId(AIntConstFuncId node)
+    {
+        inAIntConstFuncId(node);
+        if(node.getIntConst() != null)
+        {
+            node.getIntConst().apply(this);
+        }
+        {
+            List<PTuple> copy = new ArrayList<PTuple>(node.getTuple());
+            for(PTuple e : copy)
+            {
+                e.apply(this);
+            }
+        }
+        outAIntConstFuncId(node);
+    }
+	
+    @Override
+    public void caseATrueConstFuncId(ATrueConstFuncId node)
+    {
+        inATrueConstFuncId(node);
+        if(node.getTrueConst() != null)
+        {
+            node.getTrueConst().apply(this);
+        }
+        {
+            List<PTuple> copy = new ArrayList<PTuple>(node.getTuple());
+            for(PTuple e : copy)
+            {
+                e.apply(this);
+            }
+        }
+        outATrueConstFuncId(node);
+    }
+
+    @Override
+    public void caseAFalseConstFuncId(AFalseConstFuncId node)
+    {
+        inAFalseConstFuncId(node);
+        if(node.getFalseConst() != null)
+        {
+            node.getFalseConst().apply(this);
+        }
+        {
+            List<PTuple> copy = new ArrayList<PTuple>(node.getTuple());
+            for(PTuple e : copy)
+            {
+                e.apply(this);
+            }
+        }
+        outAFalseConstFuncId(node);
+    }
+	
+    @Override
+    public void caseAIdentifierFuncId(AIdentifierFuncId node)
+    {
+        inAIdentifierFuncId(node);
+        if(node.getId() != null)
+        {
+            node.getId().apply(this);
+			nodeMap.put(node,nodeMap.get(node.getId()));
+        }
+		nodeMap.remove(node.getId());
+        outAIdentifierFuncId(node);
+    }
+	
+    @Override
+    public void caseASeq2FuncId(ASeq2FuncId node)
+    {
+        inASeq2FuncId(node);
+        if(node.getSeq2() != null)
+        {
+            node.getSeq2().apply(this);
+        }
+        {
+            List<PTuple> copy = new ArrayList<PTuple>(node.getTuple());
+            for(PTuple e : copy)
+            {
+                e.apply(this);
+				String a = nodeMap.get(e).toString();
+				if(copy.size() == 1
+						&& a.startsWith("({"))
+				{
+					String s = "{<";
+					char[] c = a.toCharArray();
+					for(int i = 2;i<c.length-2;i++)
+					{
+						s += c[i]; 
+					}
+					s += ">}";
+					System.out.println(s);
+					nodeMap.put(node,s);
+				}
+				else
+				{
+
+				}
+				nodeMap.remove(e);
+            }
+        }
+        outASeq2FuncId(node);
+    }
+
+//Identifiers/Constants
+    @Override
     public void caseAIdId(AIdId node)
     {
         inAIdId(node);
         if(node.getIdentifier() != null)
         {
             node.getIdentifier().apply(this);
-			if(types.containsKey(node.getIdentifier().getText()))
-			{
-				nodeMap.put(node,types.get(node.getIdentifier().getText()));
-			}
-			else
-			{
-				nodeMap.put(node,"id");			
-			}
+			nodeMap.put(node,"id");
         }
         outAIdId(node);
     }
@@ -2012,14 +2720,7 @@ public class Typechecker extends DepthFirstAdapter
         if(node.getLtl() != null)
         {
             node.getLtl().apply(this);
-			if(types.containsKey(node.getLtl().getText()))
-			{
-				nodeMap.put(node,types.get(node.getLtl().getText()));
-			}
-			else
-			{
-				nodeMap.put(node,"id");			
-			}
+			nodeMap.put(node,"id");
         }
         outALtlId(node);
     }
@@ -2031,19 +2732,407 @@ public class Typechecker extends DepthFirstAdapter
         if(node.getCtl() != null)
         {
             node.getCtl().apply(this);
-			if(types.containsKey(node.getCtl().getText()))
-			{
-				nodeMap.put(node,types.get(node.getCtl().getText()));
-			}
-			else
-			{
-				nodeMap.put(node,"id");			
-			}
+			nodeMap.put(node,"id");
         }
         outACtlId(node);
     }
-	
 
+    @Override
+    public void caseAStopId(AStopId node)
+    {
+        inAStopId(node);
+        if(node.getStop() != null)
+        {
+            node.getStop().apply(this);
+			nodeMap.put(node,"proc");
+        }
+        outAStopId(node);
+    }
+	
+    @Override
+    public void caseASkipId(ASkipId node)
+    {
+        inASkipId(node);
+        if(node.getSkip() != null)
+        {
+            node.getSkip().apply(this);
+			nodeMap.put(node,"proc");
+        }
+        outASkipId(node);
+    }
+
+    @Override
+    public void caseAChaosId(AChaosId node)
+    {
+        inAChaosId(node);
+        if(node.getChaos() != null)
+        {
+            node.getChaos().apply(this);
+			nodeMap.put(node,"id");
+        }
+        outAChaosId(node);
+    }
+
+    @Override
+    public void caseADivId(ADivId node)
+    {
+        inADivId(node);
+        if(node.getDiv() != null)
+        {
+            node.getDiv().apply(this);
+			nodeMap.put(node,"proc");
+        }
+        outADivId(node);
+    }
+
+    @Override
+    public void caseAWaitId(AWaitId node)
+    {
+        inAWaitId(node);
+        if(node.getWait() != null)
+        {
+            node.getWait().apply(this);
+			nodeMap.put(node,"id");
+        }
+        outAWaitId(node);
+    }
+
+    @Override
+    public void caseARunId(ARunId node)
+    {
+        inARunId(node);
+        if(node.getRun() != null)
+        {
+            node.getRun().apply(this);
+			nodeMap.put(node,"id");
+        }
+        outARunId(node);
+    }
+
+    @Override
+    public void caseAMemberId(AMemberId node)
+    {
+        inAMemberId(node);
+        if(node.getMember() != null)
+        {
+            node.getMember().apply(this);
+			nodeMap.put(node,"id");
+        }
+        outAMemberId(node);
+    }
+
+    @Override
+    public void caseAEmptyId(AEmptyId node)
+    {
+        inAEmptyId(node);
+        if(node.getEmpty() != null)
+        {
+            node.getEmpty().apply(this);
+			nodeMap.put(node,"id");
+        }
+        outAEmptyId(node);
+    }
+
+    @Override
+    public void caseANullId(ANullId node)
+    {
+        inANullId(node);
+        if(node.getNull() != null)
+        {
+            node.getNull().apply(this);
+			nodeMap.put(node,"id");
+        }
+        outANullId(node);
+    }
+
+    @Override
+    public void caseABoolConstId(ABoolConstId node)
+    {
+        inABoolConstId(node);
+        if(node.getBoolConst() != null)
+        {
+            node.getBoolConst().apply(this);
+			nodeMap.put(node,"{bool}");
+        }
+        outABoolConstId(node);
+    }
+
+    @Override
+    public void caseABoolFuncId(ABoolFuncId node)
+    {
+        inABoolFuncId(node);
+        if(node.getBoolFunc() != null)
+        {
+            node.getBoolFunc().apply(this);
+			nodeMap.put(node,"id");
+        }
+        outABoolFuncId(node);
+    }
+	
+    @Override
+    public void caseAUnion1Id(AUnion1Id node)
+    {
+        inAUnion1Id(node);
+        if(node.getUnion1() != null)
+        {
+            node.getUnion1().apply(this);
+			nodeMap.put(node,"id");
+        }
+        outAUnion1Id(node);
+    }
+
+    @Override
+    public void caseAInter1Id(AInter1Id node)
+    {
+        inAInter1Id(node);
+        if(node.getInter1() != null)
+        {
+            node.getInter1().apply(this);
+			nodeMap.put(node,"id");
+        }
+        outAInter1Id(node);
+    }
+
+    @Override
+    public void caseADiffId(ADiffId node)
+    {
+        inADiffId(node);
+        if(node.getDiff() != null)
+        {
+            node.getDiff().apply(this);
+			nodeMap.put(node,"id");
+        }
+        outADiffId(node);
+    }
+
+    @Override
+    public void caseAUnion2Id(AUnion2Id node)
+    {
+        inAUnion2Id(node);
+        if(node.getUnion2() != null)
+        {
+            node.getUnion2().apply(this);
+			nodeMap.put(node,"id");
+        }
+        outAUnion2Id(node);
+    }
+
+    @Override
+    public void caseAInter2Id(AInter2Id node)
+    {
+        inAInter2Id(node);
+        if(node.getInter2() != null)
+        {
+            node.getInter2().apply(this);
+			nodeMap.put(node,"id");
+        }
+        outAInter2Id(node);
+    }
+
+    @Override
+    public void caseACardId(ACardId node)
+    {
+        inACardId(node);
+        if(node.getCard() != null)
+        {
+            node.getCard().apply(this);
+			nodeMap.put(node,"id");
+        }
+        outACardId(node);
+    }
+
+    @Override
+    public void caseAEventsId(AEventsId node)
+    {
+        inAEventsId(node);
+        if(node.getEvents() != null)
+        {
+            node.getEvents().apply(this);
+			nodeMap.put(node,"{event}");
+        }
+        outAEventsId(node);
+    }
+
+    @Override
+    public void caseASet2Id(ASet2Id node)
+    {
+        inASet2Id(node);
+        if(node.getSet2() != null)
+        {
+            node.getSet2().apply(this);
+			nodeMap.put(node,"id");
+        }
+        outASet2Id(node);
+    }
+
+    @Override
+    public void caseAHeadId(AHeadId node)
+    {
+        inAHeadId(node);
+        if(node.getHead() != null)
+        {
+            node.getHead().apply(this);
+			nodeMap.put(node,"id");
+        }
+        outAHeadId(node);
+    }
+
+    @Override
+    public void caseATailId(ATailId node)
+    {
+        inATailId(node);
+        if(node.getTail() != null)
+        {
+            node.getTail().apply(this);
+			nodeMap.put(node,"id");
+        }
+        outATailId(node);
+    }
+
+    @Override
+    public void caseAConcatId(AConcatId node)
+    {
+        inAConcatId(node);
+        if(node.getConcat() != null)
+        {
+            node.getConcat().apply(this);
+			nodeMap.put(node,"id");
+        }
+        outAConcatId(node);
+    }
+
+    @Override
+    public void caseASet1Id(ASet1Id node)
+    {
+        inASet1Id(node);
+        if(node.getSet1() != null)
+        {
+            node.getSet1().apply(this);
+			nodeMap.put(node,"id");
+        }
+        outASet1Id(node);
+    }
+
+    @Override
+    public void caseASeq1Id(ASeq1Id node)
+    {
+        inASeq1Id(node);
+        if(node.getSeq1() != null)
+        {
+            node.getSeq1().apply(this);
+			nodeMap.put(node,"id");
+        }
+        outASeq1Id(node);
+    }
+
+    @Override
+    public void caseALengthId(ALengthId node)
+    {
+        inALengthId(node);
+        if(node.getLength() != null)
+        {
+            node.getLength().apply(this);
+			nodeMap.put(node,"id");
+        }
+        outALengthId(node);
+    }
+
+    @Override
+    public void caseAProcId(AProcId node)
+    {
+        inAProcId(node);
+        if(node.getProc() != null)
+        {
+            node.getProc().apply(this);
+			nodeMap.put(node,"proc");
+        }
+        outAProcId(node);
+    }
+
+    @Override
+    public void caseACharConstId(ACharConstId node)
+    {
+        inACharConstId(node);
+        if(node.getCharConst() != null)
+        {
+            node.getCharConst().apply(this);
+			nodeMap.put(node,"{char}");
+        }
+        outACharConstId(node);
+    }
+
+    @Override
+    public void caseAErrorId(AErrorId node)
+    {
+        inAErrorId(node);
+        if(node.getError() != null)
+        {
+            node.getError().apply(this);
+			nodeMap.put(node,"id");
+        }
+        outAErrorId(node);
+    }
+
+    @Override
+    public void caseAShowId(AShowId node)
+    {
+        inAShowId(node);
+        if(node.getShow() != null)
+        {
+            node.getShow().apply(this);
+			nodeMap.put(node,"id");
+        }
+        outAShowId(node);
+    }
+
+    @Override
+    public void caseAIntConstId(AIntConstId node)
+    {
+        inAIntConstId(node);
+        if(node.getIntConst() != null)
+        {
+            node.getIntConst().apply(this);
+			nodeMap.put(node,"{int}");
+        }
+        outAIntConstId(node);
+    }
+	
+	@Override
+    public void caseATrueConstId(ATrueConstId node)
+    {
+        inATrueConstId(node);
+        if(node.getTrueConst() != null)
+        {
+            node.getTrueConst().apply(this);
+			nodeMap.put(node,"bool");
+			
+        }
+        outATrueConstId(node);
+    }
+
+    @Override
+    public void caseAFalseConstId(AFalseConstId node)
+    {
+        inAFalseConstId(node);
+        if(node.getFalseConst() != null)
+        {
+            node.getFalseConst().apply(this);
+			nodeMap.put(node,"bool");
+        }
+        outAFalseConstId(node);
+    }
+	
+   @Override
+    public void caseASeq2Id(ASeq2Id node)
+    {
+        inASeq2Id(node);
+        if(node.getSeq2() != null)
+        {
+            node.getSeq2().apply(this);
+			nodeMap.put(node,"id");
+        }
+        outASeq2Id(node);
+    }
 //***************************************************************************************
 //Sets
 
@@ -2080,7 +3169,6 @@ public class Typechecker extends DepthFirstAdapter
             node.getBraceR().apply(this);
         }
 		nodeMap.put(node,"{"+arguments.get(argDepth+1).get(0)+"}");
-		System.out.println(nodeMap.get(node));
 		if(argDepth<0)
 		{
 			arguments.clear();
@@ -2277,19 +3365,6 @@ public class Typechecker extends DepthFirstAdapter
     }
 
     @Override
-    public void caseAFuncSetSet(AFuncSetSet node)
-    {
-        inAFuncSetSet(node);
-        if(node.getFuncRetSet() != null)
-        {
-            node.getFuncRetSet().apply(this);
-			nodeMap.put(node, nodeMap.get(node.getFuncRetSet()));
-			nodeMap.remove(node.getFuncRetSet());
-        }
-        outAFuncSetSet(node);
-    }
-
-    @Override
     public void caseAEnumSetSet(AEnumSetSet node)
     {
         inAEnumSetSet(node);
@@ -2315,7 +3390,7 @@ public class Typechecker extends DepthFirstAdapter
         }
         outASetCompSet(node);
 	}
-
+	
 //***************************************************************************************
 //Sequence
     @Override
@@ -2346,7 +3421,6 @@ public class Typechecker extends DepthFirstAdapter
         {
             node.getInnerSequence().apply(this);
 			nodeMap.put(node,"<"+innerseq.get(seqDepth+1).get(0)+">");
-			System.out.println(nodeMap.get(node));
 			if(seqDepth<0)
 			{
 				innerseq.clear();
@@ -2807,16 +3881,14 @@ public class Typechecker extends DepthFirstAdapter
         }
         if(node.getInnerTuple() != null)
         {
-			tupleDepth++;
-			currentTuple += "(";
             node.getInnerTuple().apply(this);
-			currentTuple += ")";
-			tupleDepth = tupleDepth-1;
         }
         if(node.getParR() != null)
         {
             node.getParR().apply(this);
         }
+		nodeMap.put(node,"("+nodeMap.get(node.getInnerTuple())+")");
+		nodeMap.remove(node.getInnerTuple());
         outATupleTuple(node);
     }
 
@@ -2827,8 +3899,6 @@ public class Typechecker extends DepthFirstAdapter
         if(node.getProc1() != null)
         {
             node.getProc1().apply(this);
-			String a = nodeMap.get(node.getProc1()).toString();
-			currentTuple += a+",";
         }
         if(node.getComma() != null)
         {
@@ -2838,7 +3908,10 @@ public class Typechecker extends DepthFirstAdapter
         {
             node.getInnerTuple().apply(this);
         }
+		nodeMap.put(node, nodeMap.get(node.getProc1()).toString()
+					 +","+nodeMap.get(node.getInnerTuple()).toString());
 		nodeMap.remove(node.getProc1());
+		nodeMap.remove(node.getInnerTuple());
         outAInnerStartInnerTuple(node);
     }
 	
@@ -2849,8 +3922,7 @@ public class Typechecker extends DepthFirstAdapter
         if(node.getProc1() != null)
         {
             node.getProc1().apply(this);
-			String a = nodeMap.get(node.getProc1()).toString();
-			currentTuple += a;
+			nodeMap.put(node, nodeMap.get(node.getProc1()));
         }
 		nodeMap.remove(node.getProc1());
         outAInnerEndInnerTuple(node);
@@ -2916,4 +3988,50 @@ public class Typechecker extends DepthFirstAdapter
 		nodeMap.remove(node.getProc1());
         outAArgEndArgumentsRek(node);
     }
+
+//***************************************************************************************
+//((1,2,(3),4),2,{True},(1,2,(3),4)) has length 4
+
+	public int getTupleLength(String a)
+	{
+		char[] c = a.toCharArray();
+		String s = " ";
+		
+		for(int i = 1;i<c.length-1;i++)
+		{
+			s+= c[i];
+		}
+		
+		c = s.toCharArray();
+		s = " ";
+		int tupleDepth = 0;
+		for(int k = 0;k<c.length;k++)
+		{
+			if(c[k] == '(')
+			{
+				tupleDepth++;
+			}
+			else if(c[k] == ')')
+			{
+				tupleDepth = tupleDepth-1;
+			}
+			
+			if(tupleDepth == 0)
+			{
+				s += c[k];
+			}
+		}
+			
+		c = s.toCharArray();
+		int count = 0;
+		for(int j = 0;j<c.length;j++)
+		{
+			if(c[j] == ',')
+			{
+				count++;
+			}
+		}
+		
+		return count+1;
+	}
 }
