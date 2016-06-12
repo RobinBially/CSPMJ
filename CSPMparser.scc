@@ -5,7 +5,7 @@
  * robin.bially@hhu.de		                                  *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-
+//Fehlt: Wildcard pattern, double_pattern links, diverse interne Funktionen
 Package CSPMparser;
 Helpers
 
@@ -19,7 +19,6 @@ Helpers
 	lowc = ['a' .. 'z'];
 	letter = (highc | lowc | '_');
 	letter_digits = (letter|digits);	
-	
     tab = 9;
     cr = 13;
     lf = 10;
@@ -27,6 +26,17 @@ Helpers
 	no_brace = [all - '}'];
 	eol = cr lf | cr | lf;
 	blank = (' '|tab);
+	
+/*	Triangle substitutions:
+	\u00AB = «	seq opening
+	\u00BB = »	seq closing
+	\u00A3 = £	greater
+	\u20AC = €  smaller
+*/
+	seq_open	=	0x00AB;
+	seq_close	=	0x00BB;
+	greater 	=	0x00A3;
+	less		=	0x20AC;
 
 Tokens
 //***************************************************************************************
@@ -120,7 +130,11 @@ Tokens
 	par_l 			= '(';
 	par_r 			= ')';
 	empty_map 		= '(| |)';
-	lge 			= '<='|'>=';
+	lge 			= '<='| '>=';
+	seq_open		= seq_open;
+	seq_close 		= seq_close;
+	greater 		= greater;
+	less	 		= less;		
 	tria_l			= '<';
 	tria_r			= '>';
 	sync_par_l		= '[+';	
@@ -267,7 +281,10 @@ id 		=	 {id} identifier |{ltl} ltl |{ctl} ctl |{stop} stop |{skip} skip
 //---------------------------------------------------------------------------------------
 /*Creation of Expressions*/	
 
-expression  =	 {new_def} func_id eq proc1;
+expression  =	 {new_def} func_id eq proc1
+				|{tuple} tuple eq proc1
+				|{set} set eq proc1
+				|{sequence} sequence eq proc1;
 	
 proc1 		=  	 {double_pattern} proc1 doubleat proc2 
 				|{p2} proc2;
@@ -323,8 +340,8 @@ bool_exp3 	= 	 {not} not bool_exp3
 				|{bool_exp4} bool_exp4;
 bool_exp4 	= 	 {equal} bool_exp4 equal val_exp
 				|{ordering_lge} bool_exp4 lge val_exp
-				|{ordering_less} bool_exp4 tria_l val_exp 
-				|{ordering_greater} bool_exp4 tria_r val_exp 
+				|{ordering_less} bool_exp4 less val_exp 
+				|{ordering_greater} bool_exp4 greater val_exp 
 				|{val_exp} val_exp;				
 val_exp 	= 	 {addition} val_exp plus val_exp1 
 				|{subtraction} val_exp minus val_exp1
@@ -359,13 +376,13 @@ comp_rek			= pipe stmts_set;
 		
 //---------------------------------------------------------------------------------------					
 /*Examples: <>, <v,w>, <1..3>,<4..>,<0..99/x|x<-<11>>*/	
-sequence =	 {empty_seq} tria_l tria_r
-			|{expl_seq} tria_l inner_sequence tria_r
-			|{list_comp} tria_l inner_sequence pipe stmts_seq tria_r
-			|{cr_seq} tria_l [l]:val_exp dotdot [r]:val_exp tria_r
-			|{ran_comp} tria_l [l]:val_exp dotdot [r]:val_exp pipe stmts_seq tria_r
-			|{or_seq} tria_l val_exp dotdot tria_r
-			|{inf_compr} tria_l val_exp dotdot pipe stmts_seq tria_r
+sequence =	 {empty_seq} seq_open seq_close
+			|{expl_seq} seq_open inner_sequence seq_close
+			|{list_comp} seq_open inner_sequence pipe stmts_seq seq_close
+			|{cr_seq} seq_open [l]:val_exp dotdot [r]:val_exp seq_close
+			|{ran_comp} seq_open [l]:val_exp dotdot [r]:val_exp pipe stmts_seq seq_close
+			|{or_seq} seq_open val_exp dotdot seq_close
+			|{inf_compr} seq_open val_exp dotdot pipe stmts_seq seq_close
 			|{enum_seq} enum_seq
 			|{seq_comp}	seq_comp;
 			
@@ -377,8 +394,8 @@ stmt_rek_seq 		=  {gs}comma [l]:val_exp arrow_l [r]:val_exp
 pred_stmt_seq		=  val_exp; 
 
 inner_sequence 			=  inner_sequence_rek;		
-inner_sequence_rek		=  {start} val_exp comma inner_sequence_rek
-						  |{end} val_exp;
+inner_sequence_rek		=  {start} proc1 comma inner_sequence_rek
+						  |{end} proc1;
 					  
 enum_seq 	  		=  tria_l [l]:pipe arguments [r]:pipe tria_r;
 seq_comp  			=  tria_l [l]:pipe arguments [m]:pipe stmts_set [r]:pipe tria_r;

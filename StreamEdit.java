@@ -6,6 +6,7 @@ import java.util.regex.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
 public class StreamEdit
@@ -292,7 +293,7 @@ public class StreamEdit
 		try 
 		{	
 			byte[] encoded = Files.readAllBytes(Paths.get(fp));
-			String file_content = new String(encoded, Charset.defaultCharset());
+			String file_content = new String(encoded, StandardCharsets.UTF_8);
 			return file_content;
 		}
 		catch(Exception e) 		

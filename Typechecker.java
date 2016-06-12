@@ -1522,7 +1522,8 @@ public class Typechecker extends DepthFirstAdapter
         if(node.getBoolExp4() != null)
         {
             node.getBoolExp4().apply(this);
-			help = nodeMap.get(node.getBoolExp4()).toString();			
+			help = nodeMap.get(node.getBoolExp4()).toString();	
+		//	System.out.println(help);
 			if(!(help.startsWith("(") || help.startsWith("<") || help.startsWith("{")
 				|| help.equals("int") || help.equals("char")))
 			{
@@ -1530,9 +1531,9 @@ public class Typechecker extends DepthFirstAdapter
 				"(|a=>b|), <a>, {a}, int, char, at: "+node.toString());
 			}
         }
-        if(node.getTriaL() != null)
+        if(node.getLess() != null)
         {
-            node.getTriaL().apply(this);
+            node.getLess().apply(this);
         }
         if(node.getValExp() != null)
         {
@@ -1574,9 +1575,9 @@ public class Typechecker extends DepthFirstAdapter
 				"(|a=>b|), <a>, {a}, int, char, at: "+node.toString());
 			}
         }
-        if(node.getTriaR() != null)
+        if(node.getGreater() != null)
         {
-            node.getTriaR().apply(this);
+            node.getGreater().apply(this);
         }
         if(node.getValExp() != null)
         {
@@ -2344,6 +2345,26 @@ public class Typechecker extends DepthFirstAdapter
             for(PTuple e : copy)
             {
                 e.apply(this);
+				String a = nodeMap.get(e).toString();
+				if(copy.size() == 1
+						&& a.startsWith("({")
+						&& getTupleLength(a) == 1)
+				{
+					String s = "{{";
+					char[] c = a.toCharArray();
+					for(int i = 2;i<c.length-2;i++)
+					{
+						s += c[i]; 
+					}
+					s += "}}";
+				
+					nodeMap.put(node,s);
+				}
+				else
+				{
+
+				}
+				nodeMap.remove(e);
             }
         }
         outASet2FuncId(node);
@@ -2362,6 +2383,25 @@ public class Typechecker extends DepthFirstAdapter
             for(PTuple e : copy)
             {
                 e.apply(this);
+				String a = nodeMap.get(e).toString();
+				if(copy.size() == 1
+						&& a.startsWith("(<")
+						&& getTupleLength(a) == 1)
+				{
+					String s = "";
+					char[] c = a.toCharArray();
+					for(int i = 2;i<c.length-2;i++)
+					{
+						s += c[i]; 
+					}
+					nodeMap.put(node,s);
+				}				
+				else
+				{
+
+				}
+				nodeMap.remove(e);
+
             }
         }
         outAHeadFuncId(node);
@@ -2380,6 +2420,25 @@ public class Typechecker extends DepthFirstAdapter
             for(PTuple e : copy)
             {
                 e.apply(this);
+				String a = nodeMap.get(e).toString();
+				if(copy.size() == 1
+						&& a.startsWith("(<")
+						&& getTupleLength(a) == 1)
+				{
+					String s = "<";
+					char[] c = a.toCharArray();
+					for(int i = 2;i<c.length-2;i++)
+					{
+						s += c[i]; 
+					}
+					s += ">";
+					nodeMap.put(node,s);
+				}
+				else
+				{
+
+				}
+				nodeMap.remove(e);
             }
         }
         outATailFuncId(node);
@@ -2398,6 +2457,25 @@ public class Typechecker extends DepthFirstAdapter
             for(PTuple e : copy)
             {
                 e.apply(this);
+				String a = nodeMap.get(e).toString();
+				if(copy.size() == 1
+						&& a.startsWith("(<<")
+						&& getTupleLength(a) == 1)
+				{
+					String s = "<";
+					char[] c = a.toCharArray();
+					for(int i = 3;i<c.length-3;i++)
+					{
+						s += c[i]; 
+					}
+					s += ">";
+					nodeMap.put(node,s);
+				}
+				else
+				{
+
+				}
+				nodeMap.remove(e);
             }
         }
         outAConcatFuncId(node);
@@ -2418,7 +2496,8 @@ public class Typechecker extends DepthFirstAdapter
                 e.apply(this);
 				String a = nodeMap.get(e).toString();
 				if(copy.size() == 1
-						&& a.startsWith("(<"))
+						&& a.startsWith("(<")
+						&& getTupleLength(a) == 1)
 				{
 					String s = "{";
 					char[] c = a.toCharArray();
@@ -2427,7 +2506,6 @@ public class Typechecker extends DepthFirstAdapter
 						s += c[i]; 
 					}
 					s += "}";
-					System.out.println(s);
 					nodeMap.put(node,s);
 				}
 				else
@@ -2454,8 +2532,10 @@ public class Typechecker extends DepthFirstAdapter
             {
                 e.apply(this);
 				String a = nodeMap.get(e).toString();
+			//	System.out.println("Tuplelänge: "+getTupleLength(a));
 				if(copy.size() == 1
-						&& a.startsWith("({"))
+						&& a.startsWith("({")
+						&& getTupleLength(a) == 1)
 				{
 					String s = "<";
 					char[] c = a.toCharArray();
@@ -2464,7 +2544,6 @@ public class Typechecker extends DepthFirstAdapter
 						s += c[i]; 
 					}
 					s += ">";
-					System.out.println(s);
 					nodeMap.put(node,s);
 				}
 				else
@@ -2564,7 +2643,7 @@ public class Typechecker extends DepthFirstAdapter
 						&& getTupleLength(a) == 1
 						&& a.equals("(<char>)"))
 				{
-					nodeMap.put(node,"<char>");
+					nodeMap.put(node,"<char>"); //Unsauber definiert (<char>) -> a
 				}
 				nodeMap.remove(e);
             }
@@ -2651,19 +2730,6 @@ public class Typechecker extends DepthFirstAdapter
     }
 	
     @Override
-    public void caseAIdentifierFuncId(AIdentifierFuncId node)
-    {
-        inAIdentifierFuncId(node);
-        if(node.getId() != null)
-        {
-            node.getId().apply(this);
-			nodeMap.put(node,nodeMap.get(node.getId()));
-        }
-		nodeMap.remove(node.getId());
-        outAIdentifierFuncId(node);
-    }
-	
-    @Override
     public void caseASeq2FuncId(ASeq2FuncId node)
     {
         inASeq2FuncId(node);
@@ -2687,7 +2753,7 @@ public class Typechecker extends DepthFirstAdapter
 						s += c[i]; 
 					}
 					s += ">}";
-					System.out.println(s);
+				//	System.out.println(s);
 					nodeMap.put(node,s);
 				}
 				else
@@ -2698,6 +2764,19 @@ public class Typechecker extends DepthFirstAdapter
             }
         }
         outASeq2FuncId(node);
+    }
+		
+    @Override
+    public void caseAIdentifierFuncId(AIdentifierFuncId node)
+    {
+        inAIdentifierFuncId(node);
+        if(node.getId() != null)
+        {
+            node.getId().apply(this);
+			nodeMap.put(node,nodeMap.get(node.getId()));
+        }
+		nodeMap.remove(node.getId());
+        outAIdentifierFuncId(node);
     }
 
 //Identifiers/Constants
@@ -3397,13 +3476,13 @@ public class Typechecker extends DepthFirstAdapter
     public void caseAEmptySeqSequence(AEmptySeqSequence node)
     {
         inAEmptySeqSequence(node);
-        if(node.getTriaL() != null)
+        if(node.getSeqOpen() != null)
         {
-            node.getTriaL().apply(this);
+            node.getSeqOpen().apply(this);
         }
-        if(node.getTriaR() != null)
+        if(node.getSeqClose() != null)
         {
-            node.getTriaR().apply(this);
+            node.getSeqClose().apply(this);
         }
 		nodeMap.put(node,"<>");
         outAEmptySeqSequence(node);
@@ -3413,22 +3492,23 @@ public class Typechecker extends DepthFirstAdapter
     public void caseAExplSeqSequence(AExplSeqSequence node)
     {
         inAExplSeqSequence(node);
-        if(node.getTriaL() != null)
+        if(node.getSeqOpen() != null)
         {
-            node.getTriaL().apply(this);
+            node.getSeqOpen().apply(this);
         }
         if(node.getInnerSequence() != null)
         {
             node.getInnerSequence().apply(this);
 			nodeMap.put(node,"<"+innerseq.get(seqDepth+1).get(0)+">");
+		//	System.out.println(nodeMap.get(node));
 			if(seqDepth<0)
 			{
 				innerseq.clear();
 		    }
         }
-        if(node.getTriaR() != null)
+        if(node.getSeqClose() != null)
         {
-            node.getTriaR().apply(this);
+            node.getSeqClose().apply(this);
         }
         outAExplSeqSequence(node);
     }
@@ -3437,9 +3517,9 @@ public class Typechecker extends DepthFirstAdapter
     public void caseAListCompSequence(AListCompSequence node)
     {
         inAListCompSequence(node);
-        if(node.getTriaL() != null)
+        if(node.getSeqOpen() != null)
         {
-            node.getTriaL().apply(this);
+            node.getSeqOpen().apply(this);
         }
         if(node.getInnerSequence() != null)
         {
@@ -3458,9 +3538,9 @@ public class Typechecker extends DepthFirstAdapter
         {
             node.getStmtsSeq().apply(this);
         }
-        if(node.getTriaR() != null)
+        if(node.getSeqClose() != null)
         {
-            node.getTriaR().apply(this);
+            node.getSeqClose().apply(this);
         }
         outAListCompSequence(node);
     }
@@ -3469,9 +3549,9 @@ public class Typechecker extends DepthFirstAdapter
     public void caseACrSeqSequence(ACrSeqSequence node)
     {
         inACrSeqSequence(node);
-        if(node.getTriaL() != null)
+        if(node.getSeqOpen() != null)
         {
-            node.getTriaL().apply(this);
+            node.getSeqOpen().apply(this);
         }
         if(node.getL() != null)
         {
@@ -3495,9 +3575,9 @@ public class Typechecker extends DepthFirstAdapter
 									+node.toString());
 			}
         }
-        if(node.getTriaR() != null)
+        if(node.getSeqClose() != null)
         {
-            node.getTriaR().apply(this);
+            node.getSeqClose().apply(this);
         }
 		nodeMap.put(node,"<int>");
 		nodeMap.remove(node.getR());
@@ -3509,9 +3589,9 @@ public class Typechecker extends DepthFirstAdapter
     public void caseARanCompSequence(ARanCompSequence node)
     {
         inARanCompSequence(node);
-        if(node.getTriaL() != null)
+        if(node.getSeqOpen() != null)
         {
-            node.getTriaL().apply(this);
+            node.getSeqOpen().apply(this);
         }
         if(node.getL() != null)
         {
@@ -3543,9 +3623,9 @@ public class Typechecker extends DepthFirstAdapter
         {
             node.getStmtsSeq().apply(this);
         }
-        if(node.getTriaR() != null)
+        if(node.getSeqClose() != null)
         {
-            node.getTriaR().apply(this);
+            node.getSeqClose().apply(this);
         }
 		nodeMap.put(node,"<int>");
 		nodeMap.remove(node.getR());
@@ -3557,9 +3637,9 @@ public class Typechecker extends DepthFirstAdapter
     public void caseAOrSeqSequence(AOrSeqSequence node)
     {
         inAOrSeqSequence(node);
-        if(node.getTriaL() != null)
+        if(node.getSeqOpen() != null)
         {
-            node.getTriaL().apply(this);
+            node.getSeqOpen().apply(this);
         }
         if(node.getValExp() != null)
         {
@@ -3574,9 +3654,9 @@ public class Typechecker extends DepthFirstAdapter
         {
             node.getDotdot().apply(this);
         }
-        if(node.getTriaR() != null)
+        if(node.getSeqClose() != null)
         {
-            node.getTriaR().apply(this);
+            node.getSeqClose().apply(this);
         }
 		nodeMap.put(node,"<int>");
 		nodeMap.remove(node.getValExp());
@@ -3587,9 +3667,9 @@ public class Typechecker extends DepthFirstAdapter
     public void caseAInfComprSequence(AInfComprSequence node)
     {
         inAInfComprSequence(node);
-        if(node.getTriaL() != null)
+        if(node.getSeqOpen() != null)
         {
-            node.getTriaL().apply(this);
+            node.getSeqOpen().apply(this);
         }
         if(node.getValExp() != null)
         {
@@ -3612,9 +3692,9 @@ public class Typechecker extends DepthFirstAdapter
         {
             node.getStmtsSeq().apply(this);
         }
-        if(node.getTriaR() != null)
+        if(node.getSeqClose() != null)
         {
-            node.getTriaR().apply(this);
+            node.getSeqClose().apply(this);
         }
 		nodeMap.put(node,"<int>");
 		nodeMap.remove(node.getValExp());
@@ -3829,10 +3909,10 @@ public class Typechecker extends DepthFirstAdapter
     public void caseAStartInnerSequenceRek(AStartInnerSequenceRek node)
     {
         inAStartInnerSequenceRek(node);
-        if(node.getValExp() != null)
+        if(node.getProc1() != null)
         {
-            node.getValExp().apply(this);
-			String a = nodeMap.get(node.getValExp()).toString();
+            node.getProc1().apply(this);
+			String a = nodeMap.get(node.getProc1()).toString();
 			innerseq.get(seqDepth).add(a);
         }
         if(node.getComma() != null)
@@ -3843,7 +3923,7 @@ public class Typechecker extends DepthFirstAdapter
         {
             node.getInnerSequenceRek().apply(this);
         }
-		nodeMap.remove(node.getValExp());
+		nodeMap.remove(node.getProc1());
         outAStartInnerSequenceRek(node);
     }
 
@@ -3851,10 +3931,10 @@ public class Typechecker extends DepthFirstAdapter
     public void caseAEndInnerSequenceRek(AEndInnerSequenceRek node)
     {
         inAEndInnerSequenceRek(node);
-        if(node.getValExp() != null)
+        if(node.getProc1() != null)
         {
-            node.getValExp().apply(this);
-			String a = nodeMap.get(node.getValExp()).toString();
+            node.getProc1().apply(this);
+			String a = nodeMap.get(node.getProc1()).toString();
 			innerseq.get(seqDepth).add(a);
         }
 		for(int i = 1; i<innerseq.get(seqDepth).size();i++)
@@ -3865,7 +3945,7 @@ public class Typechecker extends DepthFirstAdapter
 							+innerseq.get(seqDepth).get(0)+" at:"+node.toString());
 			}
 		}
-		nodeMap.remove(node.getValExp());
+		nodeMap.remove(node.getProc1());
         outAEndInnerSequenceRek(node);
     }
 

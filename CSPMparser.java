@@ -5,7 +5,7 @@ import java.lang.*;
 import java.lang.Character;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import CSPMparser.parser.*;
 import CSPMparser.lexer.*;
@@ -75,6 +75,8 @@ public int parseFilesInFolder(File folder, Boolean help)
 					StreamEdit se = new StreamEdit(fileEntry.toString(),help);
 					currentFile = getStringFromFile(fileEntry.toString());
 					newstream = se.editTokens();
+					TriangleBruteForce tbf = new TriangleBruteForce(newstream);
+					newstream = tbf.findTriangles();
 					workcount++;
 					StringReader sr = new StringReader(newstream);
 					BufferedReader br = new BufferedReader(sr); 
@@ -128,6 +130,8 @@ public void parseFile(String s, Boolean help)
 		StreamEdit se = new StreamEdit(s, help);
 		currentFile = getStringFromFile(s);
 		newstream = se.editTokens();
+		TriangleBruteForce tbf = new TriangleBruteForce(newstream);
+		newstream = tbf.findTriangles();
 		workcount++;
 		StringReader sr = new StringReader(newstream);
 		BufferedReader br = new BufferedReader(sr); 
@@ -289,7 +293,7 @@ public String getStringFromFile(String fp)
 	try 
 	{	
 		byte[] encoded = Files.readAllBytes(Paths.get(fp));
-		String file_content = new String(encoded, Charset.defaultCharset());
+		String file_content = new String(encoded, StandardCharsets.UTF_8);
 		return file_content;
 	}
 	catch(Exception e) 		
