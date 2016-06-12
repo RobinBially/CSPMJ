@@ -98,8 +98,7 @@ Timed(OneStep){
 }
 P' = a -> tock -> P' [] tock -> P'
 
-SYSTEM = SERVICE
-[
+SYSTEM = SERVICE[
 {|board37A,alight37A,alight37B,board111A,alight111A,alight111B,pay70,pay90|}
 || 
 {|board37A,alight37A,alight37B,board111A,alight111A,alight111B,pay70,pay90|}
@@ -128,3 +127,6 @@ len = #StartBoard-1	-}
 
 assert P |= LTL : "true"
 assert P |= CTL : "true & false => AX deadlock"
+
+allowed(s) = { 1..head(s^<n+1>)-1 }
+initial(p)   = if <2>==<3> then <1..n> else <>

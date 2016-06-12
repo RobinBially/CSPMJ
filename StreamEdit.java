@@ -12,61 +12,18 @@ import java.nio.file.Files;
 public class StreamEdit
 {
 	public String s;
-	public Boolean help;
-	public StreamEdit(String tokenstream, Boolean h)
+
+	public StreamEdit(String tokenstream)
 	{
 		s = tokenstream;
-		help = h;
 	}
-	
-	
+		
 	public String editTokens()
 	{
 		String newstream = deleteNewlines();
-		printNewStream(newstream);
 		return newstream;
 	}
-		
-	
-	public void printNewStream(String stream)
-	{
-		if(help)
-		{
-			char[] ca = stream.toCharArray();
-			int i = 1;
-			int j = 0;
-			System.out.print("Line "+i+": ");
-			while(j< ca.length)
-			{
-				
-				if(ca[j] != '\r' && ca[j] != '\n')
-				{				
-					System.out.print(ca[j]);
-					j++;
-				}
-				else if (j+1<ca.length && ca[j] == '\r' && ca[j+1] == '\n')
-				{
-					j=j+2; // Überspringe LF im CR LF
-					i++;
-					System.out.print("\nLine "+i+": ");
-				}
-				else if (j<ca.length && ca[j] == '\n')
-				{
-					j++; // Überspringe LF
-					i++;
-					System.out.print("\nLine "+i+": ");
-				}
-				else if (j<ca.length && ca[j] == '\r')
-				{
-					j++; // Überspringe CR
-					i++;
-					System.out.print("\nLine "+i+": ");
-				}
-			}	
-		}
-	}
-	
-	
+
 	public String deleteNewlines()
 	{
 		String ts = getStringFromFile(s);		
@@ -75,38 +32,41 @@ public class StreamEdit
 		ts = deleteComments(ts);
 		//Delete Tabs	
 		ts = ts.replaceAll("\t","");
-			
-		Boolean replaceable = false;
-		Boolean replaceable2 = false;
-		Boolean replaceable3 = false;
-	
+
 		//Löschen von überflüssigem whitespace vor und hinter newlines
-		replaceable = containsLeftNewline(ts);
-		while(replaceable)
+		String old = "";
+		while(true)
 		{	
+			old = ts;
 			ts = ts.replace("\r\n ", "\r\n");	
 			ts = ts.replace("\r ", "\r");	
 			ts = ts.replace("\n ", "\n");				
-			replaceable = containsLeftNewline(ts);
+			if(old.equals(ts))
+			{ break; }
 		}
 		
-		replaceable2 = containsRightNewline(ts); 
-		while(replaceable2) 						
+
+		while(true) 						
 		{
+			old = ts;
 			ts = ts.replace(" \r\n", "\r\n");
 			ts = ts.replace(" \r", "\r");
 			ts = ts.replace(" \n", "\n");
-			replaceable2 = containsRightNewline(ts);
+			if(old.equals(ts))
+			{ break; }	
 		}
 				
 		//Löschen von doppelten Newline-Zeichen
-		replaceable3 = containsDoubleNewline(ts);
-		while(replaceable3)
+		while(true)
 		{
-			ts = ts.replace("\r\n\r\n","\r\n");
-			ts = ts.replace("\r\r","\r");
-			ts = ts.replace("\n\n","\n");
-			replaceable3 = containsDoubleNewline(ts);
+			old = ts;
+			ts = ts.replaceAll("\n\r","\r\n");
+			ts = ts.replaceAll("\r\n\r\n","\r\n");
+			ts = ts.replaceAll("\r\r","\r");
+			ts = ts.replaceAll("\n\n","\n");
+			
+			if(old.equals(ts))
+			{ break; }	
 		}
 
 				
@@ -281,8 +241,7 @@ public class StreamEdit
 				}
 			}
 		i++;
-		}
-		
+		}	
 		newTS = String.valueOf(c);
 		return newTS; 
 	}
@@ -302,38 +261,4 @@ public class StreamEdit
 		}	
 		
 	}
-	
-	public Boolean containsLeftNewline(String s)
-	{
-			if(s.contains("\r\n "))
-			{return true;}
-			else if(s.contains("\r "))
-			{return true;}
-			else if(s.contains("\n "))
-			{return true;}
-			else {return false;}
-	}
-	
-	public Boolean containsRightNewline(String s)
-	{
-			if(s.contains(" \r\n"))
-			{return true;}
-			else if(s.contains(" \r"))
-			{return true;}
-			else if(s.contains(" \n"))
-			{return true;}
-			else {return false;}
-	}
-	
-	public Boolean containsDoubleNewline(String s)
-	{
-			if(s.contains("\r\n\r\n"))
-			{return true;}
-			else if(s.contains("\r\r"))
-			{return true;}
-			else if(s.contains("\n\n"))
-			{return true;}
-			else {return false;}
-	}
-
 }

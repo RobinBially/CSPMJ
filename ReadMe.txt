@@ -9,9 +9,17 @@ javac CTLparser.java
 javac LTLparser.java
 javac CSPMparser.java
 java CSPMparser -parse Examples\debug.csp
-java CSPMparser -parse -h Examples\debug.csp
+java CSPMparser -parse -show Examples\debug.csp
 java CSPMparser -parseAll 
-java CSPMparser -parseAll -h 				(h shows edited Tokenstream)
+java CSPMparser -parseAll -show				(-show shows edited Tokenstream)
+
+
+Triangle substitutions:
+\u00AB = «	seq opening
+\u00BB = »	seq closing
+\u00A3 = £	greater
+\u20AC = €  smaller
+
 _________________________________________________________________________________________
 
 *********

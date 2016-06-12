@@ -50,69 +50,69 @@ public String getPath()
 }
 
 
-public int parseFilesInFolder(File folder, Boolean help)
+public int parseFilesInFolder(File folder, Boolean show)
 {
 	int i = 0;
 	for (File fileEntry : folder.listFiles()) 
-	{
-		
+	{		
 		if (fileEntry.isDirectory())
 		{
-			i += parseFilesInFolder(fileEntry,help);
+			i += parseFilesInFolder(fileEntry,show);
 		} 
-		else 
+		else if(getExtension(fileEntry.toString()).equals("csp"))
 		{
-			String ext = getExtension(fileEntry.toString());				
-			if(ext.equals("csp"))
+			i++;
+			if(show)
+			System.out.println("\n\nAnalysiere Syntax für "+fileEntry.getName()+":");
+			else
+			System.out.println("\n\nAnalysiere Syntax für "+fileEntry.getName()+"...");
+			workcount = 0;
+			try 
 			{
-				if(help)
-				System.out.println("Analysiere Syntax für "+fileEntry.getName()+":");
-				else
-				System.out.println("Analysiere Syntax für "+fileEntry.getName()+"...");
-				workcount = 0;
-				try 
+				StreamEdit se = new StreamEdit(fileEntry.toString());
+				newstream = se.editTokens();
+				
+				workcount++;
+				 
+				TriangleBruteForce tbf = new TriangleBruteForce(newstream);
+				newstream = tbf.findTriangles();
+				
+				if(show)
 				{
-					StreamEdit se = new StreamEdit(fileEntry.toString(),help);
-					currentFile = getStringFromFile(fileEntry.toString());
-					newstream = se.editTokens();
-					TriangleBruteForce tbf = new TriangleBruteForce(newstream);
-					newstream = tbf.findTriangles();
-					workcount++;
-					StringReader sr = new StringReader(newstream);
-					BufferedReader br = new BufferedReader(sr); 
-					Lexer l = new Lexer(new PushbackReader(br,100000));
-					Parser p = new Parser(l);
-					Start tree = p.parse();
-					workcount++;
-					TreeLogicChecker tlc = new TreeLogicChecker();
-					tree.apply(tlc);
-					workcount++;
-					if(help)
-					System.out.println("\nParsing für "+fileEntry.getName()+" erfolgreich.\n");
-					else
-					System.out.println("Parsing für "+fileEntry.getName()+" erfolgreich.\n");
-					i++;
-			//		Typechecker ts = new Typechecker();
-			//		tree.apply(ts);
-				} 	
-				catch (Exception e) 
+					printNewStream(newstream);
+				}
+				
+				workcount++;
+
+				StringReader sr = new StringReader(newstream);
+				BufferedReader br = new BufferedReader(sr); 
+				Lexer l = new Lexer(new PushbackReader(br,100000));
+				Parser p = new Parser(l);
+				Start tree = p.parse();		
+				TreeLogicChecker tlc = new TreeLogicChecker();
+				tree.apply(tlc);
+				
+				workcount++;
+		//		Typechecker ts = new Typechecker();
+		//		tree.apply(ts);
+			} 	
+			catch (Exception e) 
+			{
+				if(workcount == 0)
 				{
-					if(workcount == 0)//Error in StreamEdit
-					{
-						throw new RuntimeException("\n"+e.getMessage());
-					}
-					else if(workcount == 1) //Parsing Error
-					{
-						String[] pos = getPosFromException(e);
-						int zeile  = Integer.parseInt(pos[0]);
-						int spalte = Integer.parseInt(pos[1]);
-						String h = sync(zeile,spalte,e);
-						throw new RuntimeException("\n"+h);
-					}
-					else if(workcount > 1)
-					{
-						throw new RuntimeException("\n"+e.getMessage());
-					}
+					throw new RuntimeException("Fehler im Prelexer: "+e.getMessage());
+				}
+				if(workcount == 1)//Error in StreamEdit
+				{
+					throw new RuntimeException("\nFehler bei Klammerumwandlung: "+e.getMessage());
+				}
+				else if(workcount == 2) //Parsing Error
+				{
+					throw new RuntimeException("\nError beim Parsen: "+e.getMessage());
+				}
+				else if(workcount == 3)
+				{
+					throw new RuntimeException("\nError in Typechecker: "+e.getMessage());
 				}
 			}
 		}
@@ -121,170 +121,61 @@ public int parseFilesInFolder(File folder, Boolean help)
 }
 
 		
-public void parseFile(String s, Boolean help)
+public void parseFile(String s, Boolean show)
 {
 	System.out.println("Analysiere Syntax:");
 	workcount = 0;
 	try 
 	{							
-		StreamEdit se = new StreamEdit(s, help);
-		currentFile = getStringFromFile(s);
+		StreamEdit se = new StreamEdit(s);
 		newstream = se.editTokens();
+		
+		workcount++;
+		
 		TriangleBruteForce tbf = new TriangleBruteForce(newstream);
 		newstream = tbf.findTriangles();
+		
+		if(show)
+		{
+			printNewStream(newstream);
+		}		
+		
 		workcount++;
+		
 		StringReader sr = new StringReader(newstream);
 		BufferedReader br = new BufferedReader(sr); 
 		Lexer l = new Lexer(new PushbackReader(br,100000));
 		Parser p = new Parser(l);
-		Start tree = p.parse();
-		workcount++;
+		Start tree = p.parse();		
 		TreeLogicChecker tlc = new TreeLogicChecker();
 		tree.apply(tlc);
+		System.out.println("\nIhr CSPM-Code konnte erfolgreich geparst werden.\n"
+							+"Überprüfe Typen auf Korrektheit...");
+		
 		workcount++;
 //		Typechecker ts = new Typechecker();
 //		tree.apply(ts);
-		System.out.println("\nIhr CSP_M-Code konnte erfolgreich geparst werden.");
+
 	} 	
 	catch (Exception e) 
 	{
-		if(workcount == 0)//Error in StreamEdit
+		if(workcount == 0)
 		{
-			throw new RuntimeException("\nworkcount 0: "+e.getMessage());
+			throw new RuntimeException("Fehler im Prelexer: "+e.getMessage());
 		}
-		else if(workcount == 1) //Parsing Error
+		if(workcount == 1)//Error in StreamEdit
 		{
-			String[] pos = getPosFromException(e);
-			int zeile  = Integer.parseInt(pos[0]);
-			int spalte = Integer.parseInt(pos[1]);
-			String h = sync(zeile,spalte,e);
-			throw new RuntimeException("\n\nworkcount 1: "+h);
+			throw new RuntimeException("\nFehler bei Klammerumwandlung: "+e.getMessage());
 		}
-		else if(workcount > 1)
+		else if(workcount == 2) //Parsing Error
 		{
-			throw new RuntimeException("\nworkcount >1: "+e.getMessage());
+			throw new RuntimeException("\nError beim Parsen: "+e.getMessage());
+		}
+		else if(workcount == 3)
+		{
+			throw new RuntimeException("\nError in Typechecker: "+e.getMessage());
 		}
 	}		
-}
-
-
-public String sync(int u, int o, Exception exc)
-{	
-	char[] cf = currentFile.toCharArray();
-	char[] ns = newstream.toCharArray();
-	
-	int zeile = u;
-	int spalte = o;
-	int error_index = 0;
-	int zcount = 1;
-	int scount = 1;
-	boolean b = true;
-	
-	//Ermittle Index in String aus Zeile und Spalte
-	for(zcount=1;zcount<=zeile;zcount++)
-	{
-		b = true;
-		scount = 0;
-		while(b && !(zcount == zeile && scount == spalte-1))
-		{
-			if(ns[error_index] == '\r' && ns[error_index+1] == '\n')
-			{
-				error_index+=2;
-				b = false;
-			}
-			else if(ns[error_index] == '\r' || ns[error_index] == '\n')
-			{
-				error_index++;
-				b = false;
-			}					
-			else
-			{
-				error_index++;
-				scount++;
-			}					
-		}
-	}
-					
-	int e = 0; //e ist der äquivalente Fehlerindex im Dokument
-	for(int d=0;d<error_index;d++)
-	{
-		while(ns[d] != cf[e])
-		{
-			e++;
-		}
-	}
-	e++; //Fehler ist hinter dem letzten Zeichen*/
-	
-	//Nun ist der Fehlerindex im Dokument ermittelt.
-	//Finde nun Zeile und Spalte des Fehlers mit Hilfe des Indexes.
-	int icount = 0; //Fehlerindex in Array
-	spalte = 1;
-	zeile = 1;
-
-	while(icount<e)
-	{	
-			if(cf[icount] == '\r' && cf[icount+1] == '\n')
-			{
-				zeile++;
-				spalte = 1;
-				icount+=2;
-
-			}
-			else if(cf[icount] == '\r' || cf[icount] == '\n')
-			{
-				zeile++;
-				spalte = 1;
-				icount++;
-			}					
-			else
-			{
-				icount++;
-				spalte++;
-			}	
-	}
-	
-	//Exception String neu formatieren und austauschen
-	char[] ex = exc.getMessage().toCharArray();
-	int i = 0;
-	
-	while(ex[i] != ']')
-	{
-		i++;
-	} 
-
-	String newStr = "["+zeile+","+spalte+"]";
-	for(int j = i+1; j<ex.length;j++)
-	{
-		newStr += ex[j];
-	}
-	return newStr;
-}
-
-
-public String[] getPosFromException(Exception f)
-{
-	char[] g = f.getMessage().toCharArray();
-	boolean u = true;
-	String n = "";
-	int count = 0;
-	while(u)
-	{
-		if(g[count] == '[')
-		{
-			count++;
-		}
-		if(g[count] == ']')
-		{
-			u = false;
-		}
-		else
-		{
-			n+=g[count];
-			count++;
-		}
-	}
-	String[] pos = n.split(",");
-	return pos;
 }
 
 
@@ -302,15 +193,56 @@ public String getStringFromFile(String fp)
 	}	
 	
 }
+
+public void printNewStream(String stream)
+{
+	char[] ca = stream.toCharArray();
+	int i = 1;
+	int j = 0;
+	System.out.print("Line "+i+": ");
+	while(j< ca.length)
+	{
+		
+		if(ca[j] != '\r' && ca[j] != '\n')
+		{	
+			try
+			{
+				PrintStream print = new PrintStream(System.out, true, "UTF-8");
+				print.print(ca[j]);
+			}
+			catch(Exception e){}
+			j++;
+		}
+		else if (j+1<ca.length && ca[j] == '\r' && ca[j+1] == '\n')
+		{
+			j=j+2; // Überspringe LF im CR LF
+			i++;
+			System.out.print("\nLine "+i+": ");
+		}
+		else if (j<ca.length && ca[j] == '\n')
+		{
+			j++; // Überspringe LF
+			i++;
+			System.out.print("\nLine "+i+": ");
+		}
+		else if (j<ca.length && ca[j] == '\r')
+		{
+			j++; // Überspringe CR
+			i++;
+			System.out.print("\nLine "+i+": ");
+		}
+	}	
+	
+}
 public static void main(String arguments[]) 
 {		
 	CSPMparser cspm = new CSPMparser();
 	if(arguments.length == 3)
 	{
 		if((arguments[0].toString().equals("-parse") 
-			&& arguments[1].toString().equals("-h"))
+			&& arguments[1].toString().equals("-show"))
 			||(arguments[1].toString().equals("-parse") 
-			&& arguments[0].toString().equals("-h")))
+			&& arguments[0].toString().equals("-show")))
 		{
 			cspm.parseFile(arguments[2],true);
 		}
@@ -318,14 +250,14 @@ public static void main(String arguments[])
 	else if(arguments.length == 2)
 	{	
 		if(arguments[0].toString().equals("-parse") 
-			&& !(arguments[1].toString().equals("-h")) )
+			&& !(arguments[1].toString().equals("-show")) )
 		{
 			cspm.parseFile(arguments[1],false);
 		}
 		if((arguments[0].toString().equals("-parseAll") 
-			&& arguments[1].toString().equals("-h"))
+			&& arguments[1].toString().equals("-show"))
 			||(arguments[1].toString().equals("-parseAll") 
-			&& arguments[0].toString().equals("-h")))
+			&& arguments[0].toString().equals("-show")))
 		{
 			Boolean help = true;
 			File folder = new File(cspm.getPath());
@@ -350,15 +282,15 @@ public static void main(String arguments[])
 		int k = cspm.parseFilesInFolder(folder,false);
 		if(k == 1)
 		{
-			System.out.println("\nDie CSPM-Datei wurde erfolgreich geparst!");
+			System.out.println("\n\nDie CSPM-Datei wurde erfolgreich geparst!");
 		}
 		else if(k==2)
 		{
-			System.out.println("\nDie beiden CSPM-Dateien wurden erfolgreich geparst!");
+			System.out.println("\n\nDie beiden CSPM-Dateien wurden erfolgreich geparst!");
 		}
 		else
 		{
-			System.out.println("\nAlle "+k+" CSPM-Dateien wurden erfolgreich geparst!");
+			System.out.println("\n\nAlle "+k+" CSPM-Dateien wurden erfolgreich geparst!");
 		}
 	}
 	else

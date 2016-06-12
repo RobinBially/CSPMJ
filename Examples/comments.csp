@@ -1,0 +1,22 @@
+{-
+LPHILS(n) =
+  let
+    L(0) =
+      FORK [right<->left] PHIL
+    L(n) =
+      let
+        HALF = LPHILS(n-1)
+      within HALF [right<->left] HALF
+--    transparent normal  -- transparent only allowed at toplevel
+  within normal(L(n) [[ ]])
+  
+ f(x.red) = f(x-1.green)
+ 
+Alpha(i) = Union({{done},
+		  {| move_left.i-k | k <- {0, 1} |},
+		  {| move_right.i+k | k <- {0, 1} |},
+		  {| hop_left.i-k | k <- {0, 1, 2} |},
+		  {| hop_right.i+k | k <- {0, 1, 2} |}})
+		  
+len = #StartBoard-1	-}
+A=3
