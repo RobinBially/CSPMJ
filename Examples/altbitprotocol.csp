@@ -15,9 +15,9 @@ AS2(x) = in?vr ->
 AS3(x) = out!x!1 -> AS2(x)
 
 AS4(x) = in?vr -> 
-             (if (vr==1) then  StartA(x)
+             (if (vr==1) then StartA(x)
 	     else if (vr==0) then StartA(x)
-	          else AS5(x))  -- error
+	          else AS5(x))  -- error		  
 AS5(x) = out!x!0 -> AS4(x)
 
 

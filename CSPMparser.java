@@ -69,9 +69,8 @@ public int parseFilesInFolder(File folder, Boolean show)
 			workcount = 0;
 			try 
 			{
-				StreamEdit se = new StreamEdit(fileEntry.toString());
-				newstream = se.editTokens();
-				
+				newstream = getStringFromFile(fileEntry.toString());
+				newstream = deleteComments(newstream);
 				workcount++;
 				 
 				TriangleBruteForce tbf = new TriangleBruteForce(newstream);
@@ -127,9 +126,8 @@ public void parseFile(String s, Boolean show)
 	workcount = 0;
 	try 
 	{							
-		StreamEdit se = new StreamEdit(s);
-		newstream = se.editTokens();
-		
+		newstream = getStringFromFile(s);
+		newstream = deleteComments(newstream);
 		workcount++;
 		
 		TriangleBruteForce tbf = new TriangleBruteForce(newstream);
@@ -234,6 +232,92 @@ public void printNewStream(String stream)
 	}	
 	
 }
+
+//Deletes content in range l-r in Chararray
+public char[] delRange(int l, int r, char[] q)
+{
+	for(int i = l; i<=r;i++)
+	{
+		q[i] = ' ';
+	}
+	return q;
+}
+
+	
+public String deleteComments(String ts)
+{
+		String newTS = ts;	
+		char[] c = ts.toCharArray();	
+		int i = 0;
+		
+		while(i<c.length)
+		{
+			if(c[i] == '{' && c[i+1] == '-')
+			{
+				int v = 0;
+				int count_crlf = 0;
+				int count_cr = 0;
+				int count_lf = 0;
+				boolean b = true;
+				while(b)
+				{
+
+					if(c[i+v] == '-' && c[i+v+1] == '}')
+					{
+						c = delRange(i,i+v+1,c);
+						b = false;
+						i=i+v+1;
+					}
+					else
+					{
+						v++;
+					}
+				}
+			}
+			else if(c[i] == '-' && c[i+1] == '-')
+			{
+				int w = 0;
+				boolean b = true;
+				while(b)
+				{
+					if(c[i+w] == '\r' && c[i+w+1] == '\n')
+					{
+						c = delRange(i,i+w,c); //nicht i+w+1, da \n erhalten bleiben muss
+						b = false;
+						i = i+w+1;
+					}
+					else if(c[i+w] == '\r')
+					{
+						c = delRange(i,i+w-1,c);
+						b = false;
+						i = i+w;
+					}
+					else if(c[i+w] == '\n')
+					{
+						c = delRange(i,i+w-1,c);
+						b = false;
+						i = i+w;
+					}
+					else
+					{
+						w++;
+						if((i+w) == c.length-1)
+						{
+							c = delRange(i,i+w,c);
+							b = false;
+							i = i+w;
+						}
+					}
+				}
+			}
+		i++;
+		}	
+		newTS = String.valueOf(c);
+		return newTS; 
+}
+
+
+
 public static void main(String arguments[]) 
 {		
 	CSPMparser cspm = new CSPMparser();

@@ -20,3 +20,13 @@ Alpha(i) = Union({{done},
 		  
 len = #StartBoard-1	-}
 A=3
+
+{-
+--
+Teste Kommentare
+
+-}
+
+---
+
+-- {-

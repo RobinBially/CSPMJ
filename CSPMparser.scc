@@ -23,9 +23,9 @@ Helpers
     cr = 13;
     lf = 10;
 	not_cr_lf = [all - [cr + lf]];	
-	no_brace = [all - '}'];
 	eol = cr lf | cr | lf;
 	blank = (' '|tab);
+	white = (' '|tab|cr|lf)*;
 	
 /*	Triangle substitutions:
 	\u00AB = «	seq opening
@@ -79,10 +79,10 @@ Tokens
 //***************************************************************************************
 //CSPM command words	
 	if 				= 'if';
-	then 			= 'then';
-	else 			= 'else';
+	then 			= white 'then' white;
+	else 			= white 'else' white;
 	let 			= 'let';
-	within 			= 'within';
+	within 			= 'within' white;
 	d_type 			= 'datatype';
 	s_type 			= 'subtype';
 	n_type 			= 'nametype';
@@ -106,70 +106,71 @@ Tokens
 	not 			= 'not';
 
 //---------------------------------------------------------------------------------------
-	comma 			= ',';
+	comma 			= ',' white;
 	apo 			= ''';
 	quote			= '"';
-	dotdot 			= '..';
-	ddot 			= ':';
-	eq 				= '=';
-	at 				= '@';
-	hash 			= '#';
-	b_slash 		= '\';
+	dotdot 			= white '..' white;
+	ddot 			= white ':' white;
+	eq 				= '=' white;
+	at 				= '@' white;
+	hash 			= '#' white;
+	b_slash 		= white '\' white;
 	q_mark 			= '?';
 	excl_mark 		= '!';
 	dollar 			= '$';
-	dpipe 			= '||';
-	pipe 			= '|';
-	doubleat 		= '@@';
-	i_leaving 		= '|||';
-	i_choice  		= '|~|';
-	e_choice  		= '[]';
-	interrupt 		= '/\';
-	timeout			= '[>';
+	dpipe 			= white '||' white;
+	pipe_equals		= white '|=' white; 
+	pipe 			= white '|' white;
+	doubleat 		= white '@@' white;
+	i_leaving 		= white '|||' white;
+	i_choice  		= white '|~|' white;
+	e_choice  		= white '[]' white;
+	interrupt 		= white '/\' white;
+	timeout			= white '[>' white;
 //-------------------------------------	
-	par_l 			= '(';
-	par_r 			= ')';
+	par_l 			= '(' white;
+	par_r 			=  white ')';
 	empty_map 		= '(| |)';
-	lge 			= '<='| '>=';
-	seq_open		= seq_open;
-	seq_close 		= seq_close;
-	greater 		= greater;
-	less	 		= less;		
-	tria_l			= '<';
-	tria_r			= '>';
-	sync_par_l		= '[+';	
-	sync_par_r		= '+]';
-	sync_int_l 		= '/+';
-	sync_int_r		= '+\';
-	dbracket_l 		= '[[';
-	dbracket_r 		= ']]';
-	dp_bracket 		= ':[';
-	bracket_l 		= '[';
-	bracket_r 		= ']';
-	brace_l 		= '{';
-	brace_r 		= '}';
+	lge 			= white '<=' white | white '>=' white;
+	seq_open		= seq_open white;
+	seq_close 		= white seq_close;
+	greater 		= white greater;
+	less	 		= less white;		
+	tria_l			= '<' white;
+	tria_r			= white '>';
+	sync_par_l		= '[+' white;	
+	sync_par_r		= white '+]';
+	sync_int_l 		= '/+' white;
+	sync_int_r		= white '+\';
+	dbracket_l 		= white '[[' white;
+	dbracket_r 		= white ']]';
+	dp_bracket 		= white ':[' white;
+	bracket_pipe_l	= white '[|' white;
+	bracket_pipe_r	= white '|]' white;
+	bracket_l 		= white '[' white;
+	bracket_r 		= white ']';
+	brace_l 		= '{' white;
+	brace_r 		= white '}';
 //-------------------------------------	
-	guard 			= '&';
-	tilde			= '~';
-	dot 			= '.';
-	semicolon 		= ';';
-	prefix			= '->';
+	guard 			= white '&' white;
+	dot 			= white '.' white;
+	semicolon 		= white ';' white;
+	prefix			= white '->' white;
 	arrow_l 		= '<-';
-	cat 			= '^';
+	cat 			= white '^' white;
 	d_arr 			= '<->';	
 	equi 			= '<=>';
 	imp_r 			= '=>';
 	imp_l 			= '<=';
-	equal			= '=='|'!=';
-	tra_mod 		= '[T=';
-	fail_mod  		= '[F=';
-	fail_div 		= '[FD=';
-	t_mod 			= '[T]';
-	f_mod		    = '[F]'; 
-	f_div		    = '[FD]';
-	pipe_equals		= '|='; 
-	mul_div_mod 	=  '*' |'/' | '%';
-	plus 			=  '+';
+	equal			= white '==' white | white '!=' white;
+	tra_mod 		= white '[T=' white;
+	fail_mod  		= white '[F=' white;
+	fail_div 		= white '[FD=' white;
+	t_mod 			= white '[T]' white;
+	f_mod		    = white '[F]' white; 
+	f_div		    = white '[FD]' white;
+	mul_div_mod 	=  white '*' white | white '/' white | white '%' white;
+	plus 			=  white '+' white;
 	minus		    =  '-';
 //---------------------------------------------------------------------------------------	
 	/*Strings*/ 
@@ -293,8 +294,8 @@ proc2 		=  	 {hide} proc2 b_slash proc3
 
 proc3 		=    {ileave} proc3 i_leaving proc4 
 				|{p4} proc4;
-proc4 		=  	 {except} proc4 bracket_l [l]:pipe event [r]:pipe tria_r proc5
-				|{gen_par} proc4 bracket_l [lp]:pipe event [rp]:pipe bracket_r proc5
+proc4 		=  	 {except} proc4 bracket_pipe_l event [r]:pipe tria_r proc5
+				|{gen_par} proc4 bracket_pipe_l event bracket_pipe_r proc5
 				|{alph_par} proc4 bracket_l [l]:event dpipe [r]:event bracket_r proc5
 				|{linked_par} proc4 bracket_l link_comp bracket_r proc5
 				|{p5} proc5;				
@@ -313,8 +314,8 @@ proc9 		= 	 {seq_comp} proc9 semicolon proc10
 proc10		= 	 {guard_exp} dot_op guard proc10
 				|{prefix} event prefix proc10
 				|{lambda_term} b_slash inner_tuple at proc10 
-				|{let_within} let defs within nl? proc10
-				|{if_else} if bool_exp [a]:nl? then [b]:nl? proc1 [c]:nl? else [d]:nl? proc10
+				|{let_within} let defs within proc10
+				|{if_else} if bool_exp then proc1 else proc10
 				|{rep} rep proc10
 				|{p11} proc11;				
 proc11 		=	 {renaming} proc11 dbracket_l rename_comp dbracket_r
@@ -438,7 +439,7 @@ rep = 			 {ext_choice} e_choice rep_stmts at
 				|{i_leave} i_leaving rep_stmts at
 				|{seq_comp} semicolon rep_stmts at
 				|{alp_par} dpipe rep_stmts at bracket_l event bracket_r
-				|{sharing} bracket_l [l]:pipe val_exp [r]:pipe bracket_r rep_stmts at
+				|{sharing} bracket_pipe_l val_exp bracket_pipe_r rep_stmts at
 				|{linked_par} bracket_l link_comp bracket_r rep_stmts at
 				|{sync_par} sync_par_l [l]:event sync_par_r rep_stmts at;
 	

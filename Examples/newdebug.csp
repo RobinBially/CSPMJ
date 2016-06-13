@@ -39,3 +39,10 @@ a = <> > <>
 --a = <<3,4>>
 --a =«5€«3£««4»»€5»,«5»»
 --a =«5€«3»€«4»£«5»,«5»»
+
+
+AS4(x) = in?vr -> 
+             if (vr==1) then StartA(x)
+	     else if (vr==0) then StartA(x)
+	          else AS5(x) --error 
+AS5(x) = out!x!0 -> AS4(x)

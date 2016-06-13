@@ -197,10 +197,10 @@ private String stream;
 			{
 				System.out.println("ACHTUNG BRUTE-FORCE!!!");
 				String addToString = bruteForce(subString, al ,0);
-				if(addToString.equals(""))
-				{
-					throw new RuntimeException("TypeError in Bruteforce Typechecking");
-				}
+			//	if(addToString.equals(""))
+			//	{
+			//		throw new RuntimeException("TypeError in Bruteforce Typechecking");
+			//	}
 				afterBruteForce += addToString+"\r\n";	
 			}
 			else
