@@ -21,10 +21,13 @@ import CSPMparser.node.*;
 public class TriangleBruteForce
 {
 private String stream;	
+private String white;
+private String white2;
 	
 	public TriangleBruteForce(String s)
 	{
 		stream = s;
+		white = defineWhitespace();
 	}
 	
 	public String findTriangles()
@@ -47,8 +50,8 @@ private String stream;
 		//Save triangles that must not be replaced!
 
 		stream = stream.replaceAll("<=>","\u00A2\u00A4\u00A2");
-		stream = stream.replaceAll("<=","\u00A4\u00A2"); //Könnten ersetzt werden 
-		stream = stream.replaceAll("=>","\u00A4\u00A1"); //Siehe smaller greater erste Regel
+		stream = stream.replaceAll("<=","\u00A2\u00A4"); //Könnten ersetzt werden 
+		stream = stream.replaceAll("=>","\u00A4\u00A2"); //Siehe smaller greater erste Regel
 		stream = stream.replaceAll("<->","\u00A6\u00A5\u00A6");
 		stream = stream.replaceAll("->","\u00A5\u00A6");
 		stream = stream.replaceAll("<-","\u00A6\u00A5");
@@ -58,55 +61,82 @@ private String stream;
 
 		while(replaceable)
 		{	
+			//Operators
+					
+			stream = stream.replaceAll("\u00A4\u00A2"+white+"<","\u00A4\u00A2$1\u00AB");		
+			stream = stream.replaceAll(">"+white+"\u00A4\u00A2","\u00BB$1\u00A4\u00A2");
+			stream = stream.replaceAll("\u00A2\u00A4"+white+"<","\u00A2\u00A4$1\u00AB");		
+			stream = stream.replaceAll(">"+white+"\u00A2\u00A4","\u00BB$1\u00A2\u00A4");			
+			stream = stream.replaceAll("\u00A5\u00A6"+white+"<","\u00A5\u00A6$1\u00AB");		
+			stream = stream.replaceAll(">"+white+"\u00A5\u00A6","\u00BB$1\u00A5\u00A6");			
+			stream = stream.replaceAll("\u00A6\u00A5"+white+"<","\u00A6\u00A5$1\u00AB");		
+			stream = stream.replaceAll(">"+white+"\u00A6\u00A5","\u00BB$1\u00A6\u00A5");		
+
+			
 			//Words
-			stream = stream.replaceAll("(\u0020*)if(\u0020*)<","$1if$2\u00AB");
-			stream = stream.replaceAll("(\u0020*)then(\u0020*)<","$1then$2\u00AB");
-			stream = stream.replaceAll("(\u0020*)else(\u0020*)<","$1else$2\u00AB");
-			stream = stream.replaceAll(">(\u0020*)then(\u0020*)","\u00BB$1then$2");
-			stream = stream.replaceAll(">(\u0020*)else(\u0020*)","\u00BB$1else$2");
+			stream = stream.replaceAll(""+white+"if"+white+"<","$1if$2\u00AB");
+			stream = stream.replaceAll(""+white+"then"+white+"<","$1then$2\u00AB");
+			stream = stream.replaceAll(""+white+"else"+white+"<","$1else$2\u00AB");
+			stream = stream.replaceAll(">"+white+"then"+white+"","\u00BB$1then$2");
+			stream = stream.replaceAll(">"+white+"else"+white+"","\u00BB$1else$2");
 				
 			//Equality
-			stream = stream.replaceAll(">(\u0020*)[=][=]","\u00BB$1==");
-			stream = stream.replaceAll("[=][=](\u0020*)<","==$1\u00AB");
-			stream = stream.replaceAll("[!][=](\u0020*)<","!=$1\u00AB");
-			stream = stream.replaceAll(">(\u0020*)[!][=]","\u00BB$1!=");
+			stream = stream.replaceAll(">"+white+"[=][=]","\u00BB$1==");
+			stream = stream.replaceAll("[=][=]"+white+"<","==$1\u00AB");
+			stream = stream.replaceAll("[!][=]"+white+"<","!=$1\u00AB");
+			stream = stream.replaceAll(">"+white+"[!][=]","\u00BB$1!=");
 			
 			//Sequence Opening
-			stream = stream.replaceAll("\\^(\u0020*)<","^$1\u00AB");
-			stream = stream.replaceAll("[:](\u0020*)<",":$1\u00AB");
-			stream = stream.replaceAll("\\.(\u0020*)<",".$1\u00AB");
-			stream = stream.replaceAll("\r\n(\u0020)*<","\r\n$1\u00BB");
-			stream = stream.replaceAll("\r(\u0020*)<","\n$1\u00BB");
-			stream = stream.replaceAll("\n(\u0020*)<","\r$1\u00BB");
-			stream = stream.replaceAll("[=](\u0020*)<","=$1\u00AB");
-			stream = stream.replaceAll("[(](\u0020*)<","($1\u00AB");
-			stream = stream.replaceAll("[{](\u0020*)<","{$1\u00AB");
-			stream = stream.replaceAll("[,](\u0020*)<",",$1\u00AB");
-			stream = stream.replaceAll("\u00AB(\u0020*)<","\u00AB$1\u00AB");
+			stream = stream.replaceAll("#"+white+"<","#$1\u00AB");
+			stream = stream.replaceAll("\\|"+white+"<","|$1\u00AB");
+			stream = stream.replaceAll("@"+white+"<","@$1\u00AB");			
+			stream = stream.replaceAll("\\^"+white+"<","^$1\u00AB");
+			stream = stream.replaceAll("\\\\"+white+"<","\\\\$1\u00AB");						
+			stream = stream.replaceAll("\\$"+white+"<","\\$$1\u00AB");
+			stream = stream.replaceAll("\\!"+white+"<","!$1\u00AB");
+			stream = stream.replaceAll("\\?"+white+"<","?$1\u00AB");						
+			stream = stream.replaceAll("[:]"+white+"<",":$1\u00AB");
+			stream = stream.replaceAll("\\."+white+"<",".$1\u00AB");
+			stream = stream.replaceAll("\r\n"+white+"<","\r\n$1\u00BB");
+			stream = stream.replaceAll("\r"+white+"<","\n$1\u00BB");
+			stream = stream.replaceAll("\n"+white+"<","\r$1\u00BB");
+			stream = stream.replaceAll("[=]"+white+"<","=$1\u00AB");
+			stream = stream.replaceAll("[(]"+white+"<","($1\u00AB");
+			stream = stream.replaceAll("\\["+white+"<","[$1\u00AB");
+			stream = stream.replaceAll("[{]"+white+"<","{$1\u00AB");
+			stream = stream.replaceAll("[,]"+white+"<",",$1\u00AB");
+			stream = stream.replaceAll("\u00AB"+white+"<","\u00AB$1\u00AB");
 
 			//Smaller
-			stream = stream.replaceAll("(\\d|\\w|\\_)(\u0020)*<","$1$2\u20AC");
-			stream = stream.replaceAll("}(\u0020*)<","}$1\u20AC");
+			stream = stream.replaceAll("(\\d|\\w|\\_)"+white+"<","$1$2\u20AC");
+			stream = stream.replaceAll("}"+white+"<","}$1\u20AC");
 			
 			//Greater
-			stream = stream.replaceAll(">(\u0020*)(\\d|\\w|\\_)","\u00A3$1$2");
-			stream = stream.replaceAll(">(\u0020*)[{]","\u00A3$1{");
+			stream = stream.replaceAll(">"+white+"(\\d|\\w|\\_)","\u00A3$1$2");
+			stream = stream.replaceAll(">"+white+"[{]","\u00A3$1{");
 			
 			//Sequence Closing
-			stream = stream.replaceAll(">(\u0020*)\\^","\u00BB$1^");
-			stream = stream.replaceAll(">(\u0020+)[=]","\u00BB$1=");
-			stream = stream.replaceAll(">(\u0020*)[:]","\u00BB$1:");
-			stream = stream.replaceAll(">(\u0020*)\\.","\u00BB$1.");
-			stream = stream.replaceAll(">(\u0020*)\r\n","\u00BB$1\r\n");
-			stream = stream.replaceAll(">(\u0020*)\n","\u00BB$1\n");
-			stream = stream.replaceAll(">(\u0020*)\r","\u00BB$1\r");
-			stream = stream.replaceAll(">(\u0020*)[)]","\u00BB$1)");
-			stream = stream.replaceAll(">(\u0020*)[}]","\u00BB$1}");
-			stream = stream.replaceAll(">(\u0020*)[,]","\u00BB$1,");
-			stream = stream.replaceAll(">(\u0020*)\u00BB","\u00BB$1\u00BB");
+			stream = stream.replaceAll(">"+white+"\\^","\u00BB$1^");
+			stream = stream.replaceAll(">"+white+"\\\\","\u00BB$1\\\\");
+			stream = stream.replaceAll(">"+white+"\\|","\u00BB$1|");
+			stream = stream.replaceAll(">"+white+"@","\u00BB$1@");			
+			stream = stream.replaceAll(">"+white+"\\$","\u00BB$1\\$");
+			stream = stream.replaceAll(">"+white+"\\!","\u00BB$1!");
+			stream = stream.replaceAll(">"+white+"\\?","\u00BB$1?");					
+			stream = stream.replaceAll(">"+white2+"[=]","\u00BB$1=");
+			stream = stream.replaceAll(">"+white+"[:]","\u00BB$1:");
+			stream = stream.replaceAll(">"+white+"\\.","\u00BB$1.");
+			stream = stream.replaceAll(">"+white+"\r\n","\u00BB$1\r\n");
+			stream = stream.replaceAll(">"+white+"\n","\u00BB$1\n");
+			stream = stream.replaceAll(">"+white+"\r","\u00BB$1\r");
+			stream = stream.replaceAll(">"+white+"\\]","\u00BB$1]");
+			stream = stream.replaceAll(">"+white+"[)]","\u00BB$1)");
+			stream = stream.replaceAll(">"+white+"[}]","\u00BB$1}");
+			stream = stream.replaceAll(">"+white+"[,]","\u00BB$1,");
+			stream = stream.replaceAll(">"+white+"\u00BB","\u00BB$1\u00BB");
 			
 			//Empty Sequence
-			stream = stream.replaceAll("<(\u0020*)>","\u00AB\u00BB");
+			stream = stream.replaceAll("<"+white+">","\u00AB\u00BB");
 			
 			if(stream.equals(old))
 			{
@@ -120,14 +150,15 @@ private String stream;
 		
 		//Reiclude saved tokens
 		stream = stream.replaceAll("\u00A2\u00A4\u00A2","<=>");
-		stream = stream.replaceAll("\u00A4\u00A2","<=");
-		stream = stream.replaceAll("\u00A4\u00A1","=>");
+		stream = stream.replaceAll("\u00A2\u00A4","<=");
+		stream = stream.replaceAll("\u00A4\u00A2","=>");
 		stream = stream.replaceAll("\u00A6\u00A5\u00A6","<->");
 		stream = stream.replaceAll("\u00A5\u00A6","->");
 		stream = stream.replaceAll("\u00A6\u00A5","<-");
 		stream = stream.replaceAll("\u00A7\u00A8","[>");
 		stream = stream.replaceAll("\u00B1\u00B2","<|");
-		stream = stream.replaceAll("\u00B2\u00B1","|>");	
+		stream = stream.replaceAll("\u00B2\u00B1","|>");
+
 				
 		//Spalte stream auf.
 		char[] streamChar = stream.toCharArray();
@@ -169,11 +200,24 @@ private String stream;
 			}
 		}
 	
-		//Zeilenweise Bestimmung von Klammern durch rohe Gewalt
+		//Betrachte Zeile x. Falls Bruteforce notwendig, versuche x zu parsen.
+		//Falls nicht möglich, betrachte String aus x und x+1 und so weiter.
 		
 		String afterBruteForce = "";
-		for(String subString : strArr)
+		
+		String subString = "";
+		boolean lastSuccesful = true;
+		for(int q = 0; q< strArr.size();q++)
 		{
+			if(lastSuccesful)
+			{
+				subString = strArr.get(q);			
+			}
+			else
+			{
+				subString += "\r\n"+strArr.get(q);
+			}
+			
 			ArrayList<Integer> al = new ArrayList<Integer>();
 			char[] c = subString.toCharArray();
 	
@@ -197,11 +241,22 @@ private String stream;
 			{
 				System.out.println("ACHTUNG BRUTE-FORCE!!!");
 				String addToString = bruteForce(subString, al ,0);
-			//	if(addToString.equals(""))
-			//	{
-			//		throw new RuntimeException("TypeError in Bruteforce Typechecking");
-			//	}
-				afterBruteForce += addToString+"\r\n";	
+				if(addToString.equals(""))
+				{
+					lastSuccesful = false;
+				}
+				else
+				{
+					lastSuccesful = true;
+					afterBruteForce += addToString+"\r\n";
+				}
+				try
+				{
+					PrintStream p = new PrintStream(System.out, true, "UTF-8");
+					p.print(addToString);
+				}
+				catch(Exception e){}
+					
 			}
 			else
 			{
@@ -227,6 +282,7 @@ private String stream;
 			}
 		}		
 		return afterBruteForce;
+
 	}
 
 
@@ -316,4 +372,40 @@ private String stream;
 		}	
 		return upper+lower;	
 	}
+	
+	
+	public String defineWhitespace()
+	{
+		
+		String whitespace_chars =  ""       /* dummy empty string for homogeneity */
+                        + "\\u0009" // CHARACTER TABULATION
+                        + "\\u000B" // LINE TABULATION
+                        + "\\u000C" // FORM FEED (FF)
+                        + "\\u0020" // SPACE
+                        + "\\u0085" // NEXT LINE (NEL) 
+                        + "\\u00A0" // NO-BREAK SPACE
+                        + "\\u1680" // OGHAM SPACE MARK
+                        + "\\u180E" // MONGOLIAN VOWEL SEPARATOR
+                        + "\\u2000" // EN QUAD 
+                        + "\\u2001" // EM QUAD 
+                        + "\\u2002" // EN SPACE
+                        + "\\u2003" // EM SPACE
+                        + "\\u2004" // THREE-PER-EM SPACE
+                        + "\\u2005" // FOUR-PER-EM SPACE
+                        + "\\u2006" // SIX-PER-EM SPACE
+                        + "\\u2007" // FIGURE SPACE
+                        + "\\u2008" // PUNCTUATION SPACE
+                        + "\\u2009" // THIN SPACE
+                        + "\\u200A" // HAIR SPACE
+                        + "\\u2028" // LINE SEPARATOR
+                        + "\\u2029" // PARAGRAPH SEPARATOR
+                        + "\\u202F" // NARROW NO-BREAK SPACE
+                        + "\\u205F" // MEDIUM MATHEMATICAL SPACE
+                        + "\\u3000" // IDEOGRAPHIC SPACE
+                        ;   
+		String whitespace_charclass = "(["  + whitespace_chars + "]*)"; 
+		white2 = "(["  + whitespace_chars + "]+)";
+		return whitespace_charclass;
+	}
+	
 }

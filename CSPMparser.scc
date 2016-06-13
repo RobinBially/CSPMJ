@@ -39,7 +39,7 @@ Helpers
 	less		=	0x20AC;
 
 Tokens
-//***************************************************************************************
+//***************************************************************************************	
 //Predefined functions and constants
 	stop 			= 'STOP';
 	skip 			= 'SKIP';
@@ -186,7 +186,6 @@ Ignored Tokens
 	blank;
 
 Productions
-
 defs 		 =	 {many_lines} def_nl+ def_no_nl?
 				|{one_line} def_no_nl;
 def_nl 		 =	 def? nl;
@@ -201,8 +200,7 @@ def			 =	 {expression} expression
 				|{timed_section} time
 				|{module} module
 				|{trans} transparent id
-				|{ext} external id;
-		
+				|{ext} external id;		
 //---------------------------------------------------------------------------------------
 types			= {dtype} d_type typedef |{stype} s_type typedef;
 typedef 		= id eq clause typedef_rek*;
