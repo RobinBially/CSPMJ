@@ -63,9 +63,9 @@ public int parseFilesInFolder(File folder, Boolean show)
 		{
 			i++;
 			if(show)
-			System.out.println("\n\nAnalysiere Syntax für "+fileEntry.getName()+":");
+			System.out.println("\n\nParsing '"+fileEntry.getName()+"':");
 			else
-			System.out.println("\n\nAnalysiere Syntax für "+fileEntry.getName()+"...");
+			System.out.println("\n\nParsing '"+fileEntry.getName()+"'...");
 			workcount = 0;
 			try 
 			{
@@ -99,19 +99,19 @@ public int parseFilesInFolder(File folder, Boolean show)
 			{
 				if(workcount == 0)
 				{
-					throw new RuntimeException("Fehler im Prelexer: "+e.getMessage());
+					throw new RuntimeException("Error in comment deletion: "+e.getMessage());
 				}
 				if(workcount == 1)//Error in StreamEdit
 				{
-					throw new RuntimeException("\nFehler bei Klammerumwandlung: "+e.getMessage());
+					throw new RuntimeException("\nError in bracket transformation: "+e.getMessage());
 				}
 				else if(workcount == 2) //Parsing Error
 				{
-					throw new RuntimeException("\nError beim Parsen: "+e.getMessage());
+					throw new RuntimeException("\nParsing Error: "+e.getMessage());
 				}
 				else if(workcount == 3)
 				{
-					throw new RuntimeException("\nError in Typechecker: "+e.getMessage());
+					throw new RuntimeException("\nTypechecking Error: "+e.getMessage());
 				}
 			}
 		}
@@ -122,7 +122,7 @@ public int parseFilesInFolder(File folder, Boolean show)
 		
 public void parseFile(String s, Boolean show)
 {
-	System.out.println("Analysiere Syntax:");
+	System.out.println("Parsing '"+s+"' :");
 	workcount = 0;
 	try 
 	{							
@@ -147,31 +147,32 @@ public void parseFile(String s, Boolean show)
 		Start tree = p.parse();		
 		TreeLogicChecker tlc = new TreeLogicChecker();
 		tree.apply(tlc);
-		System.out.println("\nIhr CSPM-Code konnte erfolgreich geparst werden.\n"
-							+"Überprüfe Typen auf Korrektheit...");
+		System.out.println("\nYour CSPM-File has been successfully parsed.\n"
+							+"Checking types...");
 		
 		workcount++;
-//		Typechecker ts = new Typechecker();
-//		tree.apply(ts);
+		Typechecker ts = new Typechecker();
+		tree.apply(ts);
+		System.out.println("Typechecking successful!");
 
 	} 	
 	catch (Exception e) 
 	{
 		if(workcount == 0)
 		{
-			throw new RuntimeException("Fehler im Prelexer: "+e.getMessage());
+			throw new RuntimeException("Error in comment deletion: "+e.getMessage());
 		}
 		if(workcount == 1)//Error in StreamEdit
 		{
-			throw new RuntimeException("\nFehler bei Klammerumwandlung: "+e.getMessage());
+			throw new RuntimeException("\nError in bracket transformation: "+e.getMessage());
 		}
 		else if(workcount == 2) //Parsing Error
 		{
-			throw new RuntimeException("\nError beim Parsen: "+e.getMessage());
+			throw new RuntimeException("\nParsing Error: "+e.getMessage());
 		}
 		else if(workcount == 3)
 		{
-			throw new RuntimeException("\nError in Typechecker: "+e.getMessage());
+			throw new RuntimeException("\nTypechecking Error: "+e.getMessage());
 		}
 	}		
 }

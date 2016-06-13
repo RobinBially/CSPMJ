@@ -6,7 +6,11 @@ z = 5>4
 a = 5<3
 c = 5==5
 c = 5!=5
-d = true and false
+c = ((3,(2))) == (((3),(2)))
+d = True and (False)
+e = diff({3},{5})
+g = Union({{True}})
+f = card({True})
 --e = a:b
 a = {3,5,6,7,9}
 --b = {{true},{false}}
@@ -16,7 +20,7 @@ a = {3,5,6,7,9}
 --b = ({<3>},True,(test))
 --b = (3,(3))
 --b = ((3,(true,false)),(3),{(true,false)},<1..3>)
-a = c?x:{z | z <- {1,2}}!((Y.0),true)?r:{z | z <- {1..10}, z%2==0}
+--a = c?x:{z | z <- {1,2}}!((Y.0),true)?r:{z | z <- {1..10}, z%2==0}
 --a = show((1,2,(3),4),2,{True},(1,2,(3),4))
 --a = error("Dies ist ein Test")
 --a	= length({1,2,3})
@@ -39,11 +43,4 @@ a = c?x:{z | z <- {1,2}}!((Y.0),true)?r:{z | z <- {1..10}, z%2==0}
 --a = <<3,4>>
 --a =«5€«3£««4»»€5»,«5»»
 --a =«5€«3»€«4»£«5»,«5»»
-
-MAIN = Gen(<2,x|x <- <1,3,5>>) ; Gen(P); Gen((\<a2,b2,a,b>@<a,b>)(<1,2,3,4>)) ; 
-		Gen(head(<<1..2>^<x>|x <- <3,5>>))
-
-test = c?<3>!t ->test
-test = c!<3>?g:<> ->test
-test = c$<3>$t:<> ->test
 		

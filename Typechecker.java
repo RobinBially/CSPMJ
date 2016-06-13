@@ -1,6 +1,7 @@
 import java.io.*;
 import java.*;
 import java.util.*;
+import java.util.regex.*;
 import java.lang.*;
 import java.lang.String.*;
 import java.lang.Character;
@@ -131,8 +132,8 @@ public class Typechecker extends DepthFirstAdapter
             node.getProc1().apply(this);
 			if(!(nodeMap.get(node.getProc1()).toString().equals("proc")))
 			{
-				throw new RuntimeException("TypeError, expecting 'proc' at: "
-										+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getDoubleat().getLine());
 			}
         }
         if(node.getDoubleat() != null)
@@ -144,8 +145,8 @@ public class Typechecker extends DepthFirstAdapter
             node.getProc2().apply(this);
 			if(!(nodeMap.get(node.getProc2()).toString().equals("proc")))
 			{
-				throw new RuntimeException("TypeError, expecting 'proc' at: "
-										+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getDoubleat().getLine());
 			}
         }
 		nodeMap.put(node, "proc");
@@ -179,8 +180,8 @@ public class Typechecker extends DepthFirstAdapter
             node.getProc2().apply(this);
 			if(!(nodeMap.get(node.getProc2()).toString().equals("proc")))
 			{
-				throw new RuntimeException("TypeError, expecting 'proc' at: "
-										+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getBSlash().getLine());
 			}
         }
         if(node.getBSlash() != null)
@@ -192,8 +193,8 @@ public class Typechecker extends DepthFirstAdapter
             node.getProc3().apply(this);
 			if(!(nodeMap.get(node.getProc3()).toString().equals("proc")))
 			{
-				throw new RuntimeException("TypeError, expecting 'proc' at: "
-										+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getBSlash().getLine());
 			}
         }
 		nodeMap.put(node, "proc");
@@ -226,8 +227,8 @@ public class Typechecker extends DepthFirstAdapter
             node.getProc3().apply(this);
 			if(!(nodeMap.get(node.getProc3()).toString().equals("proc")))
 			{
-				throw new RuntimeException("TypeError, expecting 'proc' at: "
-										+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getILeaving().getLine());
 			}
         }
         if(node.getILeaving() != null)
@@ -239,8 +240,8 @@ public class Typechecker extends DepthFirstAdapter
             node.getProc4().apply(this);
 			if(!(nodeMap.get(node.getProc4()).toString().equals("proc")))
 			{
-				throw new RuntimeException("TypeError, expecting 'proc' at: "
-										+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getILeaving().getLine());
 			}
         }
 		nodeMap.put(node, "proc");
@@ -273,25 +274,21 @@ public class Typechecker extends DepthFirstAdapter
             node.getProc4().apply(this);
 			if(!(nodeMap.get(node.getProc4()).toString().equals("proc")))
 			{
-				throw new RuntimeException("TypeError, expecting 'proc' at: "
-										+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getBracketPipeL().getLine());
 			}
         }
-        if(node.getBracketL() != null)
+        if(node.getBracketPipeL() != null)
         {
-            node.getBracketL().apply(this);
-        }
-        if(node.getL() != null)
-        {
-            node.getL().apply(this);
+            node.getBracketPipeL().apply(this);
         }
         if(node.getEvent() != null)
         {
             node.getEvent().apply(this);
 			if(!(nodeMap.get(node.getEvent()).toString().equals("event")))
 			{
-				throw new RuntimeException("TypeError, expecting 'event' at: "
-										+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getBracketPipeL().getLine());
 			}
         }
         if(node.getR() != null)
@@ -307,8 +304,8 @@ public class Typechecker extends DepthFirstAdapter
             node.getProc5().apply(this);
 			if(!(nodeMap.get(node.getProc5()).toString().equals("proc")))
 			{
-				throw new RuntimeException("TypeError, expecting 'proc' at: "
-										+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getTriaR().getLine());
 			}
         }
 		nodeMap.put(node, "proc");
@@ -328,42 +325,34 @@ public class Typechecker extends DepthFirstAdapter
             node.getProc4().apply(this);
 			if(!(nodeMap.get(node.getProc4()).toString().equals("proc")))
 			{
-				throw new RuntimeException("TypeError, expecting 'proc' at: "
-										+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getBracketPipeL().getLine());
 			}
         }
-        if(node.getBracketL() != null)
+        if(node.getBracketPipeL() != null)
         {
-            node.getBracketL().apply(this);
-        }
-        if(node.getLp() != null)
-        {
-            node.getLp().apply(this);
+            node.getBracketPipeL().apply(this);
         }
         if(node.getEvent() != null)
         {
             node.getEvent().apply(this);
 			if(!(nodeMap.get(node.getEvent()).toString().equals("event")))
 			{
-				throw new RuntimeException("TypeError, expecting 'event' at: "
-										+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getBracketPipeL().getLine());
 			}
         }
-        if(node.getRp() != null)
+        if(node.getBracketPipeR() != null)
         {
-            node.getRp().apply(this);
-        }
-        if(node.getBracketR() != null)
-        {
-            node.getBracketR().apply(this);
+            node.getBracketPipeR().apply(this);
         }
         if(node.getProc5() != null)
         {
             node.getProc5().apply(this);
 			if(!(nodeMap.get(node.getProc5()).toString().equals("proc")))
 			{
-				throw new RuntimeException("TypeError, expecting 'proc' at: "
-										+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getBracketPipeR().getLine());
 			}
         }
 		nodeMap.put(node, "proc");
@@ -383,8 +372,8 @@ public class Typechecker extends DepthFirstAdapter
             node.getProc4().apply(this);
 			if(!(nodeMap.get(node.getProc4()).toString().equals("proc")))
 			{
-				throw new RuntimeException("TypeError, expecting 'proc' at: "
-										+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getBracketL().getLine());
 			}
         }
         if(node.getBracketL() != null)
@@ -396,8 +385,8 @@ public class Typechecker extends DepthFirstAdapter
             node.getL().apply(this);
 			if(!(nodeMap.get(node.getL()).toString().equals("event")))
 			{
-				throw new RuntimeException("TypeError, expecting 'event' at: "
-										+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getBracketL().getLine());
 			}
         }
         if(node.getDpipe() != null)
@@ -409,8 +398,8 @@ public class Typechecker extends DepthFirstAdapter
             node.getR().apply(this);
 			if(!(nodeMap.get(node.getR()).toString().equals("event")))
 			{
-				throw new RuntimeException("TypeError, expecting 'event' at: "
-										+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getDpipe().getLine());
 			}
         }
         if(node.getBracketR() != null)
@@ -422,8 +411,8 @@ public class Typechecker extends DepthFirstAdapter
             node.getProc5().apply(this);
 			if(!(nodeMap.get(node.getProc5()).toString().equals("proc")))
 			{
-				throw new RuntimeException("TypeError, expecting 'proc' at: "
-										+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getBracketR().getLine());
 			}
         }
 		nodeMap.put(node, "proc");
@@ -444,8 +433,8 @@ public class Typechecker extends DepthFirstAdapter
             node.getProc4().apply(this);
 			if(!(nodeMap.get(node.getProc4()).toString().equals("proc")))
 			{
-				throw new RuntimeException("TypeError, expecting 'proc' at: "
-										+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getBracketL().getLine());
 			}
         }
         if(node.getBracketL() != null)
@@ -465,8 +454,8 @@ public class Typechecker extends DepthFirstAdapter
             node.getProc5().apply(this);
 			if(!(nodeMap.get(node.getProc5()).toString().equals("proc")))
 			{
-				throw new RuntimeException("TypeError, expecting 'proc' at: "
-										+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getBracketR().getLine());
 			}
         }
 		nodeMap.put(node, "proc");
@@ -500,8 +489,8 @@ public class Typechecker extends DepthFirstAdapter
             node.getProc5().apply(this);
 			if(!(nodeMap.get(node.getProc5()).toString().equals("proc")))
 			{
-				throw new RuntimeException("TypeError, expecting 'proc' at: "
-										+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getIChoice().getLine());
 			}
         }
         if(node.getIChoice() != null)
@@ -513,8 +502,8 @@ public class Typechecker extends DepthFirstAdapter
             node.getProc6().apply(this);
 			if(!(nodeMap.get(node.getProc6()).toString().equals("proc")))
 			{
-				throw new RuntimeException("TypeError, expecting 'proc' at: "
-										+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getIChoice().getLine());
 			}
         }
 		nodeMap.put(node, "proc");
@@ -547,8 +536,8 @@ public class Typechecker extends DepthFirstAdapter
             node.getProc6().apply(this);
 			if(!(nodeMap.get(node.getProc6()).toString().equals("proc")))
 			{
-				throw new RuntimeException("TypeError, expecting 'proc' at: "
-										+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getEChoice().getLine());
 			}
         }
         if(node.getEChoice() != null)
@@ -560,8 +549,8 @@ public class Typechecker extends DepthFirstAdapter
             node.getProc7().apply(this);
 			if(!(nodeMap.get(node.getProc7()).toString().equals("proc")))
 			{
-				throw new RuntimeException("TypeError, expecting 'proc' at: "
-										+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getEChoice().getLine());
 			}
         }
 		nodeMap.put(node, "proc");
@@ -580,8 +569,8 @@ public class Typechecker extends DepthFirstAdapter
             node.getProc6().apply(this);
 			if(!(nodeMap.get(node.getProc6()).toString().equals("proc")))
 			{
-				throw new RuntimeException("TypeError, expecting 'proc' at: "
-										+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getSyncParL().getLine());
 			}
         }
         if(node.getSyncParL() != null)
@@ -593,8 +582,8 @@ public class Typechecker extends DepthFirstAdapter
             node.getEvent().apply(this);
 			if(!(nodeMap.get(node.getEvent()).toString().equals("event")))
 			{
-				throw new RuntimeException("TypeError, expecting 'event' at: "
-										+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getSyncParL().getLine());
 			}
         }
         if(node.getSyncParR() != null)
@@ -606,8 +595,8 @@ public class Typechecker extends DepthFirstAdapter
             node.getProc7().apply(this);
 			if(!(nodeMap.get(node.getProc7()).toString().equals("proc")))
 			{
-				throw new RuntimeException("TypeError, expecting 'proc' at: "
-										+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getSyncParR().getLine());
 			}
         }
 		nodeMap.put(node, "proc");
@@ -641,8 +630,8 @@ public class Typechecker extends DepthFirstAdapter
             node.getProc7().apply(this);
 			if(!(nodeMap.get(node.getProc7()).toString().equals("proc")))
 			{
-				throw new RuntimeException("TypeError, expecting 'proc' at: "
-										+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getInterrupt().getLine());
 			}
 
         }
@@ -655,8 +644,8 @@ public class Typechecker extends DepthFirstAdapter
             node.getProc8().apply(this);
 			if(!(nodeMap.get(node.getProc8()).toString().equals("proc")))
 			{
-				throw new RuntimeException("TypeError, expecting 'proc' at: "
-										+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getInterrupt().getLine());
 			}
 
         }
@@ -676,8 +665,8 @@ public class Typechecker extends DepthFirstAdapter
             node.getProc7().apply(this);
 			if(!(nodeMap.get(node.getProc7()).toString().equals("proc")))
 			{
-				throw new RuntimeException("TypeError, expecting 'proc' at: "
-										+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getSyncIntL().getLine());
 			}
         }
         if(node.getSyncIntL() != null)
@@ -689,8 +678,8 @@ public class Typechecker extends DepthFirstAdapter
             node.getEvent().apply(this);
 			if(!(nodeMap.get(node.getEvent()).toString().equals("event")))
 			{
-				throw new RuntimeException("TypeError, expecting 'event' at: "
-										+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getSyncIntL().getLine());
 			}
         }
         if(node.getSyncIntR() != null)
@@ -702,8 +691,8 @@ public class Typechecker extends DepthFirstAdapter
             node.getProc8().apply(this);
 			if(!(nodeMap.get(node.getProc7()).toString().equals("proc")))
 			{
-				throw new RuntimeException("TypeError, expecting 'proc' at: "
-										+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getSyncIntR().getLine());
 			}
 
         }
@@ -738,8 +727,8 @@ public class Typechecker extends DepthFirstAdapter
             node.getProc8().apply(this);
 			if(!(nodeMap.get(node.getProc8()).toString().equals("proc")))
 			{
-				throw new RuntimeException("TypeError, expecting 'proc' at: "
-										+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getTimeout().getLine());
 			}
 
         }
@@ -752,8 +741,8 @@ public class Typechecker extends DepthFirstAdapter
             node.getProc9().apply(this);
 			if(!(nodeMap.get(node.getProc9()).toString().equals("proc")))
 			{
-				throw new RuntimeException("TypeError, expecting 'proc' at: "
-										+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getTimeout().getLine());
 			}
         }
 		nodeMap.put(node, "proc");
@@ -786,8 +775,8 @@ public class Typechecker extends DepthFirstAdapter
             node.getProc9().apply(this);
 			if(!(nodeMap.get(node.getProc9()).toString().equals("proc")))
 			{
-				throw new RuntimeException("TypeError, expecting 'proc' at: "
-										+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getSemicolon().getLine());
 			}
         }
         if(node.getSemicolon() != null)
@@ -799,8 +788,8 @@ public class Typechecker extends DepthFirstAdapter
             node.getProc10().apply(this);
 			if(!(nodeMap.get(node.getProc10()).toString().equals("proc")))
 			{
-				throw new RuntimeException("TypeError, expecting 'proc' at: "
-										+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getSemicolon().getLine());
 			}
         }
 		nodeMap.put(node, "proc");
@@ -832,8 +821,8 @@ public class Typechecker extends DepthFirstAdapter
             node.getDotOp().apply(this);
 			if(!(nodeMap.get(node.getDotOp()).toString().equals("bool")))
 			{
-				throw new RuntimeException("TypeError, expecting 'bool' at: "
-											+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getGuard().getLine());
 			}
         }
         if(node.getGuard() != null)
@@ -845,8 +834,8 @@ public class Typechecker extends DepthFirstAdapter
             node.getProc10().apply(this);
 			if(!(nodeMap.get(node.getProc10()).toString().equals("proc")))
 			{
-				throw new RuntimeException("TypeError, expecting 'proc' at: "
-											+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getGuard().getLine());
 			}
         }
 		nodeMap.put(node,"proc");
@@ -864,8 +853,8 @@ public class Typechecker extends DepthFirstAdapter
             node.getEvent().apply(this);
 			if(!(nodeMap.get(node.getEvent()).toString().equals("event")))
 			{
-				throw new RuntimeException("TypeError, expecting 'event' at: "
-											+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getPrefix().getLine());
 			}
         }
         if(node.getPrefix() != null)
@@ -877,8 +866,8 @@ public class Typechecker extends DepthFirstAdapter
             node.getProc10().apply(this);
 			if(!(nodeMap.get(node.getProc10()).toString().equals("proc")))
 			{
-				throw new RuntimeException("TypeError, expecting 'proc' at: "
-											+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getPrefix().getLine());
 			}
         }
 		nodeMap.put(node,"proc");
@@ -927,17 +916,13 @@ public class Typechecker extends DepthFirstAdapter
         {
             node.getWithin().apply(this);
         }
-        if(node.getNl() != null)
-        {
-            node.getNl().apply(this);
-        }
         if(node.getProc10() != null)
         {
             node.getProc10().apply(this);
 			if(!(nodeMap.get(node.getProc10()).toString().equals("proc")))
 			{
-				throw new RuntimeException("TypeError, expecting 'proc' at:"
-										+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getWithin().getLine());
 			}
         }
 		nodeMap.put(node,"proc");
@@ -959,50 +944,34 @@ public class Typechecker extends DepthFirstAdapter
             node.getBoolExp().apply(this);
 			if(!(nodeMap.get(node.getBoolExp()).toString().equals("bool")))
 			{
-				throw new RuntimeException("TypeError, expecting 'bool' at: "
-										+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getIf().getLine());
 			}
-        }
-        if(node.getA() != null)
-        {
-            node.getA().apply(this);
         }
 		if(node.getThen() != null)
         {
             node.getThen().apply(this);
-        }
-        if(node.getB() != null)
-        {
-            node.getB().apply(this);
         }
         if(node.getProc1() != null)
         {
             node.getProc1().apply(this);
 			if(!(nodeMap.get(node.getProc1()).toString().equals("proc")))
 			{
-				throw new RuntimeException("TypeError, expecting 'proc' at:"
-										+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getThen().getLine());
 			}
-        }
-        if(node.getC() != null)
-        {
-            node.getC().apply(this);
         }
         if(node.getElse() != null)
         {
             node.getElse().apply(this);
-        }
-        if(node.getD() != null)
-        {
-            node.getD().apply(this);
         }
         if(node.getProc10() != null)
         {
             node.getProc10().apply(this);
 			if(!(nodeMap.get(node.getProc10()).toString().equals("proc")))
 			{
-				throw new RuntimeException("TypeError, expecting 'proc' at:"
-										+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getElse().getLine());
 			}
         }
 		nodeMap.put(node,"proc");
@@ -1058,8 +1027,8 @@ public class Typechecker extends DepthFirstAdapter
             node.getProc11().apply(this);
 			if(!(nodeMap.get(node.getProc11()).toString().equals("proc")))
 			{
-				throw new RuntimeException("TypeError, expecting 'proc' at:"
-										+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getDbracketL().getLine());
 			}
         }
         if(node.getDbracketL() != null)
@@ -1089,8 +1058,8 @@ public class Typechecker extends DepthFirstAdapter
             node.getProc11().apply(this);
 			if(!(nodeMap.get(node.getProc11()).toString().equals("proc")))
 			{
-				throw new RuntimeException("TypeError, expecting 'proc' at:"
-										+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getDbracketL().getLine());
 			}
         }
         if(node.getDbracketL() != null)
@@ -1311,8 +1280,8 @@ public class Typechecker extends DepthFirstAdapter
 			a = nodeMap.get(node.getBoolExp()).toString();
 			if(!a.equals("bool"))
 			{
-				throw new RuntimeException("TypeError, expecting: 'bool' or 'bool'"+
-												"at: "+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getOr().getLine());
 			}
         }
         if(node.getOr() != null)
@@ -1325,8 +1294,8 @@ public class Typechecker extends DepthFirstAdapter
 			b = nodeMap.get(node.getBoolExp2()).toString();
 			if(!b.equals("bool"))
 			{
-				throw new RuntimeException("TypeError, expecting: 'bool' or 'bool'"+
-												"at: "+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getOr().getLine());
 			}
         }
 		nodeMap.put(node,"bool");
@@ -1362,8 +1331,9 @@ public class Typechecker extends DepthFirstAdapter
 			a = nodeMap.get(node.getBoolExp2()).toString();
 			if(!(a.equals("bool")))
 			{
-				throw new RuntimeException("TypeError, expecting: 'bool' and 'bool'"+
-												"at: "+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getAnd().getLine()+", Column "
+							+node.getAnd().getPos());
 			}
         }
         if(node.getAnd() != null)
@@ -1376,8 +1346,9 @@ public class Typechecker extends DepthFirstAdapter
 			b = nodeMap.get(node.getBoolExp3()).toString();
 			if(!(b.equals("bool")))
 			{
-				throw new RuntimeException("TypeError, expecting: 'bool' and 'bool'"+
-												"at: "+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getAnd().getLine()+", Column "
+							+node.getAnd().getPos());
 			}
         }
 		nodeMap.put(node,"bool");
@@ -1413,8 +1384,8 @@ public class Typechecker extends DepthFirstAdapter
 			String a = nodeMap.get(node.getBoolExp3()).toString();
 			if(!(a.equals("bool")))
 			{
-				throw new RuntimeException("TypeError, expecting: not 'bool'"+
-												"at: "+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getNot().getLine());
 			}
         }
 		nodeMap.put(node,"bool");
@@ -1444,7 +1415,8 @@ public class Typechecker extends DepthFirstAdapter
             node.getBoolExp4().apply(this);
 			if(nodeMap.get(node.getBoolExp4()).toString().equals("proc"))
 			{
-				throw new RuntimeException("TypeError: Everything but 'proc' supported.");
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getEqual().getLine());
 			}
         }
         if(node.getEqual() != null)
@@ -1463,7 +1435,8 @@ public class Typechecker extends DepthFirstAdapter
 		String b = nodeMap.get(node.getBoolExp4()).toString();
 		if(!(b.equals(a)))
 		{
-			throw new RuntimeException("Different Types at: "+node.toString());
+			throw new RuntimeException("Incorrect types in Line "
+							+node.getEqual().getLine());
 		}
 		nodeMap.put(node, "bool");
 		nodeMap.remove(node.getValExp());
@@ -1483,8 +1456,8 @@ public class Typechecker extends DepthFirstAdapter
 			if(!(help.startsWith("(") || help.startsWith("<") || help.startsWith("{")
 				|| help.equals("int") || help.equals("char")))
 			{
-				throw new RuntimeException("TypeError, expecting:"+
-				"(|a=>b|), <a>, {a}, int, char, at: "+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getLge().getLine());
 			}
         }
         if(node.getLge() != null)
@@ -1498,15 +1471,16 @@ public class Typechecker extends DepthFirstAdapter
 			if(!(help.startsWith("(") || help.startsWith("<") || help.startsWith("{")
 				|| help.equals("int") || help.equals("char")))
 			{
-				throw new RuntimeException("TypeError, expecting:"+
-				"(|a=>b|), <a>, {a}, int, char, at: "+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getLge().getLine());
 			}
         }
 		String a = nodeMap.get(node.getValExp()).toString();
 		String b = nodeMap.get(node.getBoolExp4()).toString();
 		if(!(b.equals(a)))
 		{
-			throw new RuntimeException("Different Types at: "+node.toString());
+			throw new RuntimeException("Incorrect types in Line "
+							+node.getLge().getLine());
 		}
 		nodeMap.put(node,"bool");
 		nodeMap.remove(node.getValExp());
@@ -1527,8 +1501,8 @@ public class Typechecker extends DepthFirstAdapter
 			if(!(help.startsWith("(") || help.startsWith("<") || help.startsWith("{")
 				|| help.equals("int") || help.equals("char")))
 			{
-				throw new RuntimeException("TypeError, expecting:"+
-				"(|a=>b|), <a>, {a}, int, char, at: "+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getLess().getLine());
 			}
         }
         if(node.getLess() != null)
@@ -1542,15 +1516,16 @@ public class Typechecker extends DepthFirstAdapter
 			if(!(help.startsWith("(") || help.startsWith("<") || help.startsWith("{")
 				|| help.equals("int") || help.equals("char")))
 			{
-				throw new RuntimeException("TypeError, expecting:"+
-				"(|a=>b|), <a>, {a}, int, char, at: "+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getLess().getLine());
 			}
         }
 		String a = nodeMap.get(node.getValExp()).toString();
 		String b = nodeMap.get(node.getBoolExp4()).toString();
 		if(!(b.equals(a)))
 		{
-			throw new RuntimeException("Different Types at: "+node.toString());
+			throw new RuntimeException("Incorrect types in Line "
+							+node.getLess().getLine());
 		}
 		nodeMap.put(node,"bool");
 		nodeMap.remove(node.getValExp());
@@ -1571,8 +1546,8 @@ public class Typechecker extends DepthFirstAdapter
 			if(!(help.startsWith("(") || help.startsWith("<") || help.startsWith("{")
 				|| help.equals("int") || help.equals("char")))
 			{
-				throw new RuntimeException("TypeError, expecting:"+
-				"(|a=>b|), <a>, {a}, int, char, at: "+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getGreater().getLine());
 			}
         }
         if(node.getGreater() != null)
@@ -1594,7 +1569,8 @@ public class Typechecker extends DepthFirstAdapter
 		String b = nodeMap.get(node.getBoolExp4()).toString();
 		if(!(b.equals(a)))
 		{
-			throw new RuntimeException("Different Types at: "+node.toString());
+			throw new RuntimeException("Incorrect types in Line "
+							+node.getGreater().getLine());
 		}
 		nodeMap.put(node,"bool");
 		nodeMap.remove(node.getValExp());
@@ -1625,7 +1601,8 @@ public class Typechecker extends DepthFirstAdapter
             node.getValExp().apply(this);
 			if(!(nodeMap.get(node.getValExp()).toString().equals("int")))
 			{
-				throw new RuntimeException("TypeError, expecting: 'int' at: "+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getPlus().getLine());
 			}
         }
         if(node.getPlus() != null)
@@ -1637,7 +1614,8 @@ public class Typechecker extends DepthFirstAdapter
             node.getValExp1().apply(this);
 			if(!(nodeMap.get(node.getValExp1()).toString().equals("int")))
 			{
-				throw new RuntimeException("TypeError, expecting: 'int' at: "+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getPlus().getLine());
 			}
         }
 		nodeMap.put(node,"int");
@@ -1668,7 +1646,8 @@ public class Typechecker extends DepthFirstAdapter
             node.getValExp1().apply(this);
 			if(!nodeMap.get(node.getValExp1()).toString().equals("int"))
 			{
-				throw new RuntimeException("TypeError, expecting: 'int' at: "+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getMinus().getLine());
 			}
         }
 		nodeMap.put(node,"int");
@@ -1701,7 +1680,8 @@ public class Typechecker extends DepthFirstAdapter
             node.getValExp1().apply(this);
 			if(!nodeMap.get(node.getValExp1()).toString().equals("int"))
 			{
-				throw new RuntimeException("TypeError, expecting: 'int' at: "+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getMulDivMod().getLine());
 			}
         }
         if(node.getMulDivMod() != null)
@@ -1713,7 +1693,8 @@ public class Typechecker extends DepthFirstAdapter
             node.getValExp2().apply(this);		
 			if(!nodeMap.get(node.getValExp1()).toString().equals("int"))
 			{
-				throw new RuntimeException("TypeError, expecting: 'int' at: "+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getMulDivMod().getLine());
 			}
         }
 		nodeMap.put(node,"int");
@@ -1754,7 +1735,8 @@ public class Typechecker extends DepthFirstAdapter
 			}
 			else
 			{
-				throw new RuntimeException("TypeError, expecting: 'int' at: "+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getMinus().getLine());
 			}
         }
         outAUnMinusValExp2(node);
@@ -1792,7 +1774,8 @@ public class Typechecker extends DepthFirstAdapter
 			}
 			else
 			{
-				throw new RuntimeException("TypeError, expecting: <a> at: "+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getHash().getLine());
 			}
         }
         outALenSequence0(node);
@@ -1825,7 +1808,8 @@ public class Typechecker extends DepthFirstAdapter
 			a = nodeMap.get(node.getAtom()).toString();
 			if(!(a.startsWith("<")))
 			{
-				throw new RuntimeException("TypeError, expecting: <a> at: "+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getCat().getLine());
 			}		
         }
         if(node.getCat() != null)
@@ -1838,7 +1822,8 @@ public class Typechecker extends DepthFirstAdapter
 			b = nodeMap.get(node.getSequence1()).toString();
 			if(!(b.startsWith("<")))
 			{
-				throw new RuntimeException("TypeError, expecting: <a> at: "+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getCat().getLine());
 			}
 
         }
@@ -1850,7 +1835,9 @@ public class Typechecker extends DepthFirstAdapter
 		}
 		else
 		{
-			throw new RuntimeException("Different Types at: "+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getCat().getLine());
+				
 		}
         outACatSequence1(node);
     }
@@ -1904,7 +1891,21 @@ public class Typechecker extends DepthFirstAdapter
         if(node.getTuple() != null)
         {
             node.getTuple().apply(this);
-			nodeMap.put(node, nodeMap.get(node.getTuple()));
+			String a = nodeMap.get(node.getTuple()).toString();
+			if(getTupleLength(a) == 1)
+			{
+				char[] c = a.toCharArray();
+				String temp = new String(c);
+				if(c[0] == '('){c[0] = ' ';}
+				if(c[c.length-1] == ')'){c[c.length-1] = ' ';}
+				temp = new String(c);
+				temp = temp.replaceAll(" ","");
+				nodeMap.put(node, temp);
+			}
+			else
+			{
+				nodeMap.put(node, nodeMap.get(node.getTuple()));
+			}
         }
         if(node.getLambda() != null)
         {
@@ -2255,6 +2256,30 @@ public class Typechecker extends DepthFirstAdapter
             for(PTuple e : copy)
             {
                 e.apply(this);
+		
+				if(copy.size() == 1
+					&& getTupleLength(nodeMap.get(e).toString()) == 2)
+				{			
+					Pattern pattern = Pattern.compile("[(]\\{(.*)\\},\\{(.*)\\}[)]");
+					Matcher matcher = pattern.matcher(nodeMap.get(e).toString());
+					String a = "";
+					String b = "";
+					while(matcher.find())
+					{
+						a = matcher.group(1);
+						b = matcher.group(2);
+					}
+					if(a.equals(b))
+					{
+						nodeMap.put(node,"{"+b+"}");
+					}	
+					//System.out.println(nodeMap.get(node));
+				}
+				else
+				{
+
+				}
+				nodeMap.remove(e);
             }
         }
         outADiffFuncId(node);
@@ -2273,6 +2298,23 @@ public class Typechecker extends DepthFirstAdapter
             for(PTuple e : copy)
             {
                 e.apply(this);
+				if(copy.size() == 1 
+					&& getTupleLength(nodeMap.get(e).toString()) == 1)
+				{			
+					Pattern pattern = Pattern.compile("[(]\\{\\{(.*)\\}\\}[)]");
+					Matcher matcher = pattern.matcher(nodeMap.get(e).toString());
+					String a = "";
+					while(matcher.find())
+					{
+						a = matcher.group(1);
+					}
+					nodeMap.put(node,"{"+a+"}");					
+					//System.out.println(nodeMap.get(node));
+				}
+				else
+				{
+				}
+				nodeMap.remove(e);
             }
         }
         outAUnion2FuncId(node);
@@ -2291,6 +2333,23 @@ public class Typechecker extends DepthFirstAdapter
             for(PTuple e : copy)
             {
                 e.apply(this);
+				if(copy.size() == 1 
+					&& getTupleLength(nodeMap.get(e).toString()) == 1)
+				{			
+					Pattern pattern = Pattern.compile("[(]\\{\\{(.*)\\}\\}[)]");
+					Matcher matcher = pattern.matcher(nodeMap.get(e).toString());
+					String a = "";
+					while(matcher.find())
+					{
+						a = matcher.group(1);
+					}
+					nodeMap.put(node,"{"+a+"}");					
+					//System.out.println(nodeMap.get(node));
+				}
+				else
+				{
+				}
+				nodeMap.remove(e);
             }
         }
         outAInter2FuncId(node);
@@ -2309,6 +2368,20 @@ public class Typechecker extends DepthFirstAdapter
             for(PTuple e : copy)
             {
                 e.apply(this);
+				if(copy.size() == 1 
+					&& getTupleLength(nodeMap.get(e).toString()) == 1)
+				{			
+					String a = nodeMap.get(e).toString();
+					if(a.matches("\\(\\{(.*)\\}\\)"))
+					{
+						nodeMap.put(node,"Int");	
+					}					
+					//System.out.println(nodeMap.get(node));
+				}
+				else
+				{
+				}
+				nodeMap.remove(e);
             }
         }
         outACardFuncId(node);
@@ -3268,8 +3341,9 @@ public class Typechecker extends DepthFirstAdapter
             node.getL().apply(this);
 			if(!(nodeMap.get(node.getL()).toString().equals("int")))
 			{
-				throw new RuntimeException("TypeError, expecting 'int' at: "
-										+node.toString()); 
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getDotdot().getLine()+", Column "
+							+node.getDotdot().getPos());
 			}
         }
         if(node.getDotdot() != null)
@@ -3281,8 +3355,9 @@ public class Typechecker extends DepthFirstAdapter
             node.getR().apply(this);
 			if(!(nodeMap.get(node.getR()).toString().equals("int")))
 			{
-				throw new RuntimeException("TypeError, expecting 'int' at: "
-										+node.toString()); 
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getBraceR().getLine()+", Column "
+							+node.getBraceR().getPos());
 			}
         }
         if(node.getBraceR() != null)
@@ -3308,8 +3383,9 @@ public class Typechecker extends DepthFirstAdapter
             node.getValExp().apply(this);
 			if(!(nodeMap.get(node.getValExp()).toString().equals("int")))
 			{
-				throw new RuntimeException("TypeError, expecting 'int' at: "
-										+node.toString()); 
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getDotdot().getLine()+", Column "
+							+node.getDotdot().getPos());
 			}
         }
         if(node.getDotdot() != null)
@@ -3370,8 +3446,9 @@ public class Typechecker extends DepthFirstAdapter
             node.getL().apply(this);
 			if(!(nodeMap.get(node.getL()).toString().equals("int")))
 			{
-				throw new RuntimeException("TypeError, expecting: 'int' at: "
-										+node.toString()); 
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getDotdot().getLine()+", Column "
+							+node.getDotdot().getPos());
 			}
         }
         if(node.getDotdot() != null)
@@ -3383,8 +3460,9 @@ public class Typechecker extends DepthFirstAdapter
             node.getR().apply(this);
 			if(!(nodeMap.get(node.getR()).toString().equals("int")))
 			{
-				throw new RuntimeException("TypeError, expecting 'int' at: "
-										+node.toString()); 
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getPipe().getLine()+", Column "
+							+node.getPipe().getPos());
 			}
         }
         if(node.getPipe() != null)
@@ -3418,8 +3496,9 @@ public class Typechecker extends DepthFirstAdapter
             node.getValExp().apply(this);
 			if(!(nodeMap.get(node.getValExp()).toString().equals("int")))
 			{
-				throw new RuntimeException("TypeError, expecting 'int' at: "
-										+node.toString()); 
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getDotdot().getLine()+", Column "
+							+node.getDotdot().getPos());
 			}
         }
         if(node.getDotdot() != null)
@@ -3455,7 +3534,6 @@ public class Typechecker extends DepthFirstAdapter
         }
         outAEnumSetSet(node);
     }
-
 
     @Override
     public void caseASetCompSet(ASetCompSet node)
@@ -3558,8 +3636,9 @@ public class Typechecker extends DepthFirstAdapter
             node.getL().apply(this);
 			if(!(nodeMap.get(node.getL()).toString().equals("int")))
 			{
-				throw new RuntimeException("TypeError, expecting 'int' at: "
-									+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getDotdot().getLine()+", Column "
+							+node.getDotdot().getPos());
 			}
         }
         if(node.getDotdot() != null)
@@ -3571,8 +3650,9 @@ public class Typechecker extends DepthFirstAdapter
             node.getR().apply(this);
 			if(!(nodeMap.get(node.getR()).toString().equals("int")))
 			{
-				throw new RuntimeException("TypeError, expecting 'int' at: "
-									+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getSeqClose().getLine()+", Column "
+							+node.getSeqClose().getPos());
 			}
         }
         if(node.getSeqClose() != null)
@@ -3598,8 +3678,9 @@ public class Typechecker extends DepthFirstAdapter
             node.getL().apply(this);
 			if(!(nodeMap.get(node.getL()).toString().equals("int")))
 			{
-				throw new RuntimeException("TypeError, expecting 'int' at: "
-									+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getDotdot().getLine()+", Column "
+							+node.getDotdot().getPos());
 			}
         }
         if(node.getDotdot() != null)
@@ -3611,8 +3692,9 @@ public class Typechecker extends DepthFirstAdapter
             node.getR().apply(this);
 			if(!(nodeMap.get(node.getR()).toString().equals("int")))
 			{
-				throw new RuntimeException("TypeError, expecting 'int' at: "
-									+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getPipe().getLine()+", Column "
+							+node.getPipe().getPos());
 			}
         }
         if(node.getPipe() != null)
@@ -3646,8 +3728,9 @@ public class Typechecker extends DepthFirstAdapter
             node.getValExp().apply(this);
 			if(!(nodeMap.get(node.getValExp()).toString().equals("int")))
 			{
-				throw new RuntimeException("TypeError, expecting 'int' at: "
-									+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getDotdot().getLine()+", Column "
+							+node.getDotdot().getPos());
 			}
         }
         if(node.getDotdot() != null)
@@ -3676,8 +3759,9 @@ public class Typechecker extends DepthFirstAdapter
             node.getValExp().apply(this);
 			if(!(nodeMap.get(node.getValExp()).toString().equals("int")))
 			{
-				throw new RuntimeException("TypeError, expecting 'int' at: "
-									+node.toString());
+				throw new RuntimeException("Incorrect types in Line "
+							+node.getDotdot().getLine()+", Column "
+							+node.getDotdot().getPos());
 			}
         }
         if(node.getDotdot() != null)
@@ -4076,42 +4160,48 @@ public class Typechecker extends DepthFirstAdapter
 	{
 		char[] c = a.toCharArray();
 		String s = " ";
-		
-		for(int i = 1;i<c.length-1;i++)
+		if(c[0] == '(' && c[c.length-1] == ')')	
 		{
-			s+= c[i];
-		}
-		
-		c = s.toCharArray();
-		s = " ";
-		int tupleDepth = 0;
-		for(int k = 0;k<c.length;k++)
-		{
-			if(c[k] == '(')
+			for(int i = 1;i<c.length-1;i++)
 			{
-				tupleDepth++;
-			}
-			else if(c[k] == ')')
-			{
-				tupleDepth = tupleDepth-1;
+				s+= c[i];
 			}
 			
-			if(tupleDepth == 0)
+			c = s.toCharArray();
+			s = " ";
+			int tupleDepth = 0;
+			for(int k = 0;k<c.length;k++)
 			{
-				s += c[k];
+				if(c[k] == '(')
+				{
+					tupleDepth++;
+				}
+				else if(c[k] == ')')
+				{
+					tupleDepth = tupleDepth-1;
+				}
+				
+				if(tupleDepth == 0)
+				{
+					s += c[k];
+				}
 			}
+				
+			c = s.toCharArray();
+			int count = 0;
+			for(int j = 0;j<c.length;j++)
+			{
+				if(c[j] == ',')
+				{
+					count++;
+				}
+			}
+			return count+1;
 		}
-			
-		c = s.toCharArray();
-		int count = 0;
-		for(int j = 0;j<c.length;j++)
+		else
 		{
-			if(c[j] == ',')
-			{
-				count++;
-			}
+			return 0;
 		}
-		
-		return count+1;
+
 	}
 }
