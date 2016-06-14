@@ -151,9 +151,9 @@ public void parseFile(String s, Boolean show)
 							+"Checking types...");
 		
 		workcount++;
-		Typechecker ts = new Typechecker();
-		tree.apply(ts);
-		System.out.println("Typechecking successful!");
+//		Typechecker ts = new Typechecker();
+//		tree.apply(ts);
+//		System.out.println("Typechecking successful!");
 
 	} 	
 	catch (Exception e) 

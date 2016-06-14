@@ -11,6 +11,7 @@ d = True and (False)
 e = diff({3},{5})
 g = Union({{True}})
 f = card({True})
+g = null(<3>)
 --e = a:b
 a = {3,5,6,7,9}
 --b = {{true},{false}}
