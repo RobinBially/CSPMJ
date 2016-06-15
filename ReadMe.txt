@@ -8,8 +8,8 @@ java -jar sablecc.jar LTLparser.scc
 javac CTLparser.java
 javac LTLparser.java
 javac CSPMparser.java
-java CSPMparser -parse Examples\debug.csp
-java CSPMparser -parse -show Examples\debug.csp
+java CSPMparser -parse Examples\newdebug.csp
+java CSPMparser -parse -show Examples\newdebug.csp
 java CSPMparser -parseAll 
 java CSPMparser -parseAll -show				(-show shows edited Tokenstream)
 

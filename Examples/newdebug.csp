@@ -49,4 +49,6 @@ datatype X = Y.{3..}|O.X.{2..4}
 --datatype J = U.({4..6})
 channel c,d: X.{1..3}
 G = c.Y.9.3
+
+C = test(1,3)
 		

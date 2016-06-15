@@ -90,7 +90,9 @@ public int parseFilesInFolder(File folder, Boolean show)
 				Start tree = p.parse();		
 				TreeLogicChecker tlc = new TreeLogicChecker();
 				tree.apply(tlc);
-				
+//				OccurrenceCheck oc = new OccurrenceCheck();
+//				tree.apply(oc);
+//				System.out.println("No unbound Identifiers were found.");				
 				workcount++;
 		//		Typechecker ts = new Typechecker();
 		//		tree.apply(ts);
@@ -148,7 +150,10 @@ public void parseFile(String s, Boolean show)
 		TreeLogicChecker tlc = new TreeLogicChecker();
 		tree.apply(tlc);
 		System.out.println("\nYour CSPM-File has been successfully parsed.\n"
-							+"Checking types...");
+							+"Checking Identifier occurrences...");
+//		OccurrenceCheck oc = new OccurrenceCheck();
+//		tree.apply(oc);
+//		System.out.println("No unbound Identifiers were found.");
 		
 		workcount++;
 //		Typechecker ts = new Typechecker();
@@ -349,15 +354,15 @@ public static void main(String arguments[])
 			int k = cspm.parseFilesInFolder(folder,true);
 			if(k == 1)
 			{
-				System.out.println("\nDie CSPM-Datei wurde erfolgreich geparst!");
+				System.out.println("\nYour CSPM-File has been parsed successfully!");
 			}
 			else if(k==2)
 			{
-				System.out.println("\nDie beiden CSPM-Dateien wurden erfolgreich geparst!");
+				System.out.println("\nBoth CSPM-Files have been parsed successfully!");
 			}
 			else
 			{
-				System.out.println("\nAlle "+k+" CSPM-Dateien wurden erfolgreich geparst!");
+				System.out.println("\n"+k+" CSPM-Files have been parsed successfully!");
 			}
 		}
 	}
@@ -367,20 +372,20 @@ public static void main(String arguments[])
 		int k = cspm.parseFilesInFolder(folder,false);
 		if(k == 1)
 		{
-			System.out.println("\n\nDie CSPM-Datei wurde erfolgreich geparst!");
+			System.out.println("\nYour CSPM-File has been parsed successfully!");
 		}
 		else if(k==2)
 		{
-			System.out.println("\n\nDie beiden CSPM-Dateien wurden erfolgreich geparst!");
+			System.out.println("\nBoth CSPM-Files have been parsed successfully!");
 		}
 		else
 		{
-			System.out.println("\n\nAlle "+k+" CSPM-Dateien wurden erfolgreich geparst!");
+			System.out.println("\n"+k+" CSPM-Files have been parsed successfully!");
 		}
 	}
 	else
 	{
-		System.out.println("Eingabe ungueltig!");
+		System.out.println("Incorrect input!");
 		System.exit(1);
 	}	
 }
