@@ -212,7 +212,7 @@ ntype 			= n_type id eq type_exp;
 //---------------------------------------------------------------------------------------
 /*Creation of Channels*/
 chan 		= channel id chan_rek?;
-chan_rek 	= {rek} comma id chan_rek? | {double} ddot type_exp;
+chan_rek 	= {rek} comma id chan_rek? | {end} ddot type_exp;
 //---------------------------------------------------------------------------------------			
 type_exp 		=  	 {dotted} type_exp dot type_exp1
 					|{par} type_exp1;

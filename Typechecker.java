@@ -30,6 +30,94 @@ public class Typechecker extends DepthFirstAdapter
 	private ArrayList<ArrayList<String>> innerseq = new ArrayList<ArrayList<String>>();
 	private int seqDepth = -1;
 	
+//Channels
+
+    @Override
+    public void caseAChan(AChan node)
+    {
+        inAChan(node);
+		String a = node.getId().toString().replaceAll(" ","");
+        if(node.getChannel() != null)
+        {
+            node.getChannel().apply(this);
+        }
+        if(node.getId() != null)
+        {
+            node.getId().apply(this);
+        }
+        if(node.getChanRek() != null)
+        {
+            node.getChanRek().apply(this);
+        }
+		if(nodeMap.get(node.getId()).toString().equals("Id"))
+		{	
+			types.put(a,nodeMap.get(node.getChanRek()).toString()+"=>Event");
+		}
+		else
+		{
+			throw new RuntimeException("Identifier "+a+" already used!");
+		}
+		nodeMap.remove(node.getChanRek());
+		nodeMap.remove(node.getId());
+	//	System.out.println(types);
+        outAChan(node);
+    }
+
+    @Override
+    public void caseARekChanRek(ARekChanRek node)
+    {
+        inARekChanRek(node);
+		String a = node.getId().toString().replaceAll(" ","");
+        if(node.getComma() != null)
+        {
+            node.getComma().apply(this);
+        }
+        if(node.getId() != null)
+        {
+            node.getId().apply(this);
+
+        }
+        if(node.getChanRek() != null)
+        {
+            node.getChanRek().apply(this);
+        }
+		
+		if(nodeMap.get(node.getId()).toString().equals("Id"))
+		{	
+			types.put(a,nodeMap.get(node.getChanRek()).toString()+"=>Event");
+		}
+		else
+		{
+			throw new RuntimeException("Identifier "+a+" already used!");
+		}
+		
+		nodeMap.put(node,nodeMap.get(node.getChanRek()));
+		nodeMap.remove(node.getId());
+		nodeMap.remove(node.getChanRek());
+        outARekChanRek(node);
+    }
+	
+	@Override
+    public void caseAEndChanRek(AEndChanRek node)
+    {
+        inAEndChanRek(node);
+        if(node.getDdot() != null)
+        {
+            node.getDdot().apply(this);
+        }
+        if(node.getTypeExp() != null)
+        {
+			currentInTypeExpNode = true;
+            node.getTypeExp().apply(this);
+			currentInTypeExpNode = false;
+			nodeMap.put(node,nodeMap.get(node.getTypeExp()));
+        }
+		nodeMap.remove(node.getTypeExp());
+        outAEndChanRek(node);
+    }
+	
+//***************************************************************************************
+//Datatypes, Subtypes, Nametypes	
     @Override
     public void caseATypedef(ATypedef node)
     {
@@ -66,9 +154,19 @@ public class Typechecker extends DepthFirstAdapter
             for(PTypedefRek e : copy)
             {
                 e.apply(this);
+				if(nodeMap.containsKey(e))
+				{
+					String a = nodeMap.get(e).toString();
+					nodeMap.remove(e);
+					types.put(currentClauseName,a+"=>"+currentDatatype);
+				}
+				else
+				{
+					types.put(currentClauseName, currentDatatype);
+				}
             }
         }
-		System.out.println(dtypes);
+//		System.out.println(types);
 		currentDatatype = "";
         outATypedef(node);
     }
@@ -118,12 +216,16 @@ public class Typechecker extends DepthFirstAdapter
         if(node.getPipe() != null)
         {
             node.getPipe().apply(this);
-			currentDatatype = "";
         }
         if(node.getClause() != null)
         {
             node.getClause().apply(this);
+			if(nodeMap.containsKey(node.getClause()))
+			{
+				nodeMap.put(node,nodeMap.get(node.getClause()));
+			}
         }
+		nodeMap.remove(node.getClause());
         outATypedefRek(node);
     }
 	
@@ -212,6 +314,7 @@ public class Typechecker extends DepthFirstAdapter
     public void caseAParTypeExp1(AParTypeExp1 node)
     {
 		String upper = "";
+		int copySize = 0;
 		ArrayList<String> lower = new ArrayList<String>();
         inAParTypeExp1(node);
         if(node.getParL() != null)
@@ -229,6 +332,7 @@ public class Typechecker extends DepthFirstAdapter
             List<PTypeExps> copy = new ArrayList<PTypeExps>(node.getTypeExps());
             for(PTypeExps e : copy)
             {
+				copySize++;
                 e.apply(this);
 				lower.add(nodeMap.get(e).toString());
 				nodeMap.remove(e);
@@ -238,12 +342,22 @@ public class Typechecker extends DepthFirstAdapter
         {
             node.getParR().apply(this);
         }
-		String full = "("+upper;
-		for(int i = 0;i<lower.size();i++)
+		
+		String full = "";
+		if(copySize>0)
 		{
-			full += ","+lower.get(i);
+			full = "("+upper;
+			for(int i = 0;i<lower.size();i++)
+			{
+				full += ","+lower.get(i);
+			}
+			full += ")";
 		}
-		full += ")";
+		else
+		{
+			full = upper;
+		}
+		
 		nodeMap.put(node,full);
         outAParTypeExp1(node);
     }
@@ -268,7 +382,14 @@ public class Typechecker extends DepthFirstAdapter
         if(node.getSet() != null)
         {
             node.getSet().apply(this);
-			nodeMap.put(node, nodeMap.get(node.getSet()));
+			String a = "";
+			Pattern pattern = Pattern.compile("\\{(.*)\\}");
+			Matcher matcher = pattern.matcher(nodeMap.get(node.getSet()).toString());
+			while(matcher.find())
+			{
+				a = matcher.group(1);
+			}
+			nodeMap.put(node, a);
 			nodeMap.remove(node.getSet());
         }
         outASetTypeExp2(node);
@@ -281,12 +402,26 @@ public class Typechecker extends DepthFirstAdapter
         if(node.getFuncId() != null)
         {
             node.getFuncId().apply(this);
-			String a = nodeMap.get(node.getFuncId()).toString();
+			String a = nodeMap.get(node.getFuncId()).toString().replaceAll(" ","");
+			for(int j = 0; j<dtypes.size();j++)
+			{
+				if(a.equals(dtypes.get(j)))
+				{
+					nodeMap.put(node,a);
+				}
+			}
 			if(a.matches("\\{.*\\}"))
 			{
-				nodeMap.put(node,a);
+				Pattern pattern = Pattern.compile("\\{(.*)\\}");
+				Matcher matcher = pattern.matcher(a);
+				String t = "";
+				while(matcher.find())
+				{
+					t = matcher.group(1);
+				}
+				nodeMap.put(node,t);
 			}
-			else
+			else if(nodeMap.get(node) == null)
 			{
 				throw new RuntimeException("Incorrect Types in node "
 										+"caseASetNameTypeExp2");
@@ -1292,6 +1427,9 @@ public class Typechecker extends DepthFirstAdapter
         if(node.getDotOp() != null)
         {
             node.getDotOp().apply(this);
+			String a = nodeMap.get(node.getDotOp()).toString();
+			a = reduce(a);
+			System.out.println(a);
         }
         {
             List<PField1> copy = new ArrayList<PField1>(node.getField1());
@@ -1430,9 +1568,13 @@ public class Typechecker extends DepthFirstAdapter
     public void caseADotDotOp(ADotDotOp node)
     {
         inADotDotOp(node);
+		String upper = "";
+		String lower = "";
         if(node.getDotOp() != null)
         {
             node.getDotOp().apply(this);
+			upper = nodeMap.get(node.getDotOp()).toString();
+			nodeMap.remove(node.getDotOp());
         }
         if(node.getDot() != null)
         {
@@ -1441,7 +1583,10 @@ public class Typechecker extends DepthFirstAdapter
         if(node.getBoolExp() != null)
         {
             node.getBoolExp().apply(this);
+			lower = nodeMap.get(node.getBoolExp()).toString();
+			nodeMap.remove(node.getBoolExp());
         }
+		nodeMap.put(node,upper+"."+lower);
         outADotDotOp(node);
     }
 
@@ -3210,20 +3355,24 @@ public class Typechecker extends DepthFirstAdapter
 			nodeMap.put(node,"Id"); //Standardmäßig ohne Zuweisung vom Typ Id
 			for(int i = 0;i<dtypes.size();i++)//Wenn aktuell datatype Definitionen 
 			{		//durchgeführt werden und der Identifier bereits gespeichert ist, weise zu.
-				if(node.getIdentifier().toString().equals(dtypes.get(i))
-								&& currentInTypeExpNode)
+				if(s.equals(dtypes.get(i)) && currentInTypeExpNode)
 				{
 					nodeMap.remove(node);
 					nodeMap.put(node,s);
 					break;
 				}
+				if(s.equals(dtypes.get(i)) && !currentInTypeExpNode)
+				{//Falls nicht in TypeExpressions->Name schon für Datentyp vergeben.
+					throw new RuntimeException("'"+s+"' is already a Datatype!");
+				}
 			}
-			for (String key : types.keySet()) //Wenn Bezeichner referenziert, so gebe
+			for(String key : types.keySet()) //Wenn Bezeichner referenziert, so gebe
 			{									//entsprechenden Typ zurück.
 				if(key.equals(s))
 				{
 					nodeMap.remove(node);
 					nodeMap.put(node, types.get(s));
+					break;
 				}
 			}
 
@@ -3610,7 +3759,7 @@ public class Typechecker extends DepthFirstAdapter
         if(node.getIntConst() != null)
         {
             node.getIntConst().apply(this);
-			nodeMap.put(node,"{int}");
+			nodeMap.put(node,"{Int}");
         }
         outAIntConstId(node);
     }
@@ -3730,7 +3879,7 @@ public class Typechecker extends DepthFirstAdapter
         {
             node.getBraceR().apply(this);
         }
-		nodeMap.put(node,"{int}");
+		nodeMap.put(node,"{Int}");
 		nodeMap.remove(node.getL());
 		nodeMap.remove(node.getR());
         outAClosedRangeSet(node);
@@ -3762,7 +3911,7 @@ public class Typechecker extends DepthFirstAdapter
         {
             node.getBraceR().apply(this);
         }
-		nodeMap.put(node,"{int}");
+		nodeMap.put(node,"{Int}");
 		nodeMap.remove(node.getValExp());
         outAOpenRangeSet(node);
     }
@@ -4569,5 +4718,119 @@ public class Typechecker extends DepthFirstAdapter
 			return 0;
 		}
 
+	}
+
+//***************************************************************************************
+	public String reduce(String r)
+	{
+		String str = "";
+		char[] ca = r.toCharArray();
+		int depth = 0;
+		for(int i = 0;i<ca.length;i++)
+		{
+			if(ca[i] == '(' || ca[i] == '<' || ca[i] == '{')
+			{
+				depth++;
+			}
+			else if(ca[i] == ')' || ca[i] == '>' || ca[i] == '}')
+			{
+				depth -= 1;
+			}
+			
+			if(depth == 0 && ca[i] == '=' && ca[i+1] == '>')
+			{
+				ca[i] = '~';
+				ca[i+1] = '\u00BB';
+			}
+			else if(depth == 0 && ca[i] == '.')
+			{
+				ca[i] = '#';
+			}
+		}
+		str = new String(ca);
+		
+		String[] temp1 = str.split("#");
+		ArrayList<ArrayList<String>> outer = new ArrayList<ArrayList<String>>();
+		ArrayList<String> inner = new ArrayList<String>();
+		for(int j = 0; j<temp1.length;j++)
+		{
+			String[] temp2 = temp1[j].split("~\u00BB");
+			inner = new ArrayList<String>(Arrays.asList(temp2));
+			outer.add(inner);
+		}
+		
+		for(int k = 0;k<outer.size();k++)
+		{
+			outer.set(k, reverse(outer.get(k)));
+		}
+		
+		int u = outer.size()-1;
+		
+		//Reduktion
+		while(u>=0)
+		{
+			if(outer.get(u).size()>1)
+			{
+				String q = outer.get(u).get(outer.get(u).size()-1);
+							//Das letzte Element der aktuellen Liste outer.get(u)
+				String w = outer.get(u+1).get(0);
+				if(q.equals(w))
+				{
+					outer.get(u).remove(outer.get(u).size()-1);
+					outer.get(u+1).remove(0);
+					if(outer.get(u+1).isEmpty())
+					{
+						outer.remove(u+1);
+					}
+					u = outer.size()-1;
+					}
+				else
+				{
+
+				}
+			}
+			else
+			{
+				u = u-1;
+			}
+		}
+		//Sub-Listen wieder umdrehen und zusammensetzen
+		
+		for(int h = 0;h<outer.size();h++)
+		{
+			outer.set(h,reverse(outer.get(h)));	
+		}
+		String done = "";	
+		for(int n = 0;n<outer.size();n++)
+		{
+			if(n > 0)
+			{
+				done += ".";
+			}
+			for(int m = 0;m<outer.get(n).size();m++)
+			{
+				if(m == 0)
+				{
+					done += outer.get(n).get(m);
+				}
+				else
+				{
+					done = done+"=>"+outer.get(n).get(m);
+				}
+			}
+		}
+		return done;
+	}
+
+
+	public ArrayList<String> reverse(ArrayList<String> list) 
+	{
+		if(list.size() > 1) 
+		{                   
+			String value = list.remove(0);
+			reverse(list);
+			list.add(value);
+		}
+		return list;
 	}
 }

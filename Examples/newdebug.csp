@@ -44,6 +44,9 @@
 --a = <<3,4>>
 --a =«5€«3£««4»»€5»,«5»»
 --a =«5€«3»€«4»£«5»,«5»»
-datatype X = Y.{3}.{True}
-datatype Z = K.({2},{True}).{1..99}
+datatype X = Y.{3..}|O.X.{2..4}
+--datatype Z = K.X.({2},{True}).{1..99}
+--datatype J = U.({4..6})
+channel c,d: X.{1..3}
+G = c.Y.9.3
 		
