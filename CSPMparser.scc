@@ -5,7 +5,7 @@
  * robin.bially@hhu.de		                                  *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-//Fehlt: Wildcard pattern, double_pattern links, diverse interne Funktionen
+//Fehlt: Mapping Funktionen
 Package CSPMparser;
 Helpers
 
@@ -74,10 +74,10 @@ Tokens
 	show			= 'show';
 	true_const		= 'True';
 	false_const		= 'False';
-	ltl				= 'LTL';
-	ctl				= 'CTL';
 //***************************************************************************************
-//CSPM command words	
+//CSPM command words
+	ltl				= 'LTL';
+	ctl				= 'CTL';	
 	if 				= 'if';
 	then 			= white 'then' white;
 	else 			= white 'else' white;
@@ -169,9 +169,10 @@ Tokens
 	t_mod 			= white '[T]' white;
 	f_mod		    = white '[F]' white; 
 	f_div		    = white '[FD]' white;
-	mul_div_mod 	=  white '*' white | white '/' white | white '%' white;
-	plus 			=  white '+' white;
-	minus		    =  '-';
+	mul_div_mod 	= white '*' white | white '/' white | white '%' white;
+	plus 			= white '+' white;
+	minus		    = '-';
+	wildcard 		= '_';
 //---------------------------------------------------------------------------------------	
 	/*Strings*/ 
 	number 			= '0' | first_digit digits*;
@@ -219,55 +220,12 @@ type_exp 		=  	 {dotted} type_exp dot type_exp1
 type_exp1 		= 	 {par} par_l type_exp type_exps* par_r 
 					|{set_type} type_exp2;
 type_exp2 		=  	 {set} set
-					|{set_name} func_id;
+					|{set_name} id tuple?;
 type_exps  		= 	 comma type_exp;
 
 //---------------------------------------------------------------------------------------
 //Create a function or an identifier
-
-//  ACHTUNG: Aufteilung in tuple+ und !tuple muss erfolgen: tuple* führt dazu, dass
-//  keine Unterscheidung bei channel c erfolgen kann, z.B.:
-//  f::(<a>)->bool und f(<3>):: bool, dann wäre eine Funktion mit Argumenten als
-//  channel-Name erlaubt. Analyse des Namens an Ort und Stelle ist zu aufwändig.	
 	 
-func_id	=    {id} identifier tuple+
-			|{ltl} ltl tuple+
-			|{ctl} ctl tuple+
-			|{stop} stop tuple+
-			|{skip} skip tuple+
-			|{chaos} chaos tuple+		
-			|{div} div tuple+
-			|{wait} wait tuple+
-			|{run} run tuple+			
-			|{member} member tuple+
-			|{empty} empty tuple+
-			|{null} null tuple+	
-			|{bool_const} bool_const tuple+
-			|{bool_func} bool_func tuple+
-			|{union1} union1 tuple+			
-			|{inter1} inter1 tuple+
-			|{diff} diff tuple+
-			|{union2} union2 tuple+		
-			|{inter2} inter2 tuple+ 
-			|{card} card tuple+
-			|{events} events tuple+	
-			|{set2} set2 tuple+
-			|{head} head tuple+
-			|{tail} tail tuple+			
-			|{concat} concat tuple+ 
-			|{set1} set1 tuple+
-			|{seq1} seq1 tuple+			
-			|{length} length tuple+
-			|{proc} proc tuple+
-			|{char_const} char_const tuple+
-			|{error} error tuple+		
-			|{show} show tuple+
-			|{int_const} int_const tuple+
-			|{true_const} true_const tuple+
-			|{false_const} false_const tuple+
-			|{seq2} seq2 tuple+
-			|{identifier} id;
-					
 id 		=	 {id} identifier |{ltl} ltl |{ctl} ctl |{stop} stop |{skip} skip 
 			|{chaos} chaos |{div} div |{wait} wait |{run} run |{member} member 
 			|{empty} empty |{null} null |{bool_const} bool_const |{bool_func} bool_func
@@ -276,58 +234,86 @@ id 		=	 {id} identifier |{ltl} ltl |{ctl} ctl |{stop} stop |{skip} skip
 			|{head} head |{tail} tail |{concat} concat |{set1} set1 
 			|{seq1} seq1 |{length} length |{proc} proc |{char_const} char_const 
 			|{error} error |{show} show |{int_const} int_const
-			|{true_const} true_const |{false_const} false_const | {seq2} seq2;
+			|{seq2} seq2;
+			
+//---------------------------------------------------------------------------------------
+parameters 	  =	par_l pattern_list par_r;
+//---------------------------------------------------------------------------------------
+pattern_list  =  {plist} pattern_list comma pattern1 | {p1} pattern1;
+pattern1      =  {double_pattern} pattern1 doubleat pattern2 |{p2} pattern2;
+pattern2 	  =  {dot_pattern} pattern2 dot pattern3 |{p3} pattern3;
+pattern3	  =  {restricted} pattern4 ddot bool_exp
+				|{p4} pattern4;
+pattern4	  = {concat_pattern} pattern4 cat pattern_atom |{pat_atom} pattern_atom;
+pattern_atom  =  {set} set_pattern
+				|{list} list_pattern
+				|{par} par_pattern
+				|{tuple} tuple_pattern
+				|{wildcard} wildcard
+				|{var} id
+				|{string} string
+				|{char} char
+				|{number} number
+				|{true} true_const
+				|{false} false_const;
+				
+set_pattern	  	 =  {empty} brace_l brace_r
+				   |{element} brace_l pattern1 brace_r;
+				
+list_pattern  	 =   {list} seq_open pattern1 list_pattern_rek* seq_close
+					|{empty_list} seq_open seq_close;
+list_pattern_rek =   comma pattern1;
+
+par_pattern	  = par_l pattern1 par_r;
+
+tuple_pattern = par_l pattern1 list_pattern_rek+ par_r;
+
 //---------------------------------------------------------------------------------------
 /*Creation of Expressions*/	
 
-expression  =	 {new_def} func_id eq proc1
-				|{tuple} tuple eq proc1
-				|{set} set eq proc1
-				|{sequence} sequence eq proc1;
-	
-proc1 		=  	 {double_pattern} proc1 doubleat proc2 
-				|{p2} proc2;
-proc2 		=  	 {hide} proc2 b_slash proc3 
-				|{p3} proc3;
+expression  =	 {new_def} id parameters eq proc1
+				|{pattern} pattern1 eq proc1;
 
-proc3 		=    {ileave} proc3 i_leaving proc4 
-				|{p4} proc4;
-proc4 		=  	 {except} proc4 bracket_pipe_l event [r]:pipe tria_r proc5
-				|{gen_par} proc4 bracket_pipe_l event bracket_pipe_r proc5
-				|{alph_par} proc4 bracket_l [l]:event dpipe [r]:event bracket_r proc5
-				|{linked_par} proc4 bracket_l link_comp bracket_r proc5
-				|{p5} proc5;				
-proc5 		=  	 {int_choice} proc5 i_choice proc6 
+	
+proc1 		=  	 {hide} proc1 b_slash proc2 
+				|{p2} proc2;
+proc2 		=    {ileave} proc2 i_leaving proc3 
+				|{p3} proc3;
+proc3 		=  	 {except} proc3 bracket_pipe_l event [r]:pipe tria_r proc4
+				|{gen_par} proc3 bracket_pipe_l event bracket_pipe_r proc4
+				|{alph_par} proc3 bracket_l [l]:event dpipe [r]:event bracket_r proc4
+				|{linked_par} proc3 bracket_l link_comp bracket_r proc4
+				|{p4} proc4;				
+proc4 		=  	 {int_choice} proc4 i_choice proc5 
+				|{p5} proc5;
+proc5 		=  	 {ext_choice} proc5 e_choice proc6
+				|{sync_ext} proc5 sync_par_l event sync_par_r proc6
 				|{p6} proc6;
-proc6 		=  	 {ext_choice} proc6 e_choice proc7 
-				|{sync_ext} proc6 sync_par_l event sync_par_r proc7
+proc6 		= 	 {interrupt} proc6 interrupt proc7
+				|{sync_interrupt} proc6 sync_int_l event sync_int_r proc7
 				|{p7} proc7;
-proc7 		= 	 {interrupt} proc7 interrupt proc8 
-				|{sync_interrupt} proc7 sync_int_l event sync_int_r proc8
+proc7 		= 	 {sliding_choice} proc7 timeout proc8 
 				|{p8} proc8;
-proc8 		= 	 {sliding_choice} proc8 timeout proc9 
-				|{p9} proc9;
-proc9 		= 	 {seq_comp} proc9 semicolon proc10 
-				|{p10} proc10; 
-proc10		= 	 {guard_exp} dot_op guard proc10
-				|{prefix} event prefix proc10
-				|{lambda_term} b_slash inner_tuple at proc10 
-				|{let_within} let defs within proc10
-				|{if_else} if bool_exp then proc1 else proc10
-				|{rep} rep proc10
-				|{p11} proc11;				
-proc11 		=	 {renaming} proc11 dbracket_l rename_comp dbracket_r
-				|{e_renaming} proc11 dbracket_l dbracket_r
+proc8 		= 	 {seq_comp} proc8 semicolon proc9
+				|{p9} proc9; 
+proc9		= 	 {guard_exp} dot_op guard proc9
+				|{prefix} event prefix proc9
+				|{lambda_term} b_slash pattern_list at proc9
+				|{let_within} let defs within proc9
+				|{if_else} if bool_exp then proc1 else proc9
+				|{rep} rep proc9
+				|{p10} proc10;				
+proc10 		=	{renaming} proc10 dbracket_l rename_comp dbracket_r
+				|{e_renaming} proc10 dbracket_l dbracket_r
 				|{event} event;
 			
-event 		= 	 {event} dot_op field1* field2*;				
-field1 		= 	 {nondet_rest} dollar dot_rest;
-field2		=	 {input_rest} q_mark dot_rest
+event 		= 	 {event} dot_op field1* field2*;			
+field1 		= 	 {nondet_rest} dollar pattern1;
+field2		=	 {input_rest} q_mark pattern1
 				|{output} excl_mark dot_op;
-dot_rest 	= 	 {dot_rest} bool_exp dot dot_rest 
-				|{rest} restricted
-				|{bool_exp} bool_exp;
-restricted  =	  bool_exp ddot atom;
+
+dpattern 	=    {dpattern} dpattern doubleat dot_op
+				|{dotop} dot_op;
 dot_op 		=	 {dot} dot_op dot bool_exp
 				|{ss} bool_exp;				
 				
@@ -356,48 +342,41 @@ atom 		= 	 {num} number
 				|{string} string
 				|{char} char
 				|{set} set
+				|{wildcard} wildcard
 				|{map} map
+				|{const_true} true_const
+				|{const_false} false_const
 				|{tuple} [tuple]:tuple [lambda]:tuple?
-				|{fid} func_id;
+				|{id} id tuple?;
 //---------------------------------------------------------------------------------------
 /*(e1,e2,...,en) different types possible*/
-tuple 	 		=  {tuple} par_l inner_tuple par_r;
-inner_tuple 	=  {inner_start} proc1 comma inner_tuple
-				  |{inner_end} proc1;
+tuple 	 		=  {tuple} par_l arguments par_r;
+//---------------------------------------------------------------------------------------
+// e1,e2,...,en    all of type a!
+arguments		= 	arguments_rek;
+arguments_rek	=  {arg_start} proc1 comma arguments_rek
+				  |{arg_end} proc1;
 //---------------------------------------------------------------------------------------
 link_comp 			= [l]:event d_arr [r]:event link_comp_rek* comp_rek?;
 link_comp_rek 		= comma [l]:event d_arr [r]:event;
 		
-rename_comp			= [l]:event arrow_l [r]:event rename_comp_rek* comp_rek?;
-rename_comp_rek 	= comma [l]:event arrow_l [r]:event;
+rename_comp			= event arrow_l [r]:event rename_comp_rek* comp_rek?;
+rename_comp_rek 	= comma event arrow_l [r]:event;
 
-comp_rek			= pipe stmts_set;
-		
-//---------------------------------------------------------------------------------------					
-/*Examples: <>, <v,w>, <1..3>,<4..>,<0..99/x|x<-<11>>*/	
+comp_rek			= pipe stmts;
+//---------------------------------------------------------------------------------------	
 sequence =	 {empty_seq} seq_open seq_close
-			|{expl_seq} seq_open inner_sequence seq_close
-			|{list_comp} seq_open inner_sequence pipe stmts_seq seq_close
+			|{expl_seq} seq_open arguments seq_close
+			|{list_comp} seq_open arguments pipe stmts seq_close
 			|{cr_seq} seq_open [l]:val_exp dotdot [r]:val_exp seq_close
-			|{ran_comp} seq_open [l]:val_exp dotdot [r]:val_exp pipe stmts_seq seq_close
+			|{ran_comp} seq_open [l]:val_exp dotdot [r]:val_exp pipe stmts seq_close
 			|{or_seq} seq_open val_exp dotdot seq_close
-			|{inf_compr} seq_open val_exp dotdot pipe stmts_seq seq_close
+			|{inf_compr} seq_open val_exp dotdot pipe stmts seq_close
 			|{enum_seq} enum_seq
 			|{seq_comp}	seq_comp;
-			
-stmts_seq 			=  {gs} gen_stmt_seq 
-					  |{ps} pred_stmt_seq;
-gen_stmt_seq 		=  [l]:val_exp arrow_l [r]:val_exp stmt_rek_seq*;					
-stmt_rek_seq 		=  {gs}comma [l]:val_exp arrow_l [r]:val_exp
-					  |{ps} comma pred_stmt_seq;
-pred_stmt_seq		=  val_exp; 
-
-inner_sequence 			=  inner_sequence_rek;		
-inner_sequence_rek		=  {start} proc1 comma inner_sequence_rek
-						  |{end} proc1;
 					  
 enum_seq 	  		=  tria_l [l]:pipe arguments [r]:pipe tria_r;
-seq_comp  			=  tria_l [l]:pipe arguments [m]:pipe stmts_set [r]:pipe tria_r;
+seq_comp  			=  tria_l [l]:pipe arguments [m]:pipe stmts [r]:pipe tria_r;
 				 
 //---------------------------------------------------------------------------------------				 
 /*Examples: {v,w,x,y,z}, {m..n}, {m..},{x*2..64|x<-{8,4}}*/
@@ -405,28 +384,21 @@ set = 	{empty_set} brace_l brace_r
 		|{set} brace_l arguments brace_r
 		|{closed_range} brace_l [l]:val_exp dotdot [r]:val_exp brace_r
 		|{open_range} brace_l val_exp dotdot brace_r
-		|{set_comprehension} brace_l arguments pipe stmts_set brace_r
-		|{ranged_comprehension} brace_l [l]:val_exp dotdot [r]:val_exp pipe stmts_set brace_r
-		|{infinite_comprehension} brace_l val_exp dotdot pipe stmts_set brace_r
+		|{set_comprehension} brace_l arguments pipe stmts brace_r
+		|{ranged_comprehension} brace_l [l]:val_exp dotdot [r]:val_exp pipe stmts brace_r
+		|{infinite_comprehension} brace_l val_exp dotdot pipe stmts brace_r
 		|{enum_set} enum_set
 		|{set_comp} set_comp;
+	
+stmts 					=  {gen} generator stmts_rek* 
+						  |{pred} predicate stmts_rek*;
+stmts_rek 				=  {gen} comma generator | {pred} comma predicate;
+generator				=  dpattern arrow_l proc1;
+predicate				=  bool_exp;
 
-stmts_set				=    {gs} gen_stmt_set 
-							|{ps} pred_stmt_set;
-gen_stmt_set 			=    [l]:event arrow_l [r]:proc1 stmt_rek_set*;
-stmt_rek_set 			=    {gs}comma [l]:event arrow_l [r]:proc1
-						    |{ps} comma pred_stmt_set;
-pred_stmt_set			=    bool_exp;
-							
-				
+		
 enum_set   	    =  brace_l [l]:pipe arguments [r]:pipe brace_r;
-set_comp		=  brace_l [l]:pipe arguments [m]:pipe stmts_set [r]:pipe brace_r;
-
-//---------------------------------------------------------------------------------------
-// e1,e2,...,en    all of type a!
-arguments		= arguments_rek;
-arguments_rek	=  {arg_start} proc1 comma arguments_rek
-				  |{arg_end} proc1;
+set_comp		=  brace_l [l]:pipe arguments [m]:pipe stmts [r]:pipe brace_r;
 //---------------------------------------------------------------------------------------
 map	 =	  {map} par_l [lp]:pipe[le]:bool_exp imp_r [re]:bool_exp [rp]:pipe par_r
 		  |{emptymap} empty_map;

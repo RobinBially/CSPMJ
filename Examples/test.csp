@@ -1,8 +1,0 @@
---Robin Bially
-{-TESTESTTEST-}
-datatype Bphils = p1 | p2 | p3
-channel think,eat,TakeLeftFork,TakeRightFork,DropFork: Bphils 
-
-MAIN = PHIL(p1) ||| PHIL(p2) ||| PHIL(p3)
-
-PHIL(P) = think?P -> TakeLeftFork!P -> TakeRightFork!P -> eat!P -> DropFork!P ->DropFork!P -> PHIL(P)
