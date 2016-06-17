@@ -274,7 +274,6 @@ tuple_pattern = par_l pattern1 list_pattern_rek+ par_r;
 expression  =	 {new_def} id parameters eq proc1
 				|{pattern} pattern1 eq proc1;
 
-	
 proc1 		=  	 {hide} proc1 b_slash proc2 
 				|{p2} proc2;
 proc2 		=    {ileave} proc2 i_leaving proc3 
@@ -303,7 +302,7 @@ proc9		= 	 {guard_exp} dot_op guard proc9
 				|{if_else} if bool_exp then proc1 else proc9
 				|{rep} rep proc9
 				|{p10} proc10;				
-proc10 		=	{renaming} proc10 dbracket_l rename_comp dbracket_r
+proc10 		=	 {renaming} proc10 dbracket_l rename_comp dbracket_r
 				|{e_renaming} proc10 dbracket_l dbracket_r
 				|{event} event;
 			
@@ -390,13 +389,6 @@ set = 	{empty_set} brace_l brace_r
 		|{enum_set} enum_set
 		|{set_comp} set_comp;
 	
-stmts 					=  {gen} generator stmts_rek* 
-						  |{pred} predicate stmts_rek*;
-stmts_rek 				=  {gen} comma generator | {pred} comma predicate;
-generator				=  dpattern arrow_l proc1;
-predicate				=  bool_exp;
-
-		
 enum_set   	    =  brace_l [l]:pipe arguments [r]:pipe brace_r;
 set_comp		=  brace_l [l]:pipe arguments [m]:pipe stmts [r]:pipe brace_r;
 //---------------------------------------------------------------------------------------
@@ -404,22 +396,24 @@ map	 =	  {map} par_l [lp]:pipe[le]:bool_exp imp_r [re]:bool_exp [rp]:pipe par_r
 		  |{emptymap} empty_map;
 //---------------------------------------------------------------------------------------		 	 
 //ACHTUNG SET STATEMENTS -> identifier : {}
-rep = 			 {ext_choice} e_choice rep_stmts at
-				|{int_choice} i_choice rep_stmts at
-				|{i_leave} i_leaving rep_stmts at
-				|{seq_comp} semicolon rep_stmts at
-				|{alp_par} dpipe rep_stmts at bracket_l event bracket_r
-				|{sharing} bracket_pipe_l val_exp bracket_pipe_r rep_stmts at
-				|{linked_par} bracket_l link_comp bracket_r rep_stmts at
-				|{sync_par} sync_par_l [l]:event sync_par_r rep_stmts at;
-	
-	
-rep_stmts 			= 	 {rgs} rep_gen_stmt
-						|{rps} rep_pred_stmt;
-rep_gen_stmt 		= 	 [la]:atom ddot [ra]:atom rep_gen_stmt_rek*;
-rep_gen_stmt_rek	= 	 {gs} comma [la]:atom ddot [ra]:atom
-						|{ps} comma rep_pred_stmt;
-rep_pred_stmt 		= 	 bool_exp;
+rep = 			 {ext_choice} e_choice stmts at
+				|{int_choice} i_choice stmts at
+				|{i_leave} i_leaving stmts at
+				|{seq_comp} semicolon stmts at
+				|{alp_par} dpipe stmts at bracket_l event bracket_r
+				|{sharing} bracket_pipe_l val_exp bracket_pipe_r stmts at
+				|{linked_par} bracket_l link_comp bracket_r stmts at
+				|{sync_par} sync_par_l [l]:event sync_par_r stmts at;
+//---------------------------------------------------------------------------------------
+//Statements
+
+stmts 					=  {gen} generator stmts_rek* 
+						  |{pred} predicate stmts_rek*;
+stmts_rek 				=  {gen} comma generator | {pred} comma predicate;
+generator				=  dpattern generator_op proc1;
+predicate				=  bool_exp;
+
+generator_op			=  {arrow} arrow_l |{ddot} ddot;
 //---------------------------------------------------------------------------------------	
 assertion = 	 {tra_mod} assert [l]:proc1 tra_mod [r]:proc1
 				|{fm} assert [l]:proc1 fail_mod [r]:proc1

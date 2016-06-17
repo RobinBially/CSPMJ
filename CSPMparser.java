@@ -90,9 +90,9 @@ public int parseFilesInFolder(File folder, Boolean show)
 				Start tree = p.parse();		
 				TreeLogicChecker tlc = new TreeLogicChecker();
 				tree.apply(tlc);
-//				OccurrenceCheck oc = new OccurrenceCheck();
-//				tree.apply(oc);
-//				System.out.println("No unbound Identifiers were found.");				
+				OccurrenceCheck oc = new OccurrenceCheck();
+				tree.apply(oc);
+				System.out.println("No unbound Identifiers were found.");				
 				workcount++;
 		//		Typechecker ts = new Typechecker();
 		//		tree.apply(ts);
@@ -151,9 +151,9 @@ public void parseFile(String s, Boolean show)
 		tree.apply(tlc);
 		System.out.println("\nYour CSPM-File has been successfully parsed.\n"
 							+"Checking Identifier occurrences...");
-//		OccurrenceCheck oc = new OccurrenceCheck();
-//		tree.apply(oc);
-//		System.out.println("No unbound Identifiers were found.");
+		OccurrenceCheck oc = new OccurrenceCheck();
+		tree.apply(oc);
+		System.out.println("No unbound Identifiers were found.");
 		
 		workcount++;
 //		Typechecker ts = new Typechecker();
