@@ -33,7 +33,7 @@ channel downtoup: LinkAcks
 
 -- Acknowledgement channels:
 
-channel inack0, inack1, outack0, outack1: Acks
+channel inack0, inack1, outack0, outack1: {1,2,3}
 
 -- The basic processes
 

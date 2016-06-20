@@ -55,7 +55,7 @@ I = Q
 Q(x) = 5+I(x)
 ChData = {0,1,2,3}
 channel in: ChData 
---AS2(x) = in?v@@w!v -> 5+v(x)*w ->STOP
+AS2(x) = in?v@@w!v -> 5+v(x)*w ->STOP
 AS3(x) = in$v:{1,2,3}!v
 P = <1,2,3|x<-{1,2}>
 

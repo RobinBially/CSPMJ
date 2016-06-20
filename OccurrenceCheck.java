@@ -15,18 +15,28 @@ import CSPMparser.node.*;
 
 public class OccurrenceCheck extends DepthFirstAdapter
 {
-	private ArrayList<String> left = new ArrayList<String>();
-	private ArrayList<String> right = new ArrayList<String>();
+	private HashMap<Integer,ArrayList<String>> left = new HashMap<Integer,ArrayList<String>>();
+				//letWithinDepth,     id
+	private HashMap<Integer,ArrayList<String>> right = new HashMap<Integer,ArrayList<String>>();
+					//letWithinDepth,     id
 	private ArrayList<String> builtIn = new ArrayList<String>();
 	private ArrayList<String> variable = new ArrayList<String>();
 	private ArrayList<String> currentLambdaParams = new ArrayList<String>();
 	private ArrayList<String> currentParams = new ArrayList<String>();
+	private ArrayList<String> pendingId = new ArrayList<String>();
+	private ArrayList<String> statementVar = new ArrayList<String>();
+	private HashMap<Integer,ArrayList<String>> letWithinArgs = new HashMap<Integer,ArrayList<String>>();
+	private int letWithinDepth = 0;
+	
+	private int currentInStatement = 0;
 	private boolean currentLeft = true;
 	private boolean currentInTuple = false;
 	private boolean currentInParameters = false;
 	private boolean currentInLambdaLeft = false;
 	private boolean currentInInput = false;
-	private boolean currentInStatement = false;
+	private boolean currentInSubtype = false;
+	private int currentInGenerator = 0;
+	private int currentInPredicate = 0;
 	
 	public OccurrenceCheck()
 	{
@@ -39,9 +49,246 @@ public class OccurrenceCheck extends DepthFirstAdapter
         inStart(node);
         node.getPDefs().apply(this);
         node.getEOF().apply(this);
-		check();
+		check2();
         outStart(node);
     }
+	
+//***************************************************************************************
+//Typedefinitions
+	
+	@Override
+	public void caseATypedef(ATypedef node)
+    {
+        inATypedef(node);
+        if(node.getId() != null)
+        {
+            node.getId().apply(this);
+			String str = node.getId().toString().replaceAll(" ","");
+			if(left.get(letWithinDepth) == null)
+			{
+				left.put(letWithinDepth,new ArrayList<String>());
+			}
+			if(!left.get(letWithinDepth).contains(str))
+			{
+				ArrayList<String> temp = left.get(letWithinDepth);
+				temp.add(str);
+				left.put(letWithinDepth,temp);
+			}
+			else
+			{
+				throw new RuntimeException("Redefinition of Identifier "+str+".");
+			}
+        }
+        if(node.getEq() != null)
+        {
+            node.getEq().apply(this);
+        }
+        if(node.getClause() != null)
+        {
+            node.getClause().apply(this);
+        }
+        {
+            List<PTypedefRek> copy = new ArrayList<PTypedefRek>(node.getTypedefRek());
+            for(PTypedefRek e : copy)
+            {
+                e.apply(this);
+            }
+        }
+        outATypedef(node);
+    }
+			
+	@Override
+    public void caseAClause(AClause node)
+    {
+        inAClause(node);
+        if(node.getClauseName() != null)
+        {
+            node.getClauseName().apply(this);
+			String str = node.getClauseName().toString().replaceAll(" ","");
+			if(left.get(letWithinDepth) == null)
+			{
+				left.put(letWithinDepth,new ArrayList<String>());
+			}
+			if(right.get(letWithinDepth) == null)
+			{
+				right.put(letWithinDepth,new ArrayList<String>());
+			}
+			if(currentInSubtype && !right.get(letWithinDepth).contains(str))
+			{
+				ArrayList<String> temp = right.get(letWithinDepth);
+				temp.add(str);
+				right.put(letWithinDepth,temp);
+			}
+			else if(!left.get(letWithinDepth).contains(str))
+			{
+				ArrayList<String> temp = left.get(letWithinDepth);
+				temp.add(str);
+				left.put(letWithinDepth,temp);
+			}
+			else
+			{
+				throw new RuntimeException("Redefinition of Identifier "+str+".");
+			}
+        }
+        if(node.getDotted() != null)
+        {
+            node.getDotted().apply(this);
+        }
+        outAClause(node);
+    }
+	
+    @Override
+    public void caseANtype(ANtype node)
+    {
+        inANtype(node);
+        if(node.getNType() != null)
+        {
+            node.getNType().apply(this);
+        }
+        if(node.getId() != null)
+        {
+            node.getId().apply(this);
+			String str = node.getId().toString().replaceAll(" ","");
+			if(left.get(letWithinDepth) == null)
+			{
+				left.put(letWithinDepth, new ArrayList<String>());
+			}
+			if(!left.get(letWithinDepth).contains(str))
+			{
+				ArrayList<String> temp = left.get(letWithinDepth);
+				temp.add(str);
+				left.put(letWithinDepth,temp);
+			}
+			else
+			{
+				throw new RuntimeException("Redefinition of Identifier "+str+".");
+			}
+        }
+        if(node.getEq() != null)
+        {
+            node.getEq().apply(this);
+        }
+        if(node.getTypeExp() != null)
+        {
+            node.getTypeExp().apply(this);
+        }
+        outANtype(node);
+    }
+	
+    @Override
+    public void caseAStypeTypes(AStypeTypes node)
+    {
+        inAStypeTypes(node);
+        if(node.getSType() != null)
+        {
+            node.getSType().apply(this);
+        }
+		currentInSubtype = true;
+        if(node.getTypedef() != null)
+        {
+            node.getTypedef().apply(this);
+        }
+		currentInSubtype = false;
+        outAStypeTypes(node);
+    }
+//***************************************************************************************
+//Channels
+	
+    public void caseAChan(AChan node)
+    {
+        inAChan(node);
+        if(node.getChannel() != null)
+        {
+            node.getChannel().apply(this);
+        }
+        if(node.getId() != null)
+        {
+            node.getId().apply(this);
+			String str = node.getId().toString().replaceAll(" ","");
+			if(left.get(letWithinDepth) == null)
+			{
+				left.put(letWithinDepth,new ArrayList<String>());
+			}
+			if(!left.get(letWithinDepth).contains(str))
+			{
+				ArrayList<String> temp = left.get(letWithinDepth);
+				temp.add(str);
+				left.put(letWithinDepth,temp);
+			}
+			else
+			{
+				throw new RuntimeException("Redefinition of Identifier "+str+".");
+			}
+        }
+        if(node.getChanRek() != null)
+        {
+            node.getChanRek().apply(this);
+        }
+        outAChan(node);
+    }
+
+    @Override
+    public void caseARekChanRek(ARekChanRek node)
+    {
+        inARekChanRek(node);
+        if(node.getComma() != null)
+        {
+            node.getComma().apply(this);
+        }
+        if(node.getId() != null)
+        {
+            node.getId().apply(this);
+			String str = node.getId().toString().replaceAll(" ","");
+			if(left.get(letWithinDepth) == null)
+			{
+				left.put(letWithinDepth,new ArrayList<String>());
+			}
+			if(!left.get(letWithinDepth).contains(str))
+			{
+				ArrayList<String> temp = left.get(letWithinDepth);
+				temp.add(str);
+				left.put(letWithinDepth,temp);
+			}
+			else
+			{
+				throw new RuntimeException("Redefinition of Identifier "+str+".");
+			}
+        }
+        if(node.getChanRek() != null)
+        {
+            node.getChanRek().apply(this);
+        }
+        outARekChanRek(node);
+    }	
+//***************************************************************************************
+//Type Expressions
+
+	@Override
+    public void caseASetNameTypeExp2(ASetNameTypeExp2 node)
+    {
+        inASetNameTypeExp2(node);
+        if(node.getId() != null)
+        {
+            node.getId().apply(this);
+			String str = node.getId().toString().replaceAll(" ","");
+			if(right.get(letWithinDepth) == null)
+			{
+				right.put(letWithinDepth,new ArrayList<String>());
+			}	
+			if(!right.get(letWithinDepth).contains(str))
+			{
+				ArrayList<String> temp = right.get(letWithinDepth);
+				temp.add(str);
+				right.put(letWithinDepth,temp);
+			}
+        }
+        if(node.getTuple() != null)
+        {
+            node.getTuple().apply(this);
+        }
+        outASetNameTypeExp2(node);
+    }
+	
 //***************************************************************************************	
 //Left Side	
 	@Override
@@ -49,24 +296,31 @@ public class OccurrenceCheck extends DepthFirstAdapter
     {
         inANewDefExpression(node);
 		currentParams = new ArrayList<String>();
+		pendingId = new ArrayList<String>();
 		currentLeft = true;
+		
         if(node.getId() != null)
         {
             node.getId().apply(this);		
         }
 		String str = node.getId().toString().replaceAll(" ","");
-	//	System.out.println(left);
         if(node.getParameters() != null)
         {
 			currentInParameters = true;
             node.getParameters().apply(this);
-			if(left.contains(str))
+			if(left.get(letWithinDepth) == null)
+			{
+				left.put(letWithinDepth,new ArrayList<String>());
+			}
+			if(left.get(letWithinDepth).contains(str))
 			{
 				throw new RuntimeException("Redefinition of Identifier: "+str+".");
 			} 	
-			else if(!left.contains(str+"()"))
+			else if(!left.get(letWithinDepth).contains(str+"()"))
 			{
-				left.add(str+"()");
+				ArrayList<String> temp = left.get(letWithinDepth);
+				temp.add(str+"()");
+				left.put(letWithinDepth,temp);
 			}								//Functions can occur multiple times
 			currentInParameters = false;
         }
@@ -75,20 +329,22 @@ public class OccurrenceCheck extends DepthFirstAdapter
             node.getEq().apply(this);
         }
 		currentLeft = false;
+
         if(node.getProc1() != null)
         {
             node.getProc1().apply(this);
         }
         outANewDefExpression(node);
     }
-
+//***************************************************************************************
+//Patterns
     @Override
     public void caseAPatternExpression(APatternExpression node)
     {
         inAPatternExpression(node);
 		currentParams = new ArrayList<String>();
+		pendingId = new ArrayList<String>();
 		currentLeft = true;
-
         if(node.getPattern1() != null)
         {
             node.getPattern1().apply(this);
@@ -136,20 +392,28 @@ public class OccurrenceCheck extends DepthFirstAdapter
         {
             node.getId().apply(this);
 			String str = node.getId().toString().replaceAll(" ","");
-		//	System.out.println(left);
-			if(currentInParameters)
+			if(letWithinDepth>0 && letWithinArgs.get(letWithinDepth).contains(str))
+			{}	
+			else if(currentInParameters)
 			{
 				currentParams.add(str);
 			}
 			else if(currentLeft) //Single Identifier without params
-			{				
-				if(left.contains(str) || left.contains(str+"()"))
+			{	
+				if(left.get(letWithinDepth) == null)
+				{
+					left.put(letWithinDepth,new ArrayList<String>());
+				}
+				if((left.get(letWithinDepth).contains(str) 
+					|| left.get(letWithinDepth).contains(str+"()")))
 				{							
 					throw new RuntimeException("Redefinition of Identifier "+str+".");						
 				}
 				else
-				{
-					left.add(str);
+				{		
+					ArrayList<String> temp = left.get(letWithinDepth);
+					temp.add(str);
+					left.put(letWithinDepth,temp);
 				}
 			}
 			else if(currentInLambdaLeft)
@@ -161,26 +425,274 @@ public class OccurrenceCheck extends DepthFirstAdapter
 				currentParams.add(str);
 			}
 			else
-			{
-				if(!right.contains(str) && !currentParams.contains(str))
+			{	
+				if(right.get(letWithinDepth) == null)
 				{
-					right.add(str);
+					right.put(letWithinDepth,new ArrayList<String>());
+				}	
+				if(!right.get(letWithinDepth).contains(str) && !currentParams.contains(str))
+				{
+					ArrayList<String> temp = right.get(letWithinDepth);
+					temp.add(str);
+					right.put(letWithinDepth,temp);
 				}
 			}
         }
         outAVarPatternAtom(node);
     }
+//***************************************************************************************
+//Comprehensions	
+    @Override
+    public void caseAListCompSequence(AListCompSequence node)
+    {
+        inAListCompSequence(node);
+        if(node.getSeqOpen() != null)
+        {
+            node.getSeqOpen().apply(this);
+        }
+		currentInStatement += 1;
+        if(node.getArguments() != null)
+        {
+            node.getArguments().apply(this);
+        }
+		currentInStatement -= 1;
+        if(node.getPipe() != null)
+        {
+            node.getPipe().apply(this);
+        }
+        if(node.getStmts() != null)
+        {
+            node.getStmts().apply(this);
+        }
+        if(node.getSeqClose() != null)
+        {
+            node.getSeqClose().apply(this);
+        }
+		//Check pendingId		
+		if(!pendingId.isEmpty())
+		{
+			int i = 0;
+			if(right.get(letWithinDepth) == null)
+			{
+				right.put(letWithinDepth,new ArrayList<String>());
+			}	
+			while(i<pendingId.size())
+			{
+				if(!statementVar.contains(pendingId.get(i))
+					&& !currentParams.contains(pendingId.get(i)))
+				{
+					ArrayList<String> temp = right.get(letWithinDepth);
+					temp.add(pendingId.get(i));
+					right.put(letWithinDepth,temp);				
+					pendingId.remove(i);
+					i = 0;
+				}
+				else
+				{
+					pendingId.remove(i);
+					i++;
+				}
+			}
+		}	
+		statementVar = new ArrayList<String>();		
+        outAListCompSequence(node);
+    }
 	
+	@Override
+    public void caseASeqComp(ASeqComp node)
+    {
+        inASeqComp(node);
+        if(node.getTriaL() != null)
+        {
+            node.getTriaL().apply(this);
+        }
+        if(node.getL() != null)
+        {
+            node.getL().apply(this);
+        }
+		currentInStatement += 1;
+        if(node.getArguments() != null)
+        {
+            node.getArguments().apply(this);
+        }
+		currentInStatement -= 1;
+        if(node.getM() != null)
+        {
+            node.getM().apply(this);
+        }
+        if(node.getStmts() != null)
+        {
+            node.getStmts().apply(this);
+        }
+        if(node.getR() != null)
+        {
+            node.getR().apply(this);
+        }
+        if(node.getTriaR() != null)
+        {
+            node.getTriaR().apply(this);
+        }
+		if(!pendingId.isEmpty())
+		{
+			int i = 0;
+			if(right.get(letWithinDepth) == null)
+			{
+				right.put(letWithinDepth,new ArrayList<String>());
+			}	
+			while(i<pendingId.size())
+			{
+				if(!statementVar.contains(pendingId.get(i))
+					&& !currentParams.contains(pendingId.get(i)))
+				{
+					ArrayList<String> temp = right.get(letWithinDepth);
+					temp.add(pendingId.get(i));
+					right.put(letWithinDepth,temp);	
+					pendingId.remove(i);
+					i = 0;
+				}
+				else
+				{
+					pendingId.remove(i);
+					i++;
+				}
+			}
+		}
+		statementVar = new ArrayList<String>();
+        outASeqComp(node);
+    }
+	
+	
+	@Override
+    public void caseASetComprehensionSet(ASetComprehensionSet node)
+    {
+        inASetComprehensionSet(node);
+        if(node.getBraceL() != null)
+        {
+            node.getBraceL().apply(this);
+        }
+		currentInStatement += 1;
+        if(node.getArguments() != null)
+        {
+            node.getArguments().apply(this);
+        }
+		currentInStatement -= 1;
+        if(node.getPipe() != null)
+        {
+            node.getPipe().apply(this);
+        }
+        if(node.getStmts() != null)
+        {
+            node.getStmts().apply(this);
+        }
+        if(node.getBraceR() != null)
+        {
+            node.getBraceR().apply(this);
+        }
+		//Check pendingId		
+		if(!pendingId.isEmpty())
+		{
+			int i = 0;
+			if(right.get(letWithinDepth) == null)
+			{
+				right.put(letWithinDepth,new ArrayList<String>());
+			}	
+			while(i<pendingId.size())
+			{
+				if(!statementVar.contains(pendingId.get(i))
+					&& !currentParams.contains(pendingId.get(i)))
+				{
+					ArrayList<String> temp = right.get(letWithinDepth);
+					temp.add(pendingId.get(i));
+					right.put(letWithinDepth,temp);	
+					pendingId.remove(i);
+					i = 0;
+				}
+				else
+				{
+					pendingId.remove(i);
+					i++;
+				}
+			}
+		}	
+		statementVar = new ArrayList<String>();
+        outASetComprehensionSet(node);
+    }
+	
+    @Override
+    public void caseASetComp(ASetComp node)
+    {
+        inASetComp(node);
+        if(node.getBraceL() != null)
+        {
+            node.getBraceL().apply(this);
+        }
+        if(node.getL() != null)
+        {
+            node.getL().apply(this);
+        }
+		currentInStatement +=1;
+        if(node.getArguments() != null)
+        {
+            node.getArguments().apply(this);
+        }
+		currentInStatement -=1;
+        if(node.getM() != null)
+        {
+            node.getM().apply(this);
+        }
+        if(node.getStmts() != null)
+        {
+            node.getStmts().apply(this);
+        }
+        if(node.getR() != null)
+        {
+            node.getR().apply(this);
+        }
+        if(node.getBraceR() != null)
+        {
+            node.getBraceR().apply(this);
+        }
+		if(!pendingId.isEmpty())
+		{
+			int i = 0;
+			if(right.get(letWithinDepth) == null)
+			{
+				right.put(letWithinDepth,new ArrayList<String>());
+			}	
+			while(i<pendingId.size())
+			{
+				if(!statementVar.contains(pendingId.get(i))
+					&& !currentParams.contains(pendingId.get(i)))
+				{
+					ArrayList<String> temp = right.get(letWithinDepth);
+					temp.add(pendingId.get(i));
+					right.put(letWithinDepth,temp);	
+					pendingId.remove(i);
+					i = 0;
+				}
+				else
+				{
+					pendingId.remove(i);
+					i++;
+				}
+			}
+		}
+		statementVar = new ArrayList<String>();
+        outASetComp(node);
+    }
+
+//***************************************************************************************
+//Generator Statements	
 	@Override
     public void caseAGenerator(AGenerator node)
     {
         inAGenerator(node);
-		currentInStatement = true;
+		currentInGenerator += 1;
         if(node.getDpattern() != null)
         {
             node.getDpattern().apply(this);
         }
-		currentInStatement = false;
+		currentInGenerator -= 1;
         if(node.getGeneratorOp() != null)
         {
             node.getGeneratorOp().apply(this);
@@ -192,6 +704,23 @@ public class OccurrenceCheck extends DepthFirstAdapter
         outAGenerator(node);
     }
 	
+	@Override
+    public void caseAGenStmtsRek(AGenStmtsRek node)
+    {
+        inAGenStmtsRek(node);
+        if(node.getComma() != null)
+        {
+            node.getComma().apply(this);
+        }
+		currentInGenerator += 1;
+        if(node.getGenerator() != null)
+        {
+            node.getGenerator().apply(this);
+        }
+		currentInGenerator -= 1;
+        outAGenStmtsRek(node);
+    }
+//***************************************************************************************	
     @Override
     public void caseANondetRestField1(ANondetRestField1 node)
     {
@@ -228,152 +757,6 @@ public class OccurrenceCheck extends DepthFirstAdapter
     }
 	
 	@Override
-	public void caseATypedef(ATypedef node)
-    {
-        inATypedef(node);
-        if(node.getId() != null)
-        {
-            node.getId().apply(this);
-			String str = node.getId().toString().replaceAll(" ","");
-			if(!left.contains(str))
-			{
-				left.add(str);
-			}
-			else
-			{
-				throw new RuntimeException("Redefinition of Identifier "+str+".");
-			}
-        }
-        if(node.getEq() != null)
-        {
-            node.getEq().apply(this);
-        }
-        if(node.getClause() != null)
-        {
-            node.getClause().apply(this);
-        }
-        {
-            List<PTypedefRek> copy = new ArrayList<PTypedefRek>(node.getTypedefRek());
-            for(PTypedefRek e : copy)
-            {
-                e.apply(this);
-            }
-        }
-        outATypedef(node);
-    }
-			
-	@Override
-    public void caseAClause(AClause node)
-    {
-        inAClause(node);
-        if(node.getClauseName() != null)
-        {
-            node.getClauseName().apply(this);
-			String str = node.getClauseName().toString().replaceAll(" ","");
-			if(!left.contains(str))
-			{
-				left.add(str);
-			}
-			else
-			{
-				throw new RuntimeException("Redefinition of Identifier "+str+".");
-			}
-        }
-        if(node.getDotted() != null)
-        {
-            node.getDotted().apply(this);
-        }
-        outAClause(node);
-    }
-	
-    @Override
-    public void caseANtype(ANtype node)
-    {
-        inANtype(node);
-        if(node.getNType() != null)
-        {
-            node.getNType().apply(this);
-        }
-        if(node.getId() != null)
-        {
-            node.getId().apply(this);
-			String str = node.getId().toString().replaceAll(" ","");
-			if(!left.contains(str))
-			{
-				left.add(str);
-			}
-			else
-			{
-				throw new RuntimeException("Redefinition of Identifier "+str+".");
-			}
-        }
-        if(node.getEq() != null)
-        {
-            node.getEq().apply(this);
-        }
-        if(node.getTypeExp() != null)
-        {
-            node.getTypeExp().apply(this);
-        }
-        outANtype(node);
-    }
-	
-    public void caseAChan(AChan node)
-    {
-        inAChan(node);
-        if(node.getChannel() != null)
-        {
-            node.getChannel().apply(this);
-        }
-        if(node.getId() != null)
-        {
-            node.getId().apply(this);
-			String str = node.getId().toString().replaceAll(" ","");
-			if(!left.contains(str))
-			{
-				left.add(str);
-			}
-			else
-			{
-				throw new RuntimeException("Redefinition of Identifier "+str+".");
-			}
-        }
-        if(node.getChanRek() != null)
-        {
-            node.getChanRek().apply(this);
-        }
-        outAChan(node);
-    }
-
-    @Override
-    public void caseARekChanRek(ARekChanRek node)
-    {
-        inARekChanRek(node);
-        if(node.getComma() != null)
-        {
-            node.getComma().apply(this);
-        }
-        if(node.getId() != null)
-        {
-            node.getId().apply(this);
-			String str = node.getId().toString().replaceAll(" ","");
-			if(!left.contains(str))
-			{
-				left.add(str);
-			}
-			else
-			{
-				throw new RuntimeException("Redefinition of Identifier "+str+".");
-			}
-        }
-        if(node.getChanRek() != null)
-        {
-            node.getChanRek().apply(this);
-        }
-        outARekChanRek(node);
-    }
-	
-	@Override
     public void caseATransDef(ATransDef node)
     {
         inATransDef(node);
@@ -385,9 +768,15 @@ public class OccurrenceCheck extends DepthFirstAdapter
         {
             node.getId().apply(this);
 			String str = node.getId().toString().replaceAll(" ","");
-			if(!left.contains(str))
+			if(left.get(letWithinDepth) == null)
 			{
-				left.add(str);
+				left.put(letWithinDepth,new ArrayList<String>());
+			}
+			if(!left.get(letWithinDepth).contains(str))
+			{
+				ArrayList<String> temp = left.get(letWithinDepth);
+				temp.add(str);
+				left.put(letWithinDepth,temp);
 			}
 			else
 			{
@@ -409,9 +798,15 @@ public class OccurrenceCheck extends DepthFirstAdapter
         {
             node.getId().apply(this);
 			String str = node.getId().toString().replaceAll(" ","");
-			if(!left.contains(str))
+			if(left.get(letWithinDepth) == null)
 			{
-				left.add(str);
+				left.put(letWithinDepth,new ArrayList<String>());
+			}
+			if(!left.get(letWithinDepth).contains(str))
+			{
+				ArrayList<String> temp = left.get(letWithinDepth);
+				temp.add(str);
+				left.put(letWithinDepth,temp);
 			}
 			else
 			{
@@ -419,6 +814,55 @@ public class OccurrenceCheck extends DepthFirstAdapter
 			}
         }
         outAExtDef(node);
+    }
+	
+	@Override
+    public void caseALetWithinProc9(ALetWithinProc9 node)
+    {
+        inALetWithinProc9(node);
+		letWithinDepth++;
+		ArrayList<String> newlist = new ArrayList<String>();
+		for(int i = 1;i<letWithinDepth;i++)
+		{	
+				ArrayList<String> sublist = letWithinArgs.get(i);	
+				for(int j = 0;j<sublist.size();j++)
+				{
+					if(!newlist.contains(sublist.get(j)))
+					{
+						newlist.add(sublist.get(j));
+					}
+				}		
+		}
+		for(int k = 0;k<currentParams.size();k++)
+		{
+			if(!newlist.contains(currentParams.get(k)))
+			{
+				newlist.add(currentParams.get(k));
+			}
+		}
+		letWithinArgs.put(letWithinDepth,newlist);	
+		System.out.println("letWithinArgs: "+letWithinArgs);
+        if(node.getLet() != null)
+        {
+            node.getLet().apply(this);
+        }	
+        if(node.getDefs() != null)
+        {
+            node.getDefs().apply(this);
+        }
+        if(node.getWithin() != null)
+        {
+            node.getWithin().apply(this);
+        }				
+        if(node.getProc9() != null)
+        {
+            node.getProc9().apply(this);
+        }	
+		check(letWithinDepth);
+		left.remove(letWithinDepth);
+		right.remove(letWithinDepth);
+		letWithinDepth -= 1;		
+        outALetWithinProc9(node);
     }
 	
 	@Override
@@ -455,17 +899,36 @@ public class OccurrenceCheck extends DepthFirstAdapter
         {
             node.getId().apply(this);
 			String str = node.getId().toString().replaceAll(" ","");
-		//	System.out.println(currentParams);
-		//	System.out.println(currentLambdaParams);
-			if(currentInStatement && !currentParams.contains(str))
+			if(left.get(letWithinDepth) == null)
 			{
-				currentParams.add(str);
+				left.put(letWithinDepth,new ArrayList<String>());
+			}	
+			if(right.get(letWithinDepth) == null)
+			{
+				right.put(letWithinDepth,new ArrayList<String>());
+			}				
+			if(letWithinDepth>0 && letWithinArgs.get(letWithinDepth).contains(str))
+			{
+				
 			}
-			else if(!right.contains(str) 
-				&& !currentParams.contains(str)
-				&& !currentLambdaParams.contains(str))
+			else if(currentInStatement>0 &&!left.get(letWithinDepth).contains(str))
 			{
-				right.add(str);
+				pendingId.add(str); //for statements {x|x<-{1,2,3}},x is pending id
+			}
+			else if(currentInGenerator>0 
+					&& !currentParams.contains(str)
+					&& !statementVar.contains(str))
+			{
+				statementVar.add(str);
+			}
+			else if(!right.get(letWithinDepth).contains(str) 
+				&& !currentParams.contains(str)
+				&& !currentLambdaParams.contains(str)
+				&& !statementVar.contains(str))
+			{
+				ArrayList<String> temp = right.get(letWithinDepth);
+				temp.add(str);
+				right.put(letWithinDepth,temp);
 			}
         }
         if(node.getTuple() != null)
@@ -473,26 +936,6 @@ public class OccurrenceCheck extends DepthFirstAdapter
             node.getTuple().apply(this);
         }
         outAIdAtom(node);
-    }
-	
-    @Override
-    public void caseASetNameTypeExp2(ASetNameTypeExp2 node)
-    {
-        inASetNameTypeExp2(node);
-        if(node.getId() != null)
-        {
-            node.getId().apply(this);
-			String str = node.getId().toString().replaceAll(" ","");
-			if(!right.contains(str))
-			{
-				right.add(str);
-			}
-        }
-        if(node.getTuple() != null)
-        {
-            node.getTuple().apply(this);
-        }
-        outASetNameTypeExp2(node);
     }
 //***************************************************************************************	
 	
@@ -531,22 +974,66 @@ public class OccurrenceCheck extends DepthFirstAdapter
 		builtIn.add("show");
 		builtIn.add("True");
 		builtIn.add("False");
+		builtIn.add("true");
+		builtIn.add("false");
+	}
+ 
+ 
+	public void check2()//check at the end of AST
+	{
+		System.out.println("left: "+left);
+		System.out.println("right: "+right);
+		if(left.get(0) != null && right.get(0) != null)
+		{
+			for(int i = 0;i<right.get(0).size();i++)
+			{
+				if(!left.get(0).contains(right.get(0).get(i))
+				&& !left.get(0).contains(right.get(0).get(i)+"()")
+				&& !builtIn.contains(right.get(0).get(i)))
+				{
+					throw new RuntimeException("Unbound Identifier: "+right.get(0).get(i));
+				}
+			}
+		}
 	}
 	
-	public void check()
+	public void check(int depth) //check until left >= depth after within
 	{
-	//	System.out.println("Left: "+left);
-	//	System.out.println("Right: "+right);
-
-		for(int i = 0;i<right.size();i++)
+		System.out.println("left: "+left);
+		System.out.println("right: "+right);
+		ArrayList<String> l = new ArrayList<String>(); //0-depth
+		ArrayList<String> r = right.get(depth); //depth only
+		
+		for(int i = 0; i<left.size();i++)
 		{
-			
-			if(!left.contains(right.get(i)) 
-				&& !left.contains(right.get(i)+"()")
-				&& !builtIn.contains(right.get(i)))
+			for(int j = 0; j<left.get(i).size();j++)
 			{
-				throw new RuntimeException("Unbound Identifier: "+right.get(i));		
+				if(!l.contains(left.get(i).get(j)))
+				{
+					l.add(left.get(i).get(j));
+				}
 			}
+		}
+		System.out.println("l: "+l);
+		System.out.println("r: "+r);
+		//Check right in left, if not, put element 1 depth higher in right
+		ArrayList<String> temp = new ArrayList<String>();
+		if(depth>0)
+		{
+			if(right.get(depth-1) != null)
+			{
+				temp = right.get(depth-1);	
+			}
+			for(int k = 0;k<r.size();k++)
+			{
+				if(!l.contains(r.get(k)) 
+					&& !l.contains(r.get(k)+"()")
+					&& !builtIn.contains(r.get(k)))
+				{
+					temp.add(r.get(k));
+				}
+			}
+			right.put(depth-1,temp);
 		}
 	}
 	

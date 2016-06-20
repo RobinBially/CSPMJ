@@ -21,7 +21,7 @@ LPHILS(n) =
 --    transparent normal  -- transparent only allowed at toplevel
   within normal(L(n) [[ ]])
 
---transparent normal
+transparent normal
 
 RPHILS(n) =
   LPHILS(n) [[ left <- right, right <- left ]]

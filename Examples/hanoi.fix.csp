@@ -58,7 +58,7 @@ POLE(p) =
   relevant events: all the moves, and the done/notdone events.
 -}
 
---interface(p) = {| move.d.i.p, move.d.p.i, complete.p | d<-DISCS, i<-PEGS |}
+interface(p) = {| move.d.i.p, move.d.p.i, complete.p | d<-DISCS, i<-PEGS |}
 
 PUZZLE =
   || p : PEGS @ [ interface(p) ] diamond(POLE(p))

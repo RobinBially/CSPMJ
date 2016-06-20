@@ -72,8 +72,10 @@ Tokens
 	int_const 		= 'Int';
 	error			= 'error';
 	show			= 'show';
-	true_const		= 'True';
-	false_const		= 'False';
+	true1			= 'true';
+	false1			= 'false';
+	true2			= 'True';
+	false2			= 'False';
 //***************************************************************************************
 //CSPM command words
 	ltl				= 'LTL';
@@ -254,8 +256,8 @@ pattern_atom  =  {set} set_pattern
 				|{string} string
 				|{char} char
 				|{number} number
-				|{true} true_const
-				|{false} false_const;
+				|{true} true2
+				|{false} false2;
 				
 set_pattern	  	 =  {empty} brace_l brace_r
 				   |{element} brace_l pattern1 brace_r;
@@ -343,8 +345,10 @@ atom 		= 	 {num} number
 				|{set} set
 				|{wildcard} wildcard
 				|{map} map
-				|{const_true} true_const
-				|{const_false} false_const
+				|{true1} true1
+				|{false1} false1
+				|{true2} true2
+				|{false2} false2
 				|{tuple} [tuple]:tuple [lambda]:tuple?
 				|{id} id tuple?;
 //---------------------------------------------------------------------------------------

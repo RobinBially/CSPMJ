@@ -2,7 +2,7 @@
 todo: fix this
 exponential parser complexity !
 -}
-test = (x
+test(x) = (x
         + (x
         + (x
         + (x
