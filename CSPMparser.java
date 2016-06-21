@@ -75,7 +75,7 @@ public int parseFilesInFolder(File folder, Boolean show)
 				newstream = includeFile(newstream);
 				newstream = deleteComments(newstream);
 				
-				workcount++;
+				workcount++; //now 1
 				 
 				TriangleBruteForce tbf = new TriangleBruteForce(newstream);
 				newstream = tbf.findTriangles();
@@ -85,7 +85,7 @@ public int parseFilesInFolder(File folder, Boolean show)
 					printNewStream(newstream);
 				}
 				
-				workcount++;
+				workcount++; //now 2
 
 				StringReader sr = new StringReader(newstream);
 				BufferedReader br = new BufferedReader(sr); 
@@ -93,13 +93,19 @@ public int parseFilesInFolder(File folder, Boolean show)
 				Parser p = new Parser(l);
 				Start tree = p.parse();	
 				
+				workcount++; //now 3
+
+				StatementPatternCheck spc = new StatementPatternCheck();
+				tree.apply(spc);
+				
+				workcount++; //now 4
 				TreeLogicChecker tlc = new TreeLogicChecker();
 				tree.apply(tlc);
 
 				OccurrenceCheck oc = new OccurrenceCheck();
 				tree.apply(oc);
 				System.out.println("No unbound Identifiers were found.");				
-				workcount++;
+				workcount++; //now 5
 		//		Typechecker ts = new Typechecker();
 		//		tree.apply(ts);
 			} 	
@@ -107,7 +113,8 @@ public int parseFilesInFolder(File folder, Boolean show)
 			{
 				if(workcount == 0)
 				{
-					throw new RuntimeException("Error in comment deletion: "+e.getMessage());
+					throw new RuntimeException("Error in comment deletion "
+											+"or including Files: "+e.getMessage());
 				}
 				if(workcount == 1)//Error in StreamEdit
 				{
@@ -117,7 +124,15 @@ public int parseFilesInFolder(File folder, Boolean show)
 				{
 					throw new RuntimeException("\nParsing Error: "+e.getMessage());
 				}
-				else if(workcount == 3)
+				else if(workcount == 3) //Error in statement pattern checking
+				{
+					throw new RuntimeException("\nError in pattern checking: "+e.getMessage());
+				}
+				else if(workcount == 4) //Error in occurs checking
+				{
+					throw new RuntimeException("\nError in Identifier Analysis: "+e.getMessage());
+				}
+				else if(workcount == 5)
 				{
 					throw new RuntimeException("\nTypechecking Error: "+e.getMessage());
 				}
@@ -139,7 +154,7 @@ public void parseFile(String s, Boolean show)
 		newstream = includeFile(newstream);
 		newstream = deleteComments(newstream);
 		
-		workcount++;
+		workcount++; //now 1
 		
 		TriangleBruteForce tbf = new TriangleBruteForce(newstream);
 		newstream = tbf.findTriangles();
@@ -149,13 +164,22 @@ public void parseFile(String s, Boolean show)
 			printNewStream(newstream);
 		}
 		
-		workcount++;
+		workcount++; //now 2
 		
 		StringReader sr = new StringReader(newstream);
 		BufferedReader br = new BufferedReader(sr); 
 		Lexer l = new Lexer(new PushbackReader(br,100000));
 		Parser p = new Parser(l);
-		Start tree = p.parse();		
+		Start tree = p.parse();	
+
+		workcount++; //now 3
+		
+		StatementPatternCheck spc = new StatementPatternCheck();
+		tree.apply(spc);
+		
+		workcount++; //now 4
+
+		
 		TreeLogicChecker tlc = new TreeLogicChecker();
 		tree.apply(tlc);
 		System.out.println("\nYour CSPM-File has been successfully parsed.\n"
@@ -164,7 +188,8 @@ public void parseFile(String s, Boolean show)
 		tree.apply(oc);
 		System.out.println("No unbound Identifiers were found.");
 		
-		workcount++;
+		workcount++; //now 5
+		
 //		Typechecker ts = new Typechecker();
 //		tree.apply(ts);
 //		System.out.println("Typechecking successful!");
@@ -185,7 +210,15 @@ public void parseFile(String s, Boolean show)
 		{
 			throw new RuntimeException("\nParsing Error: "+e.getMessage());
 		}
-		else if(workcount == 3)
+		else if(workcount == 3) //Error in statement pattern checking
+		{
+			throw new RuntimeException("\nError in pattern checking: "+e.getMessage());
+		}
+		else if(workcount == 4) //Error in occurs checking
+		{
+			throw new RuntimeException("\nError in Identifier Analysis: "+e.getMessage());
+		}
+		else if(workcount == 5)
 		{
 			throw new RuntimeException("\nTypechecking Error: "+e.getMessage());
 		}

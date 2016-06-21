@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import CSPMparser.analysis.*;
 import CSPMparser.node.*;
 
+// Renaming Analysis and Unbound Identifier Check
 
 public class OccurrenceCheck extends DepthFirstAdapter
 {

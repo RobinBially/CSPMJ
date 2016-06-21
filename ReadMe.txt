@@ -39,4 +39,5 @@ git push -f
 git rm -r --cached .
 git add .
 git commit -m "fixed untracked files"
+git branch -d the_local_branch
 _________________________________________________________________________________________

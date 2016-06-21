@@ -1,6 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * A Parser for CSP in JAVA                           		  *
- * CSPMJ V0.1.1606XX										  *
+ * CSPMJ V0.35.1606XX										  *
  *															  *
  * robin.bially@hhu.de		                                  *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -309,7 +309,7 @@ proc10 		=	 {renaming} proc10 dbracket_l rename_comp dbracket_r
 				|{e_renaming} proc10 dbracket_l dbracket_r
 				|{event} event;
 			
-event 		= 	 {event} dot_op field1* field2*;			
+event 		= 	 {event} dpattern field1* field2*;			
 field1 		= 	 {nondet_rest} dollar pattern1;
 field2		=	 {input_rest} q_mark pattern1
 				|{output} excl_mark dot_op;
