@@ -1,6 +1,6 @@
 -- ProB State Space Encoded for FDR in CSP
 
-include "/Users/leuschel/svn_root/NewProB/prolog/trunk/examples/CSP/mydemos/SimpleInterruptTimeout.csp"
+include "C:\Users\Robin\Documents\GitHub\CSPMJ\Examples\SimpleInterruptTimeout.csp"
 
 assert MAIN [FD= Nroot
 assert Nroot [FD= MAIN

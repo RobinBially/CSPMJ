@@ -37,8 +37,5 @@ T6 = (a->d->b->b->STOP)  [ {a,b} || {b,c}  ] (b->c->b->STOP)
 
 
 channel gen,stop:{0..99}
-
 Test3 = Gen(0) [ {| gen |} || { gen.2,gen.3,gen.4,stop} ] Gen(2)
-
-
-GEN(x) = gen!x -> GEN(x+1) [] stop!x -> SKIP
+Gen(x) = gen!x -> Gen(x+1) [] stop!x -> SKIP

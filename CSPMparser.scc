@@ -48,6 +48,7 @@ Tokens
 	wait 			= 'WAIT';
 	run				= 'RUN';
 	member 			= 'member';
+	elem 			= 'elem';
 	empty 			= 'empty';
 	null 			= 'null';
 	bool_const		= 'Bool';
@@ -236,7 +237,7 @@ id 		=	 {id} identifier |{ltl} ltl |{ctl} ctl |{stop} stop |{skip} skip
 			|{head} head |{tail} tail |{concat} concat |{set1} set1 
 			|{seq1} seq1 |{length} length |{proc} proc |{char_const} char_const 
 			|{error} error |{show} show |{int_const} int_const
-			|{seq2} seq2;
+			|{seq2} seq2 | {elem} elem;
 			
 //---------------------------------------------------------------------------------------
 parameters 	  =	par_l pattern_list par_r;
@@ -360,13 +361,13 @@ arguments		= 	arguments_rek;
 arguments_rek	=  {arg_start} proc1 comma arguments_rek
 				  |{arg_end} proc1;
 //---------------------------------------------------------------------------------------
-link_comp 			= [l]:event d_arr [r]:event link_comp_rek* comp_rek?;
-link_comp_rek 		= comma [l]:event d_arr [r]:event;
+link_comp 			= [le]:event d_arr [re]:event link_comp_rek* add_stmts?;
+link_comp_rek 		= comma [le]:event d_arr [re]:event;
 		
-rename_comp			= event arrow_l [r]:event rename_comp_rek* comp_rek?;
-rename_comp_rek 	= comma event arrow_l [r]:event;
+rename_comp			= [le]:event arrow_l [re]:event rename_comp_rek* add_stmts?;
+rename_comp_rek 	= comma [le]:event arrow_l [re]:event;
 
-comp_rek			= pipe stmts;
+add_stmts		= pipe stmts;
 //---------------------------------------------------------------------------------------	
 sequence =	 {empty_seq} seq_open seq_close
 			|{expl_seq} seq_open arguments seq_close

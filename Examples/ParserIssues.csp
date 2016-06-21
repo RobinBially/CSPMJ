@@ -1,6 +1,6 @@
 -- ParserIssues
 
-channel c: Bool
+channel c:Bool
 channel i:Int
 
 --x = <false, 5>3, true> -- is not parsable by FDR3, but by CSPMF

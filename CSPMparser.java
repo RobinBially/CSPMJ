@@ -2,6 +2,7 @@ import java.io.*;
 import java.*;
 import java.util.*;
 import java.lang.*;
+import java.util.regex.*;
 import java.lang.Character;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -71,6 +72,9 @@ public int parseFilesInFolder(File folder, Boolean show)
 			{
 				newstream = getStringFromFile(fileEntry.toString());
 				newstream = deleteComments(newstream);
+				newstream = includeFile(newstream);
+				newstream = deleteComments(newstream);
+				
 				workcount++;
 				 
 				TriangleBruteForce tbf = new TriangleBruteForce(newstream);
@@ -87,9 +91,11 @@ public int parseFilesInFolder(File folder, Boolean show)
 				BufferedReader br = new BufferedReader(sr); 
 				Lexer l = new Lexer(new PushbackReader(br,100000));
 				Parser p = new Parser(l);
-				Start tree = p.parse();		
+				Start tree = p.parse();	
+				
 				TreeLogicChecker tlc = new TreeLogicChecker();
 				tree.apply(tlc);
+
 				OccurrenceCheck oc = new OccurrenceCheck();
 				tree.apply(oc);
 				System.out.println("No unbound Identifiers were found.");				
@@ -130,6 +136,9 @@ public void parseFile(String s, Boolean show)
 	{							
 		newstream = getStringFromFile(s);
 		newstream = deleteComments(newstream);
+		newstream = includeFile(newstream);
+		newstream = deleteComments(newstream);
+		
 		workcount++;
 		
 		TriangleBruteForce tbf = new TriangleBruteForce(newstream);
@@ -138,7 +147,7 @@ public void parseFile(String s, Boolean show)
 		if(show)
 		{
 			printNewStream(newstream);
-		}		
+		}
 		
 		workcount++;
 		
@@ -165,7 +174,8 @@ public void parseFile(String s, Boolean show)
 	{
 		if(workcount == 0)
 		{
-			throw new RuntimeException("Error in comment deletion: "+e.getMessage());
+			throw new RuntimeException("Error in comment deletion "
+									+"or including Files: "+e.getMessage());
 		}
 		if(workcount == 1)//Error in StreamEdit
 		{
@@ -322,6 +332,32 @@ public String deleteComments(String ts)
 		return newTS; 
 }
 
+public String includeFile(String incl)
+{
+	Pattern pattern = Pattern.compile("include \"(.*)\"");
+	Matcher matcher = pattern.matcher(incl);
+	ArrayList<String> al = new ArrayList<String>();
+	StringBuffer sb = new StringBuffer();
+	String path = "";
+	while(matcher.find())
+	{	
+		path = matcher.group(1);
+		
+		File f = new File(path);
+		if(f.exists() && !f.isDirectory()) 
+		{ 
+			System.out.println(path+"\nhas been included successfully.");
+		}
+		else
+		{
+			throw new RuntimeException("File "+path+" was not found.");
+		}		
+		String str = getStringFromFile(path);	
+		matcher.appendReplacement(sb,str);	
+	}
+	matcher.appendTail(sb);
+	return sb.toString();
+}
 
 
 public static void main(String arguments[]) 
@@ -389,5 +425,4 @@ public static void main(String arguments[])
 		System.exit(1);
 	}	
 }
-
 }

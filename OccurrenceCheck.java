@@ -680,6 +680,124 @@ public class OccurrenceCheck extends DepthFirstAdapter
 		statementVar = new ArrayList<String>();
         outASetComp(node);
     }
+		
+    @Override
+    public void caseALinkComp(ALinkComp node)
+    {
+        inALinkComp(node);
+		currentInStatement += 1;
+        if(node.getLe() != null)
+        {
+            node.getLe().apply(this);
+        }
+        if(node.getDArr() != null)
+        {
+            node.getDArr().apply(this);
+        }
+        if(node.getRe() != null)
+        {
+            node.getRe().apply(this);
+        }
+        {
+            List<PLinkCompRek> copy = new ArrayList<PLinkCompRek>(node.getLinkCompRek());
+            for(PLinkCompRek e : copy)
+            {
+                e.apply(this);
+            }
+        }
+		currentInStatement -= 1;
+        if(node.getAddStmts() != null)
+        {
+            node.getAddStmts().apply(this);
+        }
+	//	System.out.println("sV "+statementVar);
+	//	System.out.println("pid "+pendingId);
+		if(!pendingId.isEmpty())
+		{
+			int i = 0;
+			if(right.get(letWithinDepth) == null)
+			{
+				right.put(letWithinDepth,new ArrayList<String>());
+			}	
+			while(i<pendingId.size())
+			{
+				if(!statementVar.contains(pendingId.get(i))
+					&& !currentParams.contains(pendingId.get(i)))
+				{
+					ArrayList<String> temp = right.get(letWithinDepth);
+					temp.add(pendingId.get(i));
+					right.put(letWithinDepth,temp);	
+					pendingId.remove(i);
+					i = 0;
+				}
+				else
+				{
+					pendingId.remove(i);
+					i++;
+				}
+			}
+		}
+		statementVar = new ArrayList<String>();
+        outALinkComp(node);
+    }
+	
+	@Override
+    public void caseARenameComp(ARenameComp node)
+    {
+        inARenameComp(node);
+		currentInStatement += 1;
+        if(node.getLe() != null)
+        {
+            node.getLe().apply(this);
+        }
+        if(node.getArrowL() != null)
+        {
+            node.getArrowL().apply(this);
+        }
+        if(node.getRe() != null)
+        {
+            node.getRe().apply(this);
+        }
+        {
+            List<PRenameCompRek> copy = new ArrayList<PRenameCompRek>(node.getRenameCompRek());
+            for(PRenameCompRek e : copy)
+            {
+                e.apply(this);
+            }
+        }
+		currentInStatement -= 1;
+        if(node.getAddStmts() != null)
+        {
+            node.getAddStmts().apply(this);
+        }
+		if(!pendingId.isEmpty())
+		{
+			int i = 0;
+			if(right.get(letWithinDepth) == null)
+			{
+				right.put(letWithinDepth,new ArrayList<String>());
+			}	
+			while(i<pendingId.size())
+			{
+				if(!statementVar.contains(pendingId.get(i))
+					&& !currentParams.contains(pendingId.get(i)))
+				{
+					ArrayList<String> temp = right.get(letWithinDepth);
+					temp.add(pendingId.get(i));
+					right.put(letWithinDepth,temp);	
+					pendingId.remove(i);
+					i = 0;
+				}
+				else
+				{
+					pendingId.remove(i);
+					i++;
+				}
+			}
+		}
+		statementVar = new ArrayList<String>();
+        outARenameComp(node);
+    }
 
 //***************************************************************************************
 //Generator Statements	
@@ -841,7 +959,7 @@ public class OccurrenceCheck extends DepthFirstAdapter
 			}
 		}
 		letWithinArgs.put(letWithinDepth,newlist);	
-		System.out.println("letWithinArgs: "+letWithinArgs);
+	//	System.out.println("letWithinArgs: "+letWithinArgs);
         if(node.getLet() != null)
         {
             node.getLet().apply(this);
@@ -906,13 +1024,14 @@ public class OccurrenceCheck extends DepthFirstAdapter
 			if(right.get(letWithinDepth) == null)
 			{
 				right.put(letWithinDepth,new ArrayList<String>());
-			}				
+			}			
 			if(letWithinDepth>0 && letWithinArgs.get(letWithinDepth).contains(str))
-			{
-				
+			{		
 			}
-			else if(currentInStatement>0 &&!left.get(letWithinDepth).contains(str))
+			else if(currentInStatement>0 
+					&& !left.get(letWithinDepth).contains(str))
 			{
+				if(!pendingId.contains(str))
 				pendingId.add(str); //for statements {x|x<-{1,2,3}},x is pending id
 			}
 			else if(currentInGenerator>0 
@@ -921,10 +1040,11 @@ public class OccurrenceCheck extends DepthFirstAdapter
 			{
 				statementVar.add(str);
 			}
-			else if(!right.get(letWithinDepth).contains(str) 
-				&& !currentParams.contains(str)
-				&& !currentLambdaParams.contains(str)
-				&& !statementVar.contains(str))
+			else if(!builtIn.contains(str)
+				 && !right.get(letWithinDepth).contains(str) 
+			   	 && !currentParams.contains(str)
+				 && !currentLambdaParams.contains(str)
+				 && !statementVar.contains(str))
 			{
 				ArrayList<String> temp = right.get(letWithinDepth);
 				temp.add(str);
@@ -948,6 +1068,7 @@ public class OccurrenceCheck extends DepthFirstAdapter
 		builtIn.add("WAIT");
 		builtIn.add("RUN");
 		builtIn.add("member");
+		builtIn.add("elem");
 		builtIn.add("empty");
 		builtIn.add("null");
 		builtIn.add("Bool");
@@ -981,8 +1102,8 @@ public class OccurrenceCheck extends DepthFirstAdapter
  
 	public void check2()//check at the end of AST
 	{
-		System.out.println("left: "+left);
-		System.out.println("right: "+right);
+	//	System.out.println("left: "+left);
+	//	System.out.println("right: "+right);
 		if(left.get(0) != null && right.get(0) != null)
 		{
 			for(int i = 0;i<right.get(0).size();i++)
@@ -999,8 +1120,8 @@ public class OccurrenceCheck extends DepthFirstAdapter
 	
 	public void check(int depth) //check until left >= depth after within
 	{
-		System.out.println("left: "+left);
-		System.out.println("right: "+right);
+	//	System.out.println("left: "+left);
+	//	System.out.println("right: "+right);
 		ArrayList<String> l = new ArrayList<String>(); //0-depth
 		ArrayList<String> r = right.get(depth); //depth only
 		
@@ -1014,8 +1135,8 @@ public class OccurrenceCheck extends DepthFirstAdapter
 				}
 			}
 		}
-		System.out.println("l: "+l);
-		System.out.println("r: "+r);
+	//	System.out.println("l: "+l);
+	//	System.out.println("r: "+r);
 		//Check right in left, if not, put element 1 depth higher in right
 		ArrayList<String> temp = new ArrayList<String>();
 		if(depth>0)
