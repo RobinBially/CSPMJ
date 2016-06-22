@@ -1821,11 +1821,11 @@ public class StatementPatternCheck extends DepthFirstAdapter
 		int argCount = 1;
 		for(int i = 0; i<args.length;i++)
 		{
-			if(args[i] == '(' || args[i] == '{' || args[i] == '<')
+			if(args[i] == '(' || args[i] == '{' || args[i] == '\u00AB')
 			{
 				depth++;
 			}
-			else if(args[i] == ')' || args[i] == '}' || args[i] == '>')
+			else if(args[i] == ')' || args[i] == '}' || args[i] == '\u00BB')
 			{
 				depth -= 1;
 			}

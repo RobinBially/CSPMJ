@@ -1,5 +1,6 @@
-{-
+
 datatype X = Y.{3..}|O.X.{2..4}
+subtype colour = Y | O
 channel c,d: X.{1..3}
 G = c.Y.9.3
 I = Q
@@ -10,10 +11,7 @@ AS2(x) = in?v@@w!v -> 5+v(x)*w ->STOP
 AS3(x) = in$v:{1,2,3}!v
 P = <1,2,3|x<-{1,2}>
 W(z) = <y|y<-{1,2}>^<z|x<-{5}>
-W = <1|y<-{1,2},y==3>
-datatype square = E | Y | G
-subtype colour = E | G
-interface(p) = {| move.d.i.p, move.d.p.i, complete.p | d<-DISCS, i<-PEGS |}
+W(x) = <1|y<-{1,2},y==3>
 Proc1 = 3
 Proc2(x,Y) = let
 	a(w,v) = let
@@ -22,7 +20,7 @@ Proc2(x,Y) = let
 		within (Proc1 [] STOP)
 	--	s = w this would be an unbound identifier "w" exception!
    within Proc1(x,Y,3)
--}
+
 m=4
 channel left,right
 MAIN3 = STOP [ left.i <-> right.(i%m)| i<-{2..3} ] STOP
