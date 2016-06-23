@@ -23,6 +23,7 @@ Triangle substitutions:
 *********************
 * BUILD WITH GRADLE *
 *********************
+To adapt or change the gradle-script, look at the file ‘build.gradle’. Note that the build-process of the parser depends on sablecc. Therefore, ensure that you are connected to internet because the sablecc generator is downloaded.
 
 command for building the project:
       gradle build
