@@ -82,7 +82,7 @@ task genCSPMparser(type:JavaExec) {
     args = ['-d','build/temp','src/main/resources/CSPMparser.scc']
 }
 
-task uberjar(type: Jar, dependsOn: compileJava) {
+jar {
     baseName = 'cspmj'
     from 'bin'
     include '**/*.class'
