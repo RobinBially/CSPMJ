@@ -12,12 +12,6 @@ import CSPMparser.parser.*;
 import CSPMparser.lexer.*;
 import CSPMparser.node.*;
 
-/*
-\u00AB = «	seq opening
-\u00BB = »	seq closing
-\u00A3 = £	greater
-\u20AC = €  smaller
-*/
 public class TriangleBruteForce
 {
 private String stream;	
@@ -50,7 +44,7 @@ private String white2;
 		//Save triangles that must not be replaced!
 
 		stream = stream.replaceAll("<=>","\u00A2\u00A4\u00A2");
-		stream = stream.replaceAll("<=","\u00A2\u00A4"); //Könnten ersetzt werden 
+		stream = stream.replaceAll("<=","\u00A2\u00A4"); //Koennten ersetzt werden 
 		stream = stream.replaceAll("=>","\u00A4\u00A2"); //Siehe smaller greater erste Regel
 		stream = stream.replaceAll("<->","\u00A6\u00A5\u00A6");
 		stream = stream.replaceAll("->","\u00A5\u00A6");
@@ -201,7 +195,7 @@ private String white2;
 		}
 	
 		//Betrachte Zeile x. Falls Bruteforce notwendig, versuche x zu parsen.
-		//Falls nicht möglich, betrachte String aus x und x+1 und so weiter.
+		//Falls nicht moeglich, betrachte String aus x und x+1 und so weiter.
 		
 		String afterBruteForce = "";
 		

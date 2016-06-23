@@ -20,6 +20,21 @@ Triangle substitutions:
 \u00A3 = £	greater
 \u20AC = €  smaller
 
+*********************
+* BUILD WITH GRADLE *
+*********************
+
+command for building the project:
+      gradle build
+use —info for verbose build:
+      gradle build —info
+to build the project and produce the corresponding .jar-file use the the following command:
+      gradle uberjar
+   - the .jar file and all .class files are saved in a special folde ‘build’. the jar-file can be found in ‘build/libs’
+
+To execute the parser you can use the produced .jar-file as follows:
+
+java -jar cspmj.jar -parse some-file.csp
 _________________________________________________________________________________________
 
 *********
