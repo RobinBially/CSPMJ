@@ -13,6 +13,7 @@ Desktop.ini
 $RECYCLE.BIN/
 CSPMparser/
 ltl_ctl/
+.gradle/
 
 # Windows Installer files
 *.cab

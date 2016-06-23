@@ -15,8 +15,11 @@ import CSPMparser.node.*;
 
 public class Typechecker extends DepthFirstAdapter
 {
-	private HashMap nodeMap = new HashMap();
-	private HashMap<String,String> types = new HashMap<String,String>();
+
+	private HashMap<Integer,HashMap<String,String>> types = 
+										new HashMap<Integer,HashMap<String,String>>();
+	private int letWithinDepth = 0;
+
 	private ArrayList<String> dtypes = new ArrayList<String>();//Speichert Name aller Datentypen
 
 	private boolean currentInTypeExpNode; //z.b. datatype Type = A.Bool | B.Type.{1..3}
@@ -24,7 +27,7 @@ public class Typechecker extends DepthFirstAdapter
 	private String currentTypeExp;
 	private String currentDatatype;
 	private String currentClauseName;
-	
+	private HashMap nodeMap = new HashMap();
 	private ArrayList<ArrayList<String>> arguments = new ArrayList<ArrayList<String>>();
 	private int argDepth = -1;
 	private ArrayList<ArrayList<String>> innerseq = new ArrayList<ArrayList<String>>();
@@ -51,19 +54,15 @@ public class Typechecker extends DepthFirstAdapter
             node.getChanRek().apply(this);
         }
 		
-		if(nodeMap.get(node.getId()).toString().equals("a"))
-		{	
-			types.put(a,nodeMap.get(node.getChanRek()).toString()+"=>Event");
-		}
-		else if(nodeMap.get(node.getId()).toString().equals(
-				nodeMap.get(node.getChanRek()).toString()+"=>Event"))
+	
+		HashMap<String,String> tempMap = types.get(0);
+		tempMap.put(a,nodeMap.get(node.getChanRek()).toString()+"=>Event");
+		if(types.get(0).get(a) != null)
 		{
-				//Type is correct
+			types.get(0).remove(a)
 		}
-		else
-		{
-			throw new RuntimeException("Identifier "+a+" has the wrong type");
-		}
+		types.put(0,tempMap);
+		
 		nodeMap.remove(node.getChanRek());
 		nodeMap.remove(node.getId());
 	//	System.out.println(types);
@@ -88,20 +87,15 @@ public class Typechecker extends DepthFirstAdapter
             node.getChanRek().apply(this);
         }
 		//channel a,b,c: this pushes types of b and c into types
-		if(nodeMap.get(node.getId()).toString().equals("a"))
-		{	
-			types.put(a,nodeMap.get(node.getChanRek()).toString()+"=>Event");
-		}
-		else if(nodeMap.get(node.getId()).toString().equals(
-				nodeMap.get(node.getChanRek()).toString()+"=>Event"))
+	
+		HashMap<String,String> tempMap = types.get(0);
+		tempMap.put(a,nodeMap.get(node.getChanRek()).toString()+"=>Event");
+		if(types.get(0).get(a) != null)
 		{
-				//Type is correct
+			types.get(0).remove(a)
 		}
-		else
-		{
-			throw new RuntimeException("Identifier "+a+" has the wrong type");
-		}
-		
+		types.put(0,tempMap);
+				
 		nodeMap.put(node,nodeMap.get(node.getChanRek()));
 		nodeMap.remove(node.getId());
 		nodeMap.remove(node.getChanRek());
@@ -138,7 +132,7 @@ public class Typechecker extends DepthFirstAdapter
         {
             node.getId().apply(this);
 			currentDatatype = node.getId().toString().replaceAll(" ","");
-			dtypes.add(currentDatatype); // datatype X = ... speichert X
+			dtypes.add(currentDatatype); // datatype X = ... saves X
         }
         if(node.getEq() != null)
         {
@@ -151,7 +145,9 @@ public class Typechecker extends DepthFirstAdapter
 			{
 				String a = nodeMap.get(node.getClause()).toString();
 				nodeMap.remove(node.getClause());
-				types.put(currentClauseName,a+"=>"+currentDatatype);
+				HashMap<String,String> tempMap = types.get(0);
+				tempMap.put(currentClauseName,a+"=>"+currentDatatype);
+				types.put(0,tempMap);
 														//z.B. ...= Y.Bool      
 														//Y:: Bool=>X, wobei Y ccn
 			}
@@ -405,15 +401,7 @@ public class Typechecker extends DepthFirstAdapter
 			nodeMap.remove(node.getSet());
         }
         outASetTypeExp2(node);
-    }
-	
-	
-	
-	
-	
-	
-	
-	
+    }	
 	
 	@Override
     public void caseASetNameTypeExp2(ASetNameTypeExp2 node)
@@ -441,11 +429,7 @@ public class Typechecker extends DepthFirstAdapter
 				}
 				nodeMap.put(node,t);
 			}
-			else if(nodeMap.get(node) == null)
-			{
-				throw new RuntimeException("Incorrect Types in node "
-										+"caseASetNameTypeExp2");
-			}				
+				
 		}
         if(node.getTuple() != null)
         {
