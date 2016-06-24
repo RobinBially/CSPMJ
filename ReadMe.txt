@@ -25,13 +25,13 @@ Triangle substitutions:
 *********************
 To adapt or change the gradle-script, look at the file ‘build.gradle’. Note that the build-process of the parser depends on sablecc. Therefore, ensure that you are connected to internet because the sablecc generator is downloaded.
 
-command for building the project:
+command for building the project and generating the jar-file for the CSP parser:
       gradle build
 use —info for verbose build:
       gradle build —info
-to build the project and produce the corresponding .jar-file use the the following command:
-      gradle uberjar
-   - the .jar file and all .class files are saved in a special folde ‘build’. the jar-file can be found in ‘build/libs’
+
+Additional info:
+    The .jar file and all .class files are saved in a special folder ‘build’. The jar-file can be found in ‘build/libs’
 
 To execute the parser you can use the produced .jar-file as follows:
 

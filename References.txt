@@ -1,0 +1,18 @@
+This file summarises related work concerning already existing CSP-M parser.
+
+— cspmf 
+  summary: a front-end library for parsing CSP-M specifications. It provides additional features such as checking for unbound identifiers and providing source location information for each identifier and key word in the respective specification.
+  technology: implemented in Haskell; the parser uses the monadic parser combinator library “Parsec” of Haskell, which is suitable to parse context-sensitive, infinite-lookahead grammars.
+  available at: https://hackage.haskell.org/package/CSPM-cspm
+  documentation: http://docserv.uni-duesseldorf.de/servlets/DerivateServlet/Derivate-21671/dissertation_marc_fontaine.pdf
+  integrated in: the ProB tool
+  specifics/limitations: expressions such as ‘<5>3,true>’ can be parsed (it can be parsed by the FDR-parsers), incremental parsing (in context of a CSP file), provides command line parsing.
+
+— libcspm
+  summary: an FDR-compliant front end library for CSP-M specifications. It provides a parser, type checker and (experimental) evaluator for CSP-M files.
+  technology: implemented in Haskell, using the Happy parser generator of Haskell for the grammar.
+  available at: https://github.com/tomgr/libcspm
+  documentation:http://hackage.haskell.org/package/libcspm and https://github.com/tomgr/libcspm
+  integrated in: FDR tool
+  specifics/limitations: cannot parse expressions such as ‘<5>3,true>’
+
