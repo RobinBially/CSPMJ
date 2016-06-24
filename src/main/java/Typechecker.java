@@ -59,7 +59,7 @@ public class Typechecker extends DepthFirstAdapter
 		tempMap.put(a,nodeMap.get(node.getChanRek()).toString()+"=>Event");
 		if(types.get(0).get(a) != null)
 		{
-			types.get(0).remove(a)
+			types.get(0).remove(a);
 		}
 		types.put(0,tempMap);
 		
@@ -92,7 +92,7 @@ public class Typechecker extends DepthFirstAdapter
 		tempMap.put(a,nodeMap.get(node.getChanRek()).toString()+"=>Event");
 		if(types.get(0).get(a) != null)
 		{
-			types.get(0).remove(a)
+			types.get(0).remove(a);
 		}
 		types.put(0,tempMap);
 				
@@ -153,7 +153,9 @@ public class Typechecker extends DepthFirstAdapter
 			}
 			else
 			{
-				types.put(currentClauseName, currentDatatype);
+				HashMap<String,String> tempMap = types.get(0);
+				tempMap.put(currentClauseName,currentDatatype);
+				types.put(0,tempMap);
 			}
 			
         }
@@ -163,14 +165,18 @@ public class Typechecker extends DepthFirstAdapter
             {
                 e.apply(this);
 				if(nodeMap.containsKey(e))
-				{
+				{	
 					String a = nodeMap.get(e).toString();
 					nodeMap.remove(e);
-					types.put(currentClauseName,a+"=>"+currentDatatype);
+					HashMap<String,String> tempMap = types.get(0);
+					tempMap.put(currentClauseName,a+"=>"+currentDatatype);
+					types.put(0,tempMap);
 				}
 				else
 				{
-					types.put(currentClauseName, currentDatatype);
+					HashMap<String,String> tempMap = types.get(0);
+					tempMap.put(currentClauseName,currentDatatype);
+					types.put(0,tempMap);
 				}
             }
         }
