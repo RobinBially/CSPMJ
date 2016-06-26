@@ -51,6 +51,7 @@
 --channel c,d: X.{1..3}
 --G = c.Y.9.3
 
+{- 
 I = Q
 Q(x) = 5+I(x)
 ChData = {0,1,2,3}
@@ -58,8 +59,9 @@ channel in: ChData
 AS2(x) = in?v@@w!v -> 5+v(x)*w ->STOP
 AS3(x) = in$v:{1,2,3}!v
 P = <1,2,3|x<-{1,2}>
-
+-}
 --Q(u,v,w) = \y,z@(y+z [] \a,b@a+b) [] u+w+v
 --P = c.a?x:{1,2}.2 -> d.x -> P
 
+A = Proc \ Proc
 		

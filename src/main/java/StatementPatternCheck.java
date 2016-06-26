@@ -98,9 +98,9 @@ public class StatementPatternCheck extends DepthFirstAdapter
         {
             node.getEvent().apply(this);
         }
-        if(node.getR() != null)
+        if(node.getPipe() != null)
         {
-            node.getR().apply(this);
+            node.getPipe().apply(this);
         }
         if(node.getTriaR() != null)
         {
@@ -160,17 +160,17 @@ public class StatementPatternCheck extends DepthFirstAdapter
         {
             node.getBracketL().apply(this);
         }
-        if(node.getL() != null)
+        if(node.getEventl() != null)
         {
-            node.getL().apply(this);
+            node.getEventl().apply(this);
         }
         if(node.getDpipe() != null)
         {
             node.getDpipe().apply(this);
         }
-        if(node.getR() != null)
+        if(node.getEventr() != null)
         {
-            node.getR().apply(this);
+            node.getEventr().apply(this);
         }
         if(node.getBracketR() != null)
         {

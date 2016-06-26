@@ -113,8 +113,7 @@ public int parseFilesInFolder(File folder, Boolean show)
 			{
 				if(workcount == 0)
 				{
-					throw new RuntimeException("Error in comment deletion "
-											+"or including Files: "+e.getMessage());
+					throw new RuntimeException(e.getMessage());
 				}
 				if(workcount == 1)//Error in StreamEdit
 				{
@@ -148,7 +147,7 @@ public void parseFile(String s, Boolean show)
 	System.out.println("Parsing '"+s+"' :");
 	workcount = 0;
 	try 
-	{							
+	{			
 		newstream = getStringFromFile(s);
 		newstream = deleteComments(newstream);
 		newstream = includeFile(newstream);
@@ -192,6 +191,7 @@ public void parseFile(String s, Boolean show)
 		
 //		Typechecker ts = new Typechecker();
 //		tree.apply(ts);
+//		tree.apply(ts);
 //		System.out.println("Typechecking successful!");
 
 	} 	
@@ -199,8 +199,7 @@ public void parseFile(String s, Boolean show)
 	{
 		if(workcount == 0)
 		{
-			throw new RuntimeException("Error in comment deletion "
-									+"or including Files: "+e.getMessage());
+			throw new RuntimeException(e.getMessage());
 		}
 		if(workcount == 1)//Error in StreamEdit
 		{
@@ -236,7 +235,7 @@ public String getStringFromFile(String fp)
 	}
 	catch(Exception e) 		
 	{
-		throw new RuntimeException("\n"+e.getMessage());
+		throw new RuntimeException("\nYour File was not found!");
 	}	
 	
 }

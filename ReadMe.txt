@@ -1,28 +1,7 @@
-**********
-* CSPMJ	 *
-**********
+***************************
+* CSPMJ BUILD WITH GRADLE *
+***************************
 
-java -jar sablecc.jar CSPMparser.scc
-java -jar sablecc.jar CTLparser.scc
-java -jar sablecc.jar LTLparser.scc
-javac CTLparser.java
-javac LTLparser.java
-javac CSPMparser.java
-java CSPMparser -parse Examples\newdebug.csp
-java CSPMparser -parse -show Examples\newdebug.csp
-java CSPMparser -parseAll 
-java CSPMparser -parseAll -show				(-show shows edited Tokenstream)
-
-
-Triangle substitutions:
-\u00AB = «	seq opening
-\u00BB = »	seq closing
-\u00A3 = £	greater
-\u20AC = €  smaller
-
-*********************
-* BUILD WITH GRADLE *
-*********************
 To adapt or change the gradle-script, look at the file ‘build.gradle’. Note that the build-process of the parser depends on sablecc. Therefore, ensure that you are connected to internet because the sablecc generator is downloaded.
 
 command for building the project:
@@ -35,7 +14,8 @@ to build the project and produce the corresponding .jar-file use the the followi
 
 To execute the parser you can use the produced .jar-file as follows:
 
-java -jar cspmj.jar -parse some-file.csp
+java -jar cspmj.jar -parse Examples\some-file.csp
+java -jar cspmj.jar -parse -show Examples\some-file.csp   (-show shows edited Tokenstream)
 _________________________________________________________________________________________
 
 *********

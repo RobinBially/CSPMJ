@@ -281,9 +281,9 @@ proc1 		=  	 {hide} proc1 b_slash proc2
 				|{p2} proc2;
 proc2 		=    {ileave} proc2 i_leaving proc3 
 				|{p3} proc3;
-proc3 		=  	 {except} proc3 bracket_pipe_l event [r]:pipe tria_r proc4
+proc3 		=  	 {except} proc3 bracket_pipe_l event pipe tria_r proc4
 				|{gen_par} proc3 bracket_pipe_l event bracket_pipe_r proc4
-				|{alph_par} proc3 bracket_l [l]:event dpipe [r]:event bracket_r proc4
+				|{alph_par} proc3 bracket_l [eventl]:event dpipe [eventr]:event bracket_r proc4
 				|{linked_par} proc3 bracket_l link_comp bracket_r proc4
 				|{p4} proc4;				
 proc4 		=  	 {int_choice} proc4 i_choice proc5 
@@ -357,7 +357,7 @@ atom 		= 	 {num} number
 tuple 	 		=  {tuple} par_l arguments par_r;
 //---------------------------------------------------------------------------------------
 // e1,e2,...,en    all of type a!
-arguments		= 	arguments_rek;
+arguments		=   arguments_rek; //This seems to be pointless but it is not!
 arguments_rek	=  {arg_start} proc1 comma arguments_rek
 				  |{arg_end} proc1;
 //---------------------------------------------------------------------------------------
