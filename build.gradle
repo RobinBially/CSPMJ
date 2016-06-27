@@ -9,6 +9,9 @@
 
 // Apply the java plugin to add support for Java
 apply plugin: 'java'
+apply plugin: 'eclipse'
+
+//def parser_version = '2.4.40'
 
 // In this section you declare where to find the dependencies of your project
 repositories {
@@ -19,13 +22,18 @@ repositories {
 
 configurations {
     sablecc
+    prologlib
 }
 
 dependencies {
     sablecc(group: 'de.hhu.stups', name: 'sablecc', version: '3.2.10')
-    compile 'com.google.code.findbugs:jsr305:1.3.9'
+    //compile 'com.google.code.findbugs:jsr305:1.3.9'
     testCompile 'junit:junit:4.8.2'
- }
+
+    prologlib(group: 'de.hhu.stups', name: 'prologlib', version: '2.4.40')
+    compile "de.hhu.stups:prologlib:2.4.40"
+    testCompile 'de.hhu.stups:prologlib:2.4.40'
+}
 
 sourceSets {
     main {
@@ -98,3 +106,4 @@ jar {
 compileJava {
  dependsOn = ['genLtlParser','genCtlParser','genCSPMparser'] 
 }
+

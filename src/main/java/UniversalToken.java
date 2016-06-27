@@ -1,0 +1,32 @@
+import CSPMparser.node.Token;
+
+
+public final class UniversalToken {
+	private final String text;
+	private final int line, column;
+
+
+	public static UniversalToken createToken(final Token token) {
+		return token == null ? null : new UniversalToken(token.getText(),
+				token.getLine(), token.getPos());
+	}
+
+	private UniversalToken(String text, int line, int column) {
+		this.text = text;
+		this.line = line;
+		this.column = column;
+	}
+
+	public String getText() {
+		return text;
+	}
+
+	public int getLine() {
+		return line;
+	}
+
+	public int getColumn() {
+		return column;
+	}
+
+}

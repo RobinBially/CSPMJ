@@ -8,10 +8,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+
+import de.prob.prolog.output.StructuredPrologOutput;
+import de.prob.prolog.term.PrologTerm;
 import CSPMparser.parser.*;
 import CSPMparser.lexer.*;
 import CSPMparser.node.*;
-
 
 public class CSPMparser
 {
@@ -193,7 +195,16 @@ public void parseFile(String s, Boolean show)
 //		Typechecker ts = new Typechecker();
 //		tree.apply(ts);
 //		System.out.println("Typechecking successful!");
-
+		StructuredPrologOutput pto = new StructuredPrologOutput();
+		PrologGenerator pout = new PrologGenerator(pto, "root");
+		tree.apply(pout);
+		pto.fullstop();
+		System.out.println("Get tree in prolog form:");
+		for (Iterator<PrologTerm> iterator = pto.getSentences().iterator(); iterator.hasNext();) {
+			System.out.println(iterator.next().toString());
+			
+		}
+		//System.out.println("get tree in prolog form: " + pto.getSentences().iterator().next().toString());
 	} 	
 	catch (Exception e) 
 	{
@@ -221,6 +232,9 @@ public void parseFile(String s, Boolean show)
 		else if(workcount == 5)
 		{
 			throw new RuntimeException("\nTypechecking Error: "+e.getMessage());
+		}
+		else {
+			throw new RuntimeException("\nUnknown Error: "+e.getMessage());
 		}
 	}		
 }
