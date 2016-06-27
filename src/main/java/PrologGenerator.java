@@ -64,11 +64,12 @@ public class PrologGenerator extends DepthFirstAdapter {
 		// Do not call default out Method
 	}
 	
-	@Override
-	public void caseAManyLinesDefs(final AManyLinesDefs node) {
-		//Robin: please adapt the sablecc grammar such that we get a list of single definitions and not just a node with 'single definitions' as childs
-	};
-	
+//	@Override
+//	public void caseAManyLinesDefs(final AManyLinesDefs node) {
+//		//Robin: please adapt the sablecc grammar such that we get a list of single definitions and not just a node with 'single definitions' as childs
+//		//p.fullstop();
+//	};
+//	
 	@Override
 	public void caseAIdId(final AIdId node) {
 		p.printAtom(node.getIdentifier().getText());

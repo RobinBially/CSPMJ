@@ -198,13 +198,13 @@ public void parseFile(String s, Boolean show)
 		StructuredPrologOutput pto = new StructuredPrologOutput();
 		PrologGenerator pout = new PrologGenerator(pto, "root");
 		tree.apply(pout);
-		pto.fullstop();
+		pto.fullstop(); // needed to end a sentence (this should be removed later)
 		System.out.println("Get tree in prolog form:");
 		for (Iterator<PrologTerm> iterator = pto.getSentences().iterator(); iterator.hasNext();) {
 			System.out.println(iterator.next().toString());
 			
 		}
-		//System.out.println("get tree in prolog form: " + pto.getSentences().iterator().next().toString());
+//		System.out.println("get tree in prolog form: " + pto.getSentences().iterator().next().toString());
 	} 	
 	catch (Exception e) 
 	{
