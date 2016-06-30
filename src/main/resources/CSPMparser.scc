@@ -168,9 +168,9 @@ Ignored Tokens
 
 Productions
 
-start {-> start}	=	nl* defs nl*								{-> New start.defs([defs.def])};
+start {-> start}	=	nl* defs 									{-> New start.defs([defs.def])};
 
-defs {-> def*} 		= 	  {sinlge} [decl]:def 						{-> [decl.def]}
+defs {-> def*} 		= 	  {sinlge} [decl]:def nl*					{-> [decl.def]}
 						| {multiple} [first]:def nl [rest]:defs 	{-> [first.def, rest.def]}
 						;
 
