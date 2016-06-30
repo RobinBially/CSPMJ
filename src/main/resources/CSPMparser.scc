@@ -495,8 +495,8 @@ generator_op {->stmts}		=  {arrow} arrow_l 								{-> New stmts.arrow(arrow_l)}
 assertion = 	 {mod} assert [lproc]:proc1 tra_mod [rproc]:proc1			{-> New assertion.mod(lproc.exp,rproc.exp)}
 				|{fm} assert [lproc]:proc1 fail_mod [rproc]:proc1			{-> New assertion.fm(lproc.exp,rproc.exp)}
 				|{fd} assert [lproc]:proc1 fail_div [rproc]:proc1			{-> New assertion.fd(lproc.exp,rproc.exp)}
-				|{ltl} assert proc1 pipe_equals ltl ddot string				{-> New assertion.ltl(proc1.exp)}
-				|{ctl} assert proc1 pipe_equals ctl ddot string				{-> New assertion.ctl(proc1.exp)}
+				|{ltl} assert proc1 pipe_equals ltl ddot string				{-> New assertion.ltl(proc1.exp,string)}
+				|{ctl} assert proc1 pipe_equals ctl ddot string				{-> New assertion.ctl(proc1.exp,string)}
 				|{dl_free} assertion_dl										{-> assertion_dl.assertion}
 				|{div_free} assertion_div									{-> assertion_div.assertion}
 				|{det} assertion_det										{-> assertion_det.assertion}
@@ -717,8 +717,8 @@ stmts 			=  {stmt_list}[stmts_list]:stmts+
 assertion 		=  {mod}[lproc]:exp [rproc]:exp
 				  |{fm} [lproc]:exp [rproc]:exp
 				  |{fd} [lproc]:exp [rproc]:exp
-				  |{ltl} [proc1]:exp
-				  |{ctl} [proc1]:exp
+				  |{ltl} [proc1]:exp string
+				  |{ctl} [proc1]:exp string
 				  |{negated} assertion
 				  |{dl_main} [proc1]:exp
 				  |{dl_fm} [proc1]:exp

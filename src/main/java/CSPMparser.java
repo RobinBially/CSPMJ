@@ -95,14 +95,14 @@ public int parseFilesInFolder(File folder, Boolean show)
 				Parser p = new Parser(l);
 				Start tree = p.parse();	
 				
-//				workcount++; //now 3
+				workcount++; //now 3
 //
 //				StatementPatternCheck spc = new StatementPatternCheck();
 //				tree.apply(spc);
 //				
-//				workcount++; //now 4
-//				TreeLogicChecker tlc = new TreeLogicChecker();
-//				tree.apply(tlc);
+				workcount++; //now 4
+				TreeLogicChecker tlc = new TreeLogicChecker();
+				tree.apply(tlc);
 //
 //				OccurrenceCheck oc = new OccurrenceCheck();
 //				tree.apply(oc);
