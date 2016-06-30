@@ -169,7 +169,7 @@ public void parseFile(String s, Boolean show)
 		
 		StringReader sr = new StringReader(newstream);
 		BufferedReader br = new BufferedReader(sr); 
-		Lexer l = new Lexer(new PushbackReader(br,100000));
+		Lexer l = new LexHelper(new PushbackReader(br,100000));
 		Parser p = new Parser(l);
 		Start tree = p.parse();	
 
