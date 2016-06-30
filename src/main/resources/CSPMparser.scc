@@ -1,6 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * A Parser for CSP in JAVA                           		  *
- * CSPMJ V0.35.1606XX										  *
+ * CSPMJ V0.36.1606XX										  *
  *															  *
  * robin.bially@hhu.de		                                  *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -39,45 +39,22 @@ Helpers
 	less		=	0x20AC;
 
 Tokens
-//***************************************************************************************	
-//Predefined functions and constants
+//---------------------------------------------------------------------------------------------------------------------------------------------------
+//Builtin functions and constants
 	stop 			= 'STOP';
 	skip 			= 'SKIP';
 	chaos 			= 'CHAOS';
 	div				= 'DIV';
-	wait 			= 'WAIT';
-	run				= 'RUN';
-	member 			= 'member';
-	elem 			= 'elem';
-	empty 			= 'empty';
-	null 			= 'null';
-	bool_const		= 'Bool';
-	bool_func		= 'bool';
-	diff 			= 'diff';
-	card 			= 'card';
 	events 			= 'Events';
-	head 			= 'head';
-	tail 			= 'tail';
-	concat 			= 'concat';
-	union1 			= 'union';
-	union2 			= 'Union';
-	inter1			= 'inter';
-	inter2 			= 'Inter';
-	set1 			= 'set';
-	set2 			= 'Set';
-	seq1 			= 'seq';
-	seq2			= 'Seq';
-	length 			= 'length';
 	proc 			= 'Proc';
 	char_const		= 'Char'; 
+	bool_const		= 'Bool';
 	int_const 		= 'Int';
-	error			= 'error';
-	show			= 'show';
 	true1			= 'true';
 	false1			= 'false';
 	true2			= 'True';
 	false2			= 'False';
-//***************************************************************************************
+//---------------------------------------------------------------------------------------------------------------------------------------------------
 //CSPM command words
 	ltl				= 'LTL';
 	ctl				= 'CTL';	
@@ -89,7 +66,7 @@ Tokens
 	d_type 			= 'datatype';
 	s_type 			= 'subtype';
 	n_type 			= 'nametype';
-	channel 		= 'channel';
+	chan 			= 'channel';
 	transparent 	= 'transparent';
 	external		= 'external';
 	assert 			= 'assert';
@@ -108,7 +85,7 @@ Tokens
 	or 				= 'or';
 	not 			= 'not';
 
-//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------------------------------------
 	comma 			= ',' white;
 	apo 			= ''';
 	quote			= '"';
@@ -130,7 +107,7 @@ Tokens
 	e_choice  		= white '[]' white;
 	interrupt 		= white '/\' white;
 	timeout			= white '[>' white;
-//-------------------------------------	
+//---------------------------------------------------------------------------------------------------------------------------------------------------	
 	par_l 			= '(' white;
 	par_r 			=  white ')';
 	empty_map 		= '(| |)';
@@ -154,7 +131,7 @@ Tokens
 	bracket_r 		= white ']';
 	brace_l 		= '{' white;
 	brace_r 		= white '}';
-//-------------------------------------	
+//---------------------------------------------------------------------------------------------------------------------------------------------------	
 	guard 			= white '&' white;
 	dot 			= white '.' white;
 	semicolon 		= white ';' white;
@@ -176,7 +153,7 @@ Tokens
 	plus 			= white '+' white;
 	minus		    = '-';
 	wildcard 		= '_';
-//---------------------------------------------------------------------------------------	
+//---------------------------------------------------------------------------------------------------------------------------------------------------	
 	/*Strings*/ 
 	number 			= '0' | first_digit digits*;
 	identifier 		= letter letter_digits* '''*;
@@ -190,273 +167,572 @@ Ignored Tokens
 	blank;
 
 Productions
-defs 		 =	 {many_lines} def_nl+ def_no_nl?
-				|{one_line} def_no_nl;
-def_nl 		 =	 def? nl;
-def_no_nl 	 =	 def;
-def			 =	 {expression} expression 
-				|{include_file} include_file
-				|{d_type_s_type} types
-				|{n_type} ntype
-				|{channel} chan
-				|{assertion} assertion
-				|{print} print_exp
-				|{timed_section} time
-				|{module} module
-				|{trans} transparent id
-				|{ext} external id;		
-//---------------------------------------------------------------------------------------
-types			= {dtype} d_type typedef |{stype} s_type typedef;
-typedef 		= id eq clause typedef_rek*;
-clause  		= [clause_name]:id dotted?;
-dotted  		= dot type_exp;
-typedef_rek 	= pipe clause;
 
-ntype 			= n_type id eq type_exp;	  
-//---------------------------------------------------------------------------------------
+
+start {-> start}	=	 defs 										{-> New start.defs([defs.def])};
+defs  {->def*}		=	 {many_lines} def_nl+ def_no_nl?			{-> [def_nl.def,def_no_nl.def]}
+						|{one_line} def_no_nl						{-> [def_no_nl.def]}
+						;
+def_nl  {->def*}	=	 def? nl									{-> [def.def]};
+def_no_nl {->def+}  =	 def 										{-> [def.def]};
+
+def					=	 {expression} exp							{-> New def.expression(exp)}
+						|{types} types								{-> New def.types(types)}
+						|{channel} channel							{-> channel.def}
+						|{assertion} assertion						{-> New def.assertion(assertion)}
+						|{print} print_exp							{-> print_exp.def}
+						|{timed_section} time						{-> time.def}
+						|{module} module							{-> module.def}
+						|{include_file} include_file				{-> include_file.def}
+						|{trans} transparent id						{-> New def.transparent(id)}
+						|{ext} external id							{-> New def.external(id)}
+						;
+					
+//---------------------------------------------------------------------------------------------------------------------------------------------------
+types					= 	{dtype} d_type typedef 					{-> New types.dtype(typedef.types)}
+						   |{stype} s_type typedef 					{-> New types.stype(typedef.types)}
+						   |{ntype} ntype							{-> ntype.types}
+						   ;
+typedef {->types}		=  id eq clause typedef_list				{-> New types.typedef(id,clause.types,[typedef_list.types])};
+clause {->types}		=  [clause_name]:id dotted?					{-> New types.clause(clause_name,dotted.types)};
+dotted {->types}  		=  dot type_exp								{-> New types.dotted(type_exp)};
+typedef_list {->types+} =  {single} pipe clause typedef_list		{-> [clause.types,typedef_list.types]}
+						  |{end} pipe clause						{-> [clause.types]}
+						  ;
+
+ntype {->types}			=  n_type id eq type_exp					{-> New types.ntype(id,type_exp)};	  
+//---------------------------------------------------------------------------------------------------------------------------------------------------
 /*Creation of Channels*/
-chan 		= channel id chan_rek?;
-chan_rek 	= {rek} comma id chan_rek? | {end} ddot type_exp;
-//---------------------------------------------------------------------------------------			
-type_exp 		=  	 {dotted} type_exp dot type_exp1
-					|{par} type_exp1;
-type_exp1 		= 	 {par} par_l type_exp type_exps* par_r 
-					|{set_type} type_exp2;
-type_exp2 		=  	 {set} set
-					|{set_name} id tuple?;
-type_exps  		= 	 comma type_exp;
+channel {-> def}		=  {channel} chan chan_list ddot type_exp		{-> New def.channel([chan_list.id],type_exp)};
+chan_list {-> id+}		=  {rek} id comma chan_list? 					{-> [id,chan_list.id]}
+						  |{end} id										{-> [id]}
+						  ;
+//---------------------------------------------------------------------------------------------------------------------------------------------------			
+type_exp {->type_exp}		=  	 {dotted} type_exp dot type_exp1		{-> New type_exp.dotted(type_exp,type_exp1.type_exp)}
+								|{par} type_exp1						{-> type_exp1.type_exp}
+								;
+type_exp1 {->type_exp}		= 	 {par} par_l type_exp_list par_r		{-> New type_exp.par([type_exp_list.type_exp])}
+								|{set_type} type_exp2					{-> type_exp2.type_exp}
+								;
+type_exp2 {->type_exp} 		=  	 {set} set								{-> New type_exp.set(set.exp)}
+								|{set_name} id tuple?					{-> New type_exp.id(id,tuple)}
+								;
+type_exp_list {->type_exp*}  = 	 {list} type_exp comma type_exp_list	{->[type_exp,type_exp_list.type_exp]}
+								|{end} type_exp							{->[type_exp]}
+								;
 
-//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------------------------------------
 //Create a function or an identifier
 	 
-id 		=	 {id} identifier |{ltl} ltl |{ctl} ctl |{stop} stop |{skip} skip 
-			|{chaos} chaos |{div} div |{wait} wait |{run} run |{member} member 
-			|{empty} empty |{null} null |{bool_const} bool_const |{bool_func} bool_func
-			|{union1} union1 |{inter1} inter1 |{diff} diff |{union2} union2 		
-			|{inter2} inter2 |{card} card |{events} events |{set2} set2 
-			|{head} head |{tail} tail |{concat} concat |{set1} set1 
-			|{seq1} seq1 |{length} length |{proc} proc |{char_const} char_const 
-			|{error} error |{show} show |{int_const} int_const
-			|{seq2} seq2 | {elem} elem;
+id  			=	 {identifier} identifier		{-> New id.identifier(identifier)}
+					|{builtin} builtin				{-> New id.builtin(builtin.builtin)}
+					;
+builtin 		= 	 {ltl} ltl 						{-> New builtin.ltl(ltl)}
+					|{ctl} ctl 				 		{-> New builtin.ctl(ctl)}
+					|{stop} stop 					{-> New builtin.stop(stop)}
+					|{skip} skip 					{-> New builtin.skip(skip)}
+					|{chaos} chaos 			 		{-> New builtin.chaos(chaos)}
+					|{div} div 				 		{-> New builtin.div(div)}
+					|{events} events 				{-> New builtin.events(events)} 
+					|{proc} proc 					{-> New builtin.proc(proc)}
+					|{bool_const} bool_const 		{-> New builtin.bool_const(bool_const)} 
+					|{char_const} char_const 		{-> New builtin.char_const(char_const)}
+					|{int_const} int_const 			{-> New builtin.int_const(int_const)}
+					;
 			
-//---------------------------------------------------------------------------------------
-parameters 	  =	par_l pattern_list par_r;
-//---------------------------------------------------------------------------------------
-pattern_list  =  {plist} pattern_list comma pattern1 | {p1} pattern1;
-pattern1      =  {double_pattern} pattern1 doubleat pattern2 |{p2} pattern2;
-pattern2 	  =  {dot_pattern} pattern2 dot pattern3 |{p3} pattern3;
-pattern3	  =  {restricted} pattern4 ddot bool_exp
-				|{p4} pattern4;
-pattern4	  = {concat_pattern} pattern4 cat pattern_atom |{pat_atom} pattern_atom;
-pattern_atom  =  {set} set_pattern
-				|{list} list_pattern
-				|{par} par_pattern
-				|{tuple} tuple_pattern
-				|{wildcard} wildcard
-				|{var} id
-				|{string} string
-				|{char} char
-				|{number} number
-				|{true} true2
-				|{false} false2;
+//---------------------------------------------------------------------------------------------------------------------------------------------------
+parameters 	  =	{parameters} par_l pattern_list par_r 						{-> New parameters.parameters([pattern_list.pattern])};
+//---------------------------------------------------------------------------------------------------------------------------------------------------
+							
+pattern1 {->pattern}   	  =	{double_pattern} pattern1 doubleat pattern2		{-> New pattern.double(pattern1.pattern,pattern2.pattern)}
+							|{p2} pattern2 									{-> pattern2.pattern}
+						    ;
+pattern2 {->pattern}	  =  {dot_pattern} pattern2 dot pattern3			{-> New pattern.dot(pattern2.pattern,pattern3.pattern)} 
+							|{p3} pattern3 									{-> pattern3.pattern}
+							;
+pattern3 {->pattern}	  =  {restricted} pattern4 ddot bool_exp			{-> New pattern.restricted(pattern4.pattern, bool_exp.exp)} 
+							|{p4} pattern4									{-> pattern4.pattern}
+							;
+pattern4 {->pattern}	  =  {concat_pattern} pattern4 cat pattern_atom 	{-> New pattern.concat(pattern4.pattern, pattern_atom.pattern)} 
+							|{pat_atom} pattern_atom 					    {-> pattern_atom.pattern}
+							;
+pattern_atom {->pattern}  =  {set} set_pattern 						{-> set_pattern.pattern}
+							|{list} list_pattern 					{-> list_pattern.pattern}
+							|{par} par_pattern 						{-> par_pattern.pattern}
+							|{tuple} tuple_pattern 					{-> tuple_pattern.pattern}
+							|{wildcard} wildcard 					{-> New pattern.wildcard(wildcard)}
+							|{var} id 								{-> New pattern.var(id)}
+							|{string} string						{-> New pattern.string(string)}
+							|{char} char							{-> New pattern.char(char)}
+							|{number} number						{-> New pattern.number(number)}
+							|{true} true2							{-> New pattern.true(true2)}
+							|{false} false2							{-> New pattern.false(false2)}
+							;
 				
-set_pattern	  	 =  {empty} brace_l brace_r
-				   |{element} brace_l pattern1 brace_r;
+set_pattern	{->pattern}  	=    {empty} brace_l brace_r       				{-> New pattern.empty_set()}
+								|{element} brace_l pattern1 brace_r			{-> New pattern.set(pattern1.pattern)}
+								;
 				
-list_pattern  	 =   {list} seq_open pattern1 list_pattern_rek* seq_close
-					|{empty_list} seq_open seq_close;
-list_pattern_rek =   comma pattern1;
+list_pattern  {->pattern}	=    {list} seq_open pattern_list seq_close		{-> New pattern.list([pattern_list.pattern])}
+								|{empty_list} seq_open seq_close 			{-> New pattern.empty_list()}
+								;
+pattern_list {->pattern+}	=  	 {list} pattern1 comma pattern_list			{-> [pattern1.pattern,pattern_list.pattern]}
+								|{end} pattern1								{-> [pattern1.pattern]}
+								;
 
-par_pattern	  = par_l pattern1 par_r;
+par_pattern {->pattern}	  	=  par_l pattern1 par_r							{-> New pattern.par(pattern1.pattern)};
 
-tuple_pattern = par_l pattern1 list_pattern_rek+ par_r;
+tuple_pattern {->pattern}   =  par_l pattern1 comma pattern_list par_r 		{-> New pattern.tuple(pattern1.pattern,[pattern_list.pattern])};
 
-//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------------------------------------
 /*Creation of Expressions*/	
 
-expression  =	 {new_def} id parameters eq proc1
-				|{pattern} pattern1 eq proc1;
+exp  				=	 {function} id parameters eq proc1 								{-> New exp.function(id,parameters,proc1.exp)}
+						|{pattern} pattern1 eq proc1 									{-> New exp.pattern(proc1.exp)}
+						;
 
-proc1 		=  	 {hide} proc1 b_slash proc2 
-				|{p2} proc2;
-proc2 		=    {ileave} proc2 i_leaving proc3 
-				|{p3} proc3;
-proc3 		=  	 {except} proc3 bracket_pipe_l event pipe tria_r proc4
-				|{gen_par} proc3 bracket_pipe_l event bracket_pipe_r proc4
-				|{alph_par} proc3 bracket_l [eventl]:event dpipe [eventr]:event bracket_r proc4
-				|{linked_par} proc3 bracket_l link_comp bracket_r proc4
-				|{p4} proc4;				
-proc4 		=  	 {int_choice} proc4 i_choice proc5 
-				|{p5} proc5;
-proc5 		=  	 {ext_choice} proc5 e_choice proc6
-				|{sync_ext} proc5 sync_par_l event sync_par_r proc6
-				|{p6} proc6;
-proc6 		= 	 {interrupt} proc6 interrupt proc7
-				|{sync_interrupt} proc6 sync_int_l event sync_int_r proc7
-				|{p7} proc7;
-proc7 		= 	 {sliding_choice} proc7 timeout proc8 
-				|{p8} proc8;
-proc8 		= 	 {seq_comp} proc8 semicolon proc9
-				|{p9} proc9; 
-proc9		= 	 {guard_exp} dot_op guard proc9
-				|{prefix} event prefix proc9
-				|{lambda_term} b_slash pattern_list at proc9
-				|{let_within} let defs within proc9
-				|{if_else} if bool_exp then proc1 else proc9
-				|{rep} rep proc9
-				|{p10} proc10;				
-proc10 		=	 {renaming} proc10 dbracket_l rename_comp dbracket_r
-				|{e_renaming} proc10 dbracket_l dbracket_r
-				|{event} event;
+proc1 {->exp}		=  	 {hide} proc1 b_slash proc2 									{-> New exp.hide(proc1.exp,proc2.exp)}
+						|{p2} proc2 													{-> proc2.exp}
+						;
+proc2 {->exp}		=    {ileave} proc2 i_leaving proc3 								{-> New exp.ileave(proc2.exp,proc3.exp)}
+						|{p3} proc3 													{-> proc3.exp}
+						;
+proc3 {->exp}		=  	 {except} proc3 bracket_pipe_l event pipe tria_r proc4			{-> New exp.except(proc3.exp,event.exp,proc4.exp)}	
+						|{gen_par} proc3 bracket_pipe_l event bracket_pipe_r proc4		{-> New exp.gen_par(proc3.exp,event.exp,proc4.exp)}
+						|{alph_par} proc3 bracket_l [eventl]:event dpipe
+								[eventr]:event bracket_r proc4 							{-> New exp.alph_par(proc3.exp,eventl.exp,eventr.exp,proc4.exp)}
+						|{linked_par} proc3 bracket_l link_comp bracket_r proc4			{-> New exp.linked_par(proc3.exp,link_comp,proc4.exp)}
+						|{p4} proc4 													{-> proc4.exp}
+						;			
+proc4 {->exp}		=  	 {int_choice} proc4 i_choice proc5								{-> New exp.int_choice(proc4.exp,proc5.exp)} 
+						|{p5} proc5														{-> proc5.exp}
+						;
+proc5 {->exp}		=  	 {ext_choice} proc5 e_choice proc6 								{-> New exp.ext_choice(proc5.exp,proc6.exp)} 
+						|{sync_ext} proc5 sync_par_l event sync_par_r proc6				{-> New exp.sync_ext(proc5.exp,event.exp,proc6.exp)} 
+						|{p6} proc6 													{-> proc6.exp}
+						;
+proc6 {->exp}		= 	 {interrupt} proc6 interrupt proc7								{-> New exp.interrupt(proc6.exp,proc7.exp)}									
+						|{sync_interrupt} proc6 sync_int_l event sync_int_r proc7		{-> New exp.sync_interrupt(proc6.exp,event.exp,proc7.exp)}
+						|{p7} proc7 													{-> proc7.exp}
+						;
+proc7 {->exp}		= 	 {sliding_choice} proc7 timeout proc8 					{-> New exp.sliding_choice(proc7.exp,proc8.exp)}
+						|{p8} proc8 											{-> proc8.exp}
+						;
+proc8 {->exp}		= 	 {seq_composit} proc8 semicolon proc9					{-> New exp.seq_composition(proc8.exp,proc9.exp)}
+						|{p9} proc9 											{-> proc9.exp}
+						; 
+proc9 {->exp}		= 	 {guard} dot_op guard proc9								{-> New exp.guard(dot_op.exp,proc9.exp)}
+						|{prefix} event prefix proc9							{-> New exp.prefix(event.exp,proc9.exp)}
+						|{lambda_term} b_slash pattern_list at proc9			{-> New exp.lambda([pattern_list.pattern],proc9.exp)}
+						|{let_within} let defs within proc9						{-> New exp.let_within([defs.def],proc9.exp)}
+						|{if_else} if bool_exp then proc1 else proc9			{-> New exp.if_else(bool_exp.exp,proc1.exp,proc9.exp)}
+						|{replicated} rep proc9									{-> New exp.replicated(rep.exp,proc9.exp)}
+						|{p10} proc10											{-> proc10.exp}
+						;				
+proc10 {->exp} 		=	 {renaming} proc10 dbracket_l rename_comp dbracket_r	{-> New exp.renaming(proc10.exp,rename_comp)}
+						|{e_renaming} proc10 dbracket_l dbracket_r				{-> New exp.e_renaming(proc10.exp)}
+						|{event} event 											{-> event.exp}
+						;
 			
-event 		= 	 {event} dpattern field1* field2*;			
-field1 		= 	 {nondet_rest} dollar pattern1;
-field2		=	 {input_rest} q_mark pattern1
-				|{output} excl_mark dot_op;
+event {->exp}			=	{event} dpattern f1_list? f2_list?				{-> New exp.event(dpattern.exp,[f1_list.pattern],[f2_list.pattern])};	
+f1_list	{->pattern+}	=	{list} field1 f1_list							{-> [field1.pattern,f1_list.pattern]}
+						   |{end} field1									{-> [field1.pattern]}
+						   ;
+f2_list {->pattern+}	=	 {list} field2 f2_list							{-> [field2.pattern,f2_list.pattern]}
+							|{end} field2									{-> [field2.pattern]}
+							;
+field1 	{->pattern}	= 	 {nondet_rest} dollar pattern1						{-> New pattern.nondet_rest(pattern1.pattern)};
+field2 	{->pattern}	= 	 {input_rest} q_mark pattern1						{-> New pattern.input_rest(pattern1.pattern)}
+					    |{output} excl_mark dot_op							{-> New pattern.output(dot_op.exp)}
+						;
 
-dpattern 	=    {dpattern} dpattern doubleat dot_op
-				|{dotop} dot_op;
-dot_op 		=	 {dot} dot_op dot bool_exp
-				|{ss} bool_exp;				
+dpattern {->exp}	=    {dpattern} dpattern doubleat dot_op				{-> New exp.dpattern(dpattern.exp,dot_op.exp)} 
+						|{dotop} dot_op 									{-> dot_op.exp}
+						;
+dot_op {->exp}		=	 {dot} dot_op dot bool_exp							{-> New exp.dot(dot_op.exp,bool_exp.exp)} 
+						|{ss} bool_exp 										{-> bool_exp.exp}
+						;				
 				
-bool_exp 	= 	 {or} bool_exp or bool_exp2 
-				|{bool_exp2} bool_exp2;
-bool_exp2 	= 	 {and} bool_exp2 and bool_exp3 
-				|{bool_exp3} bool_exp3; 		
-bool_exp3 	= 	 {not} not bool_exp3 
-				|{bool_exp4} bool_exp4;
-bool_exp4 	= 	 {equal} bool_exp4 equal val_exp
-				|{ordering_lge} bool_exp4 lge val_exp
-				|{ordering_less} bool_exp4 less val_exp 
-				|{ordering_greater} bool_exp4 greater val_exp 
-				|{val_exp} val_exp;				
-val_exp 	= 	 {addition} val_exp plus val_exp1 
-				|{subtraction} val_exp minus val_exp1
-				|{val_exp1} val_exp1; 			  			
-val_exp1 	= 	 {multiplication} val_exp1 mul_div_mod val_exp2 
-				|{val_exp2} val_exp2;
-val_exp2 	= 	 {un_minus} minus val_exp2 
-				|{sequence0} sequence0;		
-sequence0	= 	 {len} hash sequence0 | {sequence1} sequence1;
-sequence1 	=	 {cat} sequence1 cat atom | {atom} atom;
-atom 		= 	 {num} number
-				|{sequence} sequence
-				|{string} string
-				|{char} char
-				|{set} set
-				|{wildcard} wildcard
-				|{map} map
-				|{true1} true1
-				|{false1} false1
-				|{true2} true2
-				|{false2} false2
-				|{tuple} [tuple]:tuple [lambda]:tuple?
-				|{id} id tuple?;
-//---------------------------------------------------------------------------------------
+bool_exp {->exp} 	= 	 {or} bool_exp or bool_exp2							{-> New exp.or(bool_exp.exp,bool_exp2.exp)} 
+						|{bool_exp2} bool_exp2 								{-> bool_exp2.exp}
+						;
+bool_exp2 {->exp} 	= 	 {and} bool_exp2 and bool_exp3						{-> New exp.and(bool_exp2.exp,bool_exp3.exp)}  
+						|{bool_exp3} bool_exp3 								{-> bool_exp3.exp}
+						; 		
+bool_exp3 {->exp} 	= 	 {not} not bool_exp3 								{-> New exp.not(bool_exp3.exp)}  	
+						|{bool_exp4} bool_exp4 								{-> bool_exp4.exp}
+						;
+bool_exp4 {->exp}	= 	 {equal} bool_exp4 equal val_exp					{-> New exp.equal(bool_exp4.exp,val_exp.exp)} 
+						|{ordering_lge} bool_exp4 lge val_exp				{-> New exp.ordering_lge(bool_exp4.exp,val_exp.exp)} 
+						|{ordering_less} bool_exp4 less val_exp 			{-> New exp.ordering_less(bool_exp4.exp,val_exp.exp)} 
+						|{ordering_greater} bool_exp4 greater val_exp 		{-> New exp.ordering_greater(bool_exp4.exp,val_exp.exp)} 
+						|{val_exp} val_exp 									{-> val_exp.exp}
+						;				
+val_exp {->exp}		= 	 {addition} val_exp plus val_exp1 					{-> New exp.addition(val_exp.exp,val_exp1.exp)}
+						|{subtraction} val_exp minus val_exp1				{-> New exp.subtraction(val_exp.exp,val_exp1.exp)}
+						|{val_exp1} val_exp1 								{-> val_exp1.exp}
+						;		 			  			
+val_exp1 {->exp}	= 	 {multiplication} val_exp1 mul_div_mod val_exp2 	{-> New exp.multiplication(val_exp1.exp,val_exp2.exp)}
+						|{val_exp2} val_exp2 								{-> val_exp2.exp}
+						;		
+val_exp2 {->exp}	= 	 {un_minus} minus val_exp2						{-> New exp.un_minus(val_exp2.exp)} 
+						|{sequence0} sequence0 							{-> sequence0.exp}
+						;				
+sequence0 {->exp}	= 	 {length} hash sequence0 						{-> New exp.length(sequence0.exp)}
+						|{sequence1} sequence1 							{-> sequence1.exp}
+						;			
+sequence1 {->exp}	=	 {cat} sequence1 cat atom 						{-> New exp.cat(sequence1.exp,atom.exp)}
+						| {atom} atom 									{-> atom.exp}
+						;	
+atom {->exp}		= 	 {sequence} sequence 							{-> sequence.exp}
+						|{set} set 										{-> set.exp}
+						|{map} map 										{-> map.exp}
+						|{tuple} [tuple]:tuple [lambda]:tuple? 			{-> New exp.tuple(tuple,lambda)}
+						|{string} string 								{-> New exp.string(string)}
+						|{char} char 									{-> New exp.char(char)}
+						|{wildcard} wildcard 							{-> New exp.wildcard(wildcard)}
+						|{num} number  									{-> New exp.number(number)}
+						|{true1} true1 									{-> New exp.true1(true1)}
+						|{false1} false1 								{-> New exp.false1(false1)}
+						|{true2} true2 									{-> New exp.true2(true2)}
+						|{false2} false2 								{-> New exp.false2(false2)}
+						|{id} id tuple?									{-> New exp.id(id,tuple)}
+						;
+//---------------------------------------------------------------------------------------------------------------------------------------------------
 /*(e1,e2,...,en) different types possible*/
-tuple 	 		=  {tuple} par_l arguments par_r;
-//---------------------------------------------------------------------------------------
-// e1,e2,...,en    all of type a!
-arguments		=   arguments_rek; //This seems to be pointless but it is not!
-arguments_rek	=  {arg_start} proc1 comma arguments_rek
-				  |{arg_end} proc1;
-//---------------------------------------------------------------------------------------
-link_comp 			= [le]:event d_arr [re]:event link_comp_rek* add_stmts?;
-link_comp_rek 		= comma [le]:event d_arr [re]:event;
-		
-rename_comp			= [le]:event arrow_l [re]:event rename_comp_rek* add_stmts?;
-rename_comp_rek 	= comma [le]:event arrow_l [re]:event;
+tuple 	 		=  {tuple} par_l arguments par_r							{-> New tuple.tuple(arguments)};
+//---------------------------------------------------------------------------------------------------------------------------------------------------
+// e1,e2,...,en    all of type a! The first node seems to be pointless but it is not!
 
-add_stmts		= pipe stmts;
-//---------------------------------------------------------------------------------------	
-sequence =	 {empty_seq} seq_open seq_close
-			|{expl_seq} seq_open arguments seq_close
-			|{list_comp} seq_open arguments pipe stmts seq_close
-			|{cr_seq} seq_open [l]:val_exp dotdot [r]:val_exp seq_close
-			|{ran_comp} seq_open [l]:val_exp dotdot [r]:val_exp pipe stmts seq_close
-			|{or_seq} seq_open val_exp dotdot seq_close
-			|{inf_compr} seq_open val_exp dotdot pipe stmts seq_close
-			|{enum_seq} enum_seq
-			|{seq_comp}	seq_comp;
+arguments {->arguments}		=   arguments_list 								{-> New arguments.arguments([arguments_list.exp])}; 
+arguments_list {-> exp+}	=  {arg_start} proc1 comma arguments_list		{-> [proc1.exp, arguments_list.exp]}
+							  |{arg_end} proc1								{-> [proc1.exp]}
+							  ;
+//---------------------------------------------------------------------------------------------------------------------------------------------------
+link_comp 			= lc_list add_stmts?											{-> New link_comp.link_comp([lc_list.exp],add_stmts.stmts)};
+
+lc_list {-> exp+}	=  {list} [levent]:event d_arr [revent]:event comma lc_list		{-> [levent.exp,revent.exp,lc_list.exp]}
+					  |{end} [levent]:event d_arr [revent]:event					{-> [levent.exp,revent.exp]}
+					  ;
+		
+rename_comp			= rc_list  add_stmts? 											{-> New rename_comp.rename_comp([rc_list.exp],add_stmts.stmts)};
+
+rc_list {-> exp+} 	=  {list}[levent]:event arrow_l [revent]:event comma rc_list 	{-> [levent.exp, revent.exp,rc_list.exp]}
+					  |{end} [levent]:event arrow_l [revent]:event					{-> [levent.exp, revent.exp]}
+					  ;
+
+add_stmts {-> stmts}	= pipe stmts 												{-> stmts.stmts};
+//---------------------------------------------------------------------------------------------------------------------------------------------------
+sequence {->exp} =	 {empty_seq} seq_open seq_close									{-> New exp.empty_seq()}										
+					|{expl_seq} seq_open arguments seq_close						{-> New exp.expl_seq(arguments)}
+					|{ranged} seq_open [lval]:val_exp dotdot 
+							   [rval]:val_exp seq_close								{-> New exp.ranged_seq(lval.exp,rval.exp)}
+					|{infinite} seq_open val_exp dotdot seq_close					{-> New exp.infinite_seq(val_exp.exp)}
+					|{compr} seq_open arguments pipe stmts seq_close 				{-> New exp.compr_seq(arguments,stmts)}
+
+					|{ranged_compr} seq_open [lval]:val_exp dotdot 
+								 [rval]:val_exp pipe stmts seq_close 				{-> New exp.ranged_compr_seq(lval.exp,rval.exp,stmts)}
+			
+					|{infinite_compr} seq_open val_exp dotdot pipe stmts seq_close	{-> New exp.infinite_compr_seq(val_exp.exp,stmts)}
+					|{enum_seq} enum_seq											{-> enum_seq.exp}
+					|{enum_seq_comp} enum_seq_comp									{-> enum_seq_comp.exp}
+					;
 					  
-enum_seq 	  		=  tria_l [l]:pipe arguments [r]:pipe tria_r;
-seq_comp  			=  tria_l [l]:pipe arguments [m]:pipe stmts [r]:pipe tria_r;
+enum_seq {-> exp}		=  tria_l [lpipe]:pipe arguments 
+									  [rpipe]:pipe tria_r							{-> New exp.enumerated_seq(arguments)};	
+enum_seq_comp {-> exp}	=  tria_l [lpipe]:pipe arguments 
+								[mpipe]:pipe stmts [rpipe]:pipe tria_r 				{-> New exp.enumerated_compr_seq(arguments,stmts)};
 				 
-//---------------------------------------------------------------------------------------				 
+//---------------------------------------------------------------------------------------------------------------------------------------------------				 
 /*Examples: {v,w,x,y,z}, {m..n}, {m..},{x*2..64|x<-{8,4}}*/
-set = 	{empty_set} brace_l brace_r
-		|{set} brace_l arguments brace_r
-		|{closed_range} brace_l [l]:val_exp dotdot [r]:val_exp brace_r
-		|{open_range} brace_l val_exp dotdot brace_r
-		|{set_comprehension} brace_l arguments pipe stmts brace_r
-		|{ranged_comprehension} brace_l [l]:val_exp dotdot [r]:val_exp pipe stmts brace_r
-		|{infinite_comprehension} brace_l val_exp dotdot pipe stmts brace_r
-		|{enum_set} enum_set
-		|{set_comp} set_comp;
+
+set {-> exp} = 	 {empty_set} brace_l brace_r 											{-> New exp.empty_set()}
+				|{set} brace_l arguments brace_r										{-> New exp.set(arguments)}
+				|{ranged} brace_l [lval]:val_exp dotdot 							
+										[rval]:val_exp brace_r							{-> New exp.ranged_set(lval.exp,rval.exp)}
+				|{infinite} brace_l val_exp dotdot brace_r								{-> New exp.infinite_set(val_exp.exp)}
+				|{compr} brace_l arguments pipe stmts brace_r							{-> New exp.compr_set(arguments,stmts)}
+				|{ranged_compr} brace_l [lval]:val_exp dotdot 
+									   [rval]:val_exp pipe stmts brace_r				{-> New exp.ranged_compr_set(lval.exp,rval.exp,stmts)}
+				|{infinite_comp} brace_l val_exp dotdot pipe stmts brace_r				{-> New exp.infinite_compr_set(val_exp.exp,stmts)}
+				|{enum_set} enum_set													{-> enum_set.exp}
+				|{enum_set_comp} enum_set_comp											{-> enum_set_comp.exp}
+				;
 	
-enum_set   	    =  brace_l [l]:pipe arguments [r]:pipe brace_r;
-set_comp		=  brace_l [l]:pipe arguments [m]:pipe stmts [r]:pipe brace_r;
-//---------------------------------------------------------------------------------------
-map	 =	  {map} par_l [lp]:pipe[le]:bool_exp imp_r [re]:bool_exp [rp]:pipe par_r
-		  |{emptymap} empty_map;
-//---------------------------------------------------------------------------------------		 	 
+enum_set {->exp}   	    =  brace_l [lpipe]:pipe arguments [rpipe]:pipe brace_r		{-> New exp.enumerated_set(arguments)};
+enum_set_comp {->exp}	=  brace_l [lpipe]:pipe arguments [mpipe]:pipe stmts 		
+						  [rpipe]:pipe brace_r										{-> New exp.enumerated_compr_set(arguments,stmts)};
+//---------------------------------------------------------------------------------------------------------------------------------------------------
+map {->exp}	 =	  {map} par_l [lpipe]:pipe [lbool_exp]:bool_exp imp_r 
+								   [rbool_exp]:bool_exp [rpipe]:pipe par_r			{-> New exp.map(lbool_exp.exp,rbool_exp.exp)}
+				|{emptymap} empty_map												{-> New exp.empty_map(empty_map)}
+				;
+//---------------------------------------------------------------------------------------------------------------------------------------------------		 	 
 //ACHTUNG SET STATEMENTS -> identifier : {}
-rep = 			 {ext_choice} e_choice stmts at
-				|{int_choice} i_choice stmts at
-				|{i_leave} i_leaving stmts at
-				|{seq_comp} semicolon stmts at
-				|{alp_par} dpipe stmts at bracket_l event bracket_r
-				|{sharing} bracket_pipe_l val_exp bracket_pipe_r stmts at
-				|{linked_par} bracket_l link_comp bracket_r stmts at
-				|{sync_par} sync_par_l [l]:event sync_par_r stmts at;
-//---------------------------------------------------------------------------------------
+rep {->exp}	=    {ext_choice_rep} e_choice stmts at									{-> New exp.ext_choice_rep(stmts)}
+				|{int_choice_rep} i_choice stmts at									{-> New exp.int_choice_rep(stmts)}
+				|{i_leave_rep} i_leaving stmts at									{-> New exp.i_leave_rep(stmts)}
+				|{seq_composit_rep} semicolon stmts at								{-> New exp.seq_composit_rep(stmts)}
+				|{alph_par_rep} dpipe stmts at bracket_l event bracket_r			{-> New exp.alph_par_rep(stmts,event.exp)}
+				|{sharing_rep} bracket_pipe_l val_exp bracket_pipe_r stmts at		{-> New exp.sharing_rep(val_exp.exp,stmts)}
+				|{linked_par_rep} bracket_l link_comp bracket_r stmts at			{-> New exp.linked_par_rep(link_comp,stmts)}
+				|{sync_par_rep} sync_par_l event sync_par_r stmts at				{-> New exp.sync_par_rep(event.exp,stmts)}
+				;
+//---------------------------------------------------------------------------------------------------------------------------------------------------
 //Statements
 
-stmts 					=  {gen} generator stmts_rek* 
-						  |{pred} predicate stmts_rek*;
-stmts_rek 				=  {gen} comma generator | {pred} comma predicate;
-generator				=  dpattern generator_op proc1;
-predicate				=  bool_exp;
+stmts 						=   {list} stmt_list									{-> New stmts.stmt_list([stmt_list.stmts])};
+stmt_list {->stmts+}		=   {gen_list} generator comma stmt_list 				{-> [generator.stmts,stmt_list.stmts]}
+							   |{pred_list} predicate comma stmt_list				{-> [predicate.stmts,stmt_list.stmts]}
+							   |{gen_end} generator									{-> [generator.stmts]}
+							   |{pred_end} predicate								{-> [predicate.stmts]}
+							   ;
+generator {->stmts}			=  dpattern generator_op proc1					{-> New stmts.generator(dpattern.exp,generator_op.stmts,proc1.exp)};
+predicate {->stmts}			=  bool_exp										{-> New stmts.predicate(bool_exp.exp)};
 
-generator_op			=  {arrow} arrow_l |{ddot} ddot;
-//---------------------------------------------------------------------------------------	
-assertion = 	 {tra_mod} assert [l]:proc1 tra_mod [r]:proc1
-				|{fm} assert [l]:proc1 fail_mod [r]:proc1
-				|{fd} assert [l]:proc1 fail_div [r]:proc1
-				|{ltl} assert proc1 pipe_equals ltl ddot string
-				|{ctl} assert proc1 pipe_equals ctl ddot string
-				|{dl_free} assertion_dl
-				|{div_free} assertion_div
-				|{det} assertion_det
-				|{live_free} assertion_ll
-				|{has_trace} assertion_ht
-				|{negated_assertion} not assertion;
+generator_op {->stmts}		=  {arrow} arrow_l 								{-> New stmts.arrow(arrow_l)}
+							   |{ddot} ddot									{-> New stmts.ddot(ddot)}
+							   ;
+//---------------------------------------------------------------------------------------------------------------------------------------------------	
+assertion = 	 {mod} assert [lproc]:proc1 tra_mod [rproc]:proc1			{-> New assertion.mod(lproc.exp,rproc.exp)}
+				|{fm} assert [lproc]:proc1 fail_mod [rproc]:proc1			{-> New assertion.fm(lproc.exp,rproc.exp)}
+				|{fd} assert [lproc]:proc1 fail_div [rproc]:proc1			{-> New assertion.fd(lproc.exp,rproc.exp)}
+				|{ltl} assert proc1 pipe_equals ltl ddot string				{-> New assertion.ltl(proc1.exp)}
+				|{ctl} assert proc1 pipe_equals ctl ddot string				{-> New assertion.ctl(proc1.exp)}
+				|{dl_free} assertion_dl										{-> assertion_dl.assertion}
+				|{div_free} assertion_div									{-> assertion_div.assertion}
+				|{det} assertion_det										{-> assertion_det.assertion}
+				|{live_free} assertion_ll									{-> assertion_ll.assertion}
+				|{has_trace} assertion_ht									{-> assertion_ht.assertion}
+				|{negated} not assertion									{-> New assertion.negated(assertion)}
+				;
 
 			
-assertion_dl =  	  {dl_main} assert proc1 dp_bracket dl_free bracket_r
-					 |{fm} assert proc1 dp_bracket dl_free f_mod bracket_r
-					 |{fd} assert proc1 dp_bracket dl_free f_div bracket_r;
-					 
-assertion_div =  	 {div_main} assert proc1 dp_bracket div_free bracket_r
-					|{fd} assert proc1 dp_bracket div_free f_div bracket_r;
-					 
-assertion_det = 	 {det_main} assert proc1 dp_bracket det bracket_r
-					|{fm} assert proc1 dp_bracket det f_mod bracket_r
-					|{fd} assert proc1 dp_bracket det f_div bracket_r;
-							
-assertion_ll = 		assert proc1 dp_bracket live_free bracket_r;
+assertion_dl {->assertion}	=	 {dl_main} assert proc1 dp_bracket dl_free bracket_r	{-> New assertion.dl_main(proc1.exp)}
+								|{fm} assert proc1 dp_bracket dl_free f_mod bracket_r	{-> New assertion.dl_fm(proc1.exp)}
+								|{fd} assert proc1 dp_bracket dl_free f_div bracket_r	{-> New assertion.dl_fd(proc1.exp)}
+								;
+							 
+assertion_div {->assertion}	=  	 {div_main} assert proc1 dp_bracket div_free bracket_r	{-> New assertion.div_main(proc1.exp)}
+								|{fd} assert proc1 dp_bracket div_free f_div bracket_r	{-> New assertion.div_fd(proc1.exp)}
+								;
+							 
+assertion_det {->assertion}	= 	 {det_main} assert proc1 dp_bracket det bracket_r 		{-> New assertion.det_main(proc1.exp)}
+								|{fm} assert proc1 dp_bracket det f_mod bracket_r		{-> New assertion.det_fm(proc1.exp)}
+								|{fd} assert proc1 dp_bracket det f_div bracket_r		{-> New assertion.det_fd(proc1.exp)}
+								;
+									
+assertion_ll {->assertion}	= 	assert proc1 dp_bracket live_free bracket_r				{-> New assertion.ll(proc1.exp)}
+							;
 
-assertion_ht = 	{trace_main} assert proc1 dp_bracket has_trace bracket_r [r]:ddot val_exp
-				|{tra_mod} assert proc1 dp_bracket has_trace t_mod bracket_r [r]:ddot val_exp
-				|{fm} assert proc1 dp_bracket has_trace f_mod bracket_r [r]:ddot val_exp
-				|{fd} assert proc1 dp_bracket has_trace f_div bracket_r [r]:ddot val_exp;
+assertion_ht {->assertion}	= 	{trace_main} assert proc1 dp_bracket 
+								 has_trace bracket_r ddot val_exp			{-> New assertion.ht_main(proc1.exp,val_exp.exp)}
+								|{tra_mod} assert proc1 dp_bracket 
+								 has_trace t_mod bracket_r ddot val_exp 	{-> New assertion.ht_mod(proc1.exp,val_exp.exp)}
+								|{fm} assert proc1 dp_bracket 
+								 has_trace f_mod bracket_r ddot val_exp 	{-> New assertion.ht_fm(proc1.exp,val_exp.exp)}
+								|{fd} assert proc1 dp_bracket 
+								 has_trace f_div bracket_r ddot val_exp		{-> New assertion.ht_fd(proc1.exp,val_exp.exp)}
+								;
 	
-//---------------------------------------------------------------------------------------	
-print_exp 	= 	 {pe} print proc1;
-//---------------------------------------------------------------------------------------
-time =  timed par_l proc1 par_r brace_l defs brace_r;
-//---------------------------------------------------------------------------------------
-module = mod_defs id [ls]:defs exports [rs]:defs endmodule;
-//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------------------------------------	
+print_exp {->def} 	= 	 {print_exp} print proc1 							{-> New def.print_exp(proc1.exp)};
+//---------------------------------------------------------------------------------------------------------------------------------------------------
+time {->def} =  timed par_l proc1 par_r brace_l defs brace_r 				{-> New def.timed(proc1.exp,[defs.def])};
+//---------------------------------------------------------------------------------------------------------------------------------------------------
+module {->def} = mod_defs id [ldefs]:defs exports [rdefs]:defs endmodule 	{-> New def.module(id,[ldefs.def],[rdefs.def])};
+//---------------------------------------------------------------------------------------------------------------------------------------------------
 /*Include File if path is valid*/
-include_file = include string;	
+include_file {->def} = include string 										{-> New def.include_file(string)};	
+//---------------------------------------------------------------------------------------------------------------------------------------------------
+					
+/*******************************************************************
+ * Abstract Syntax Tree                                            *
+ *******************************************************************/
+Abstract Syntax Tree
+
+start 			=  {defs} def*;
+
+def 			=  {expression} exp
+				  |{types} types
+				  |{channel} [chan_list]:id+ type_exp
+				  |{assertion} assertion
+				  |{transparent} id
+				  |{external} id
+				  |{print_exp} [proc1]:exp
+				  |{timed} [proc1]:exp [defs]:def+
+				  |{module} id [ldefs]:def+ [rdefs]:def+
+				  |{include_file} string
+				  ;
+types  			=  {dtype} [typedef]:types
+				  |{stype} [typedef]:types
+				  |{ntype} id type_exp
+				  |{typedef} id [clause]:types [typedef_list]:types+
+				  |{clause} [clause_name]:id [dotted]:types?
+				  |{dotted} type_exp
+				  ;
+
+
+type_exp 		=  {dotted} type_exp [type_exp1]:type_exp
+				  |{par} [type_exp_list]:type_exp*
+				  |{set} [set]:exp
+				  |{id} id tuple?
+				  ;
+id 				=  {identifier} identifier
+				  |{builtin} builtin
+				  ;
+builtin			=  {ltl} ltl
+				  |{ctl} ctl
+				  |{stop} stop
+				  |{skip} skip
+				  |{chaos} chaos
+				  |{div} div
+				  |{bool_const} bool_const
+				  |{events} events
+				  |{proc} proc
+				  |{char_const} char_const
+				  |{int_const} int_const
+				  ;
+				  
+parameters 		= {parameters} [pattern_list]:pattern+;
+
+pattern 		=  {double} [pattern1]:pattern [pattern2]:pattern
+				  |{dot} [pattern2]:pattern [pattern3]:pattern
+				  |{nondet_rest} [pattern1]:pattern
+				  |{input_rest}[pattern1]:pattern
+				  |{output} [dot_op]:exp
+				  |{restricted} [pattern4]:pattern [bool_exp]:exp
+				  |{concat} [pattern4]:pattern [pattern_atom]:pattern
+				  |{empty_set}
+				  |{set} [pattern1]:pattern
+				  |{empty_list}
+				  |{list} [pattern_list]:pattern+
+				  |{par} [pattern1]:pattern
+				  |{tuple} [pattern1]:pattern [pattern_list]:pattern+
+				  |{wildcard} wildcard
+				  |{var} id
+				  |{string} string
+				  |{char} char
+				  |{number} number
+				  |{true} true2
+				  |{false} false2
+				  ;
+exp 			=  {function} id parameters [proc1]:exp
+				  |{pattern} [proc1]:exp
+				  |{hide} [proc1]:exp [proc2]:exp
+				  |{ileave} [proc2]:exp [proc3]:exp
+				  |{except} [proc3]:exp [event]:exp [proc4]:exp
+				  |{gen_par} [proc3]:exp [event]:exp [proc4]:exp
+				  |{alph_par} [proc3]:exp [eventl]:exp [eventr]:exp [proc4]:exp
+				  |{linked_par} [proc3]:exp link_comp [proc4]:exp
+				  |{int_choice} [proc4]:exp [proc5]:exp
+				  |{ext_choice} [proc5]:exp [proc6]:exp
+				  |{sync_ext} [proc5]:exp [event]:exp [proc6]:exp
+				  |{interrupt} [proc6]:exp [proc7]:exp
+				  |{sync_interrupt} [proc6]:exp [event]:exp [proc7]:exp
+				  |{sliding_choice} [proc7]:exp [proc8]:exp
+				  |{seq_composition} [proc8]:exp [proc9]:exp
+				  |{guard} [dot_op]:exp [proc9]:exp
+				  |{prefix} [event]:exp [proc9]:exp
+				  |{lambda} [pattern_list]:pattern+ [proc9]:exp
+				  |{let_within} [defs]:def* [proc9]:exp
+				  |{if_else} [bool_exp]:exp [proc1]:exp [proc9]:exp								  
+//Replicated 	  
+				  |{replicated} [rep]:exp [proc9]:exp
+				  |{ext_choice_rep} stmts
+				  |{int_choice_rep} stmts
+				  |{i_leave_rep} stmts
+				  |{seq_composit_rep} stmts
+				  |{alph_par_rep} stmts [event]:exp
+				  |{sharing_rep} [val_exp]:exp stmts
+				  |{linked_par_rep} link_comp stmts
+				  |{sync_par_rep} [event]:exp stmts
+//rep end				  
+				  |{renaming} [proc10]:exp rename_comp
+				  |{e_renaming} [proc10]:exp
+				  |{event} [dpattern]:exp [f1_list]:pattern* [f2_list]:pattern*
+				  |{dpattern} [dpattern]:exp [dot_op]:exp
+				  |{dot} [dot_op]:exp [bool_exp]:exp
+				  |{or} [bool_exp]:exp [bool_exp2]:exp
+				  |{and} [bool_exp2]:exp [bool_exp3]:exp
+				  |{not} [bool_exp3]:exp
+				  |{equal} [bool_exp4]:exp [val_exp]:exp
+				  |{ordering_lge} [bool_exp4]:exp [val_exp]:exp
+				  |{ordering_less} [bool_exp4]:exp [val_exp]:exp
+				  |{ordering_greater} [bool_exp4]:exp [val_exp]:exp
+				  |{addition} [val_exp]:exp [val_exp1]:exp
+				  |{subtraction} [val_exp]:exp [val_exp1]:exp
+				  |{multiplication}	[val_exp1]:exp [val_exp2]:exp
+				  |{un_minus} [val_exp2]:exp 
+				  |{length} [sequence0]:exp
+				  |{cat} [sequence1]:exp [atom]:exp
+//Sequences			  				  				  				  
+				  |{empty_seq}
+				  |{expl_seq} arguments
+				  |{ranged_seq} [lval]:exp [rval]:exp
+				  |{infinite_seq} [val_exp]:exp
+				  |{compr_seq} arguments stmts
+				  |{ranged_compr_seq} [lval]:exp [rval]:exp stmts
+				  |{infinite_compr_seq}[val_exp]:exp stmts
+				  |{enumerated_seq} arguments
+				  |{enumerated_compr_seq} arguments stmts
+//Sets				  
+				  |{empty_set}
+				  |{set} arguments
+				  |{ranged_set} [lval]:exp [rval]:exp
+				  |{infinite_set} [val_exp]:exp
+				  |{compr_set} arguments stmts
+				  |{ranged_compr_set} [lval]:exp [rval]:exp stmts
+				  |{infinite_compr_set}[val_exp]:exp stmts
+				  |{enumerated_set} arguments
+				  |{enumerated_compr_set} arguments stmts	
+				  |{events} events
+//Maps
+				  |{map} [lbool]:exp [rbool]:exp
+				  |{empty_map} empty_map
+//Atoms
+				  |{tuple} tuple [lambda]:tuple?
+				  |{string} string
+				  |{char} char
+				  |{wildcard} wildcard
+				  |{number}	number
+				  |{true1} true1
+				  |{true2} true2
+				  |{false1} false1
+				  |{false2} false2
+				  |{id} id tuple?
+				  ;
+				  
+tuple 			=  {tuple} arguments;
+arguments 		=  {arguments} [arguments_list]:exp+;
+link_comp 		=  {link_comp}[lc_list]:exp+ stmts?;
+rename_comp 	=  {rename_comp}[rc_list]:exp+ stmts?;
+
+				  
+stmts 			=  {stmt_list}[stmts_list]:stmts+
+				  |{generator} [dpattern]:exp [generator_op]:stmts [proc1]:exp
+				  |{predicate} [bool_exp]:exp
+				  |{arrow} arrow_l
+				  |{ddot} ddot
+				  ;
+				  
+assertion 		=  {mod}[lproc]:exp [rproc]:exp
+				  |{fm} [lproc]:exp [rproc]:exp
+				  |{fd} [lproc]:exp [rproc]:exp
+				  |{ltl} [proc1]:exp
+				  |{ctl} [proc1]:exp
+				  |{negated} assertion
+				  |{dl_main} [proc1]:exp
+				  |{dl_fm} [proc1]:exp
+				  |{dl_fd} [proc1]:exp
+				  |{div_main} [proc1]:exp
+				  |{div_fd} [proc1]:exp
+				  |{det_main} [proc1]:exp
+				  |{det_fm} [proc1]:exp
+				  |{det_fd} [proc1]:exp
+				  |{ll} [proc1]:exp
+				  |{ht_main} [proc1]:exp [val_exp]:exp
+				  |{ht_mod} [proc1]:exp [val_exp]:exp
+				  |{ht_fm} [proc1]:exp [val_exp]:exp
+				  |{ht_fd} [proc1]:exp [val_exp]:exp
+				  ;

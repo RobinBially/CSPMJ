@@ -116,3 +116,4 @@ lib/prologlib-2.4.40/de/prob/prolog/term/ListPrologTerm.java
 lib/prologlib-2.4.40/de/prob/prolog/term/PrologTerm.java
 lib/prologlib-2.4.40/de/prob/prolog/term/PrologTermListIterator.java
 lib/prologlib-2.4.40/de/prob/prolog/term/VariablePrologTerm.java
+build/resources/main/MiniParserAST.scc

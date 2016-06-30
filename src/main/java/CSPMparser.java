@@ -95,19 +95,19 @@ public int parseFilesInFolder(File folder, Boolean show)
 				Parser p = new Parser(l);
 				Start tree = p.parse();	
 				
-				workcount++; //now 3
-
-				StatementPatternCheck spc = new StatementPatternCheck();
-				tree.apply(spc);
-				
-				workcount++; //now 4
-				TreeLogicChecker tlc = new TreeLogicChecker();
-				tree.apply(tlc);
-
-				OccurrenceCheck oc = new OccurrenceCheck();
-				tree.apply(oc);
-				System.out.println("No unbound Identifiers were found.");				
-				workcount++; //now 5
+//				workcount++; //now 3
+//
+//				StatementPatternCheck spc = new StatementPatternCheck();
+//				tree.apply(spc);
+//				
+//				workcount++; //now 4
+//				TreeLogicChecker tlc = new TreeLogicChecker();
+//				tree.apply(tlc);
+//
+//				OccurrenceCheck oc = new OccurrenceCheck();
+//				tree.apply(oc);
+//				System.out.println("No unbound Identifiers were found.");				
+//				workcount++; //now 5
 		//		Typechecker ts = new Typechecker();
 		//		tree.apply(ts);
 			} 	
@@ -175,8 +175,8 @@ public void parseFile(String s, Boolean show)
 
 		workcount++; //now 3
 		
-		StatementPatternCheck spc = new StatementPatternCheck();
-		tree.apply(spc);
+//		StatementPatternCheck spc = new StatementPatternCheck();
+//		tree.apply(spc);
 		
 		workcount++; //now 4
 
@@ -185,9 +185,9 @@ public void parseFile(String s, Boolean show)
 		tree.apply(tlc);
 		System.out.println("\nYour CSPM-File has been successfully parsed.\n"
 							+"Checking Identifier occurrences...");
-		OccurrenceCheck oc = new OccurrenceCheck();
-		tree.apply(oc);
-		System.out.println("No unbound Identifiers were found.");
+//		OccurrenceCheck oc = new OccurrenceCheck();
+//		tree.apply(oc);
+//		System.out.println("No unbound Identifiers were found.");
 		
 		workcount++; //now 5
 		
@@ -195,15 +195,15 @@ public void parseFile(String s, Boolean show)
 //		tree.apply(ts);
 //		tree.apply(ts);
 //		System.out.println("Typechecking successful!");
-		StructuredPrologOutput pto = new StructuredPrologOutput();
-		PrologGenerator pout = new PrologGenerator(pto, "root");
-		tree.apply(pout);
-		pto.fullstop(); // needed to end a sentence (this should be removed later)
-		System.out.println("Get tree in prolog form:");
-		for (Iterator<PrologTerm> iterator = pto.getSentences().iterator(); iterator.hasNext();) {
-			System.out.println(iterator.next().toString());
+//		StructuredPrologOutput pto = new StructuredPrologOutput();
+//		PrologGenerator pout = new PrologGenerator(pto, "root");
+//		tree.apply(pout);
+//		pto.fullstop(); // needed to end a sentence (this should be removed later)
+//		System.out.println("Get tree in prolog form:");
+//		for (Iterator<PrologTerm> iterator = pto.getSentences().iterator(); iterator.hasNext();) {
+//			System.out.println(iterator.next().toString());
 			
-		}
+//		}
 //		System.out.println("get tree in prolog form: " + pto.getSentences().iterator().next().toString());
 	} 	
 	catch (Exception e) 

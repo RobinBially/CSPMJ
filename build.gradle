@@ -87,7 +87,8 @@ task genCSPMparser(type:JavaExec) {
     main = 'org.sablecc.sablecc.SableCC'
     classpath = configurations.sablecc
     maxHeapSize = '1024m'
-    args = ['-d','build/temp','src/main/resources/CSPMparser.scc']
+    //args = ['-d','build/temp','src/main/resources/CSPMparser.scc']
+    args = ['-d','build/temp','src/main/resources/MiniParserAST.scc']
 }
 
 jar {

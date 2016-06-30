@@ -1,0 +1,228 @@
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * A Parser for CSP in JAVA                           		  *
+ * CSPMJ V0.36.1606XX										  *
+ *															  *
+ * robin.bially@hhu.de		                                  *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+//Fehlt: Mapping Funktionen
+Package CSPMparser;
+Helpers
+
+	all = [0 .. 0xFFFF];
+	dangle_l = 0x00AB;
+	dangle_r = 0x00BB;
+	char = [all- ['''+'"']];
+	digits = ['0' .. '9'];
+	first_digit = [digits - '0'];
+	highc = ['A' .. 'Z'];
+	lowc = ['a' .. 'z'];
+	letter = (highc | lowc | '_');
+	letter_digits = (letter|digits);	
+    tab = 9;
+    cr = 13;
+    lf = 10;
+	not_cr_lf = [all - [cr + lf]];	
+	eol = cr lf | cr | lf;
+	blank = (' '|tab);
+	white = (' '|tab|cr|lf)*;
+	
+/*	Triangle substitutions:
+	\u00AB = «	seq opening
+	\u00BB = »	seq closing
+	\u00A3 = £	greater
+	\u20AC = €  smaller
+*/
+	seq_open	=	0x00AB;
+	seq_close	=	0x00BB;
+	greater 	=	0x00A3;
+	less		=	0x20AC;
+
+Tokens
+//***************************************************************************************	
+//Predefined functions and constants
+	stop 			= 'STOP';
+	skip 			= 'SKIP';
+	chaos 			= 'CHAOS';
+	div				= 'DIV';
+	wait 			= 'WAIT';
+	run				= 'RUN';
+	member 			= 'member';
+	elem 			= 'elem';
+	empty 			= 'empty';
+	null 			= 'null';
+	bool_const		= 'Bool';
+	bool_func		= 'bool';
+	diff 			= 'diff';
+	card 			= 'card';
+	events 			= 'Events';
+	head 			= 'head';
+	tail 			= 'tail';
+	concat 			= 'concat';
+	union1 			= 'union';
+	union2 			= 'Union';
+	inter1			= 'inter';
+	inter2 			= 'Inter';
+	set1 			= 'set';
+	set2 			= 'Set';
+	seq1 			= 'seq';
+	seq2			= 'Seq';
+	length 			= 'length';
+	proc 			= 'Proc';
+	char_const		= 'Char'; 
+	int_const 		= 'Int';
+	error			= 'error';
+	show			= 'show';
+	true1			= 'true';
+	false1			= 'false';
+	true2			= 'True';
+	false2			= 'False';
+//***************************************************************************************
+//CSPM command words
+	ltl				= 'LTL';
+	ctl				= 'CTL';	
+	if 				= 'if';
+	then 			= white 'then' white;
+	else 			= white 'else' white;
+	let 			= 'let';
+	within 			= 'within' white;
+	d_type 			= 'datatype';
+	s_type 			= 'subtype';
+	n_type 			= 'nametype';
+	channel 		= 'channel';
+	transparent 	= 'transparent';
+	external		= 'external';
+	assert 			= 'assert';
+	include 		= 'include';
+	print 			= 'print';
+	dl_free 		= 'deadlock free';
+	div_free 		= 'divergence free';
+	det 			= 'deterministic';
+	live_free 		= 'livelock free';
+	has_trace 		= 'has trace';
+	timed 			= 'Timed';
+	mod_defs		= 'module';	
+	exports			= 'exports';
+	endmodule		= 'endmodule';
+	and 			= 'and';
+	or 				= 'or';
+	not 			= 'not';
+
+//---------------------------------------------------------------------------------------
+	comma 			= ',' white;
+	apo 			= ''';
+	quote			= '"';
+	dotdot 			= white '..' white;
+	ddot 			= white ':' white;
+	eq 				= '=' white;
+	at 				= '@' white;
+	hash 			= '#' white;
+	b_slash 		= white '\' white;
+	q_mark 			= '?';
+	excl_mark 		= '!';
+	dollar 			= '$';
+	dpipe 			= white '||' white;
+	pipe_equals		= white '|=' white; 
+	pipe 			= white '|' white;
+	doubleat 		= white '@@' white;
+	i_leaving 		= white '|||' white;
+	i_choice  		= white '|~|' white;
+	e_choice  		= white '[]' white;
+	interrupt 		= white '/\' white;
+	timeout			= white '[>' white;
+//-------------------------------------	
+	par_l 			= '(' white;
+	par_r 			=  white ')';
+	empty_map 		= '(| |)';
+	lge 			= white '<=' white | white '>=' white;
+	seq_open		= seq_open white;
+	seq_close 		= white seq_close;
+	greater 		= white greater;
+	less	 		= less white;		
+	tria_l			= '<' white;
+	tria_r			= white '>';
+	sync_par_l		= '[+' white;	
+	sync_par_r		= white '+]';
+	sync_int_l 		= '/+' white;
+	sync_int_r		= white '+\';
+	dbracket_l 		= white '[[' white;
+	dbracket_r 		= white ']]';
+	dp_bracket 		= white ':[' white;
+	bracket_pipe_l	= white '[|' white;
+	bracket_pipe_r	= white '|]' white;
+	bracket_l 		= white '[' white;
+	bracket_r 		= white ']';
+	brace_l 		= '{' white;
+	brace_r 		= white '}';
+//-------------------------------------	
+	guard 			= white '&' white;
+	dot 			= white '.' white;
+	semicolon 		= white ';' white;
+	prefix			= white '->' white;
+	arrow_l 		= '<-';
+	cat 			= white '^' white;
+	d_arr 			= '<->';	
+	equi 			= '<=>';
+	imp_r 			= '=>';
+	imp_l 			= '<=';
+	equal			= white '==' white | white '!=' white;
+	tra_mod 		= white '[T=' white;
+	fail_mod  		= white '[F=' white;
+	fail_div 		= white '[FD=' white;
+	t_mod 			= white '[T]' white;
+	f_mod		    = white '[F]' white; 
+	f_div		    = white '[FD]' white;
+	mul_div_mod 	= white '*' white | white '/' white | white '%' white;
+	plus 			= white '+' white;
+	minus		    = '-';
+	wildcard 		= '_';
+//---------------------------------------------------------------------------------------	
+	/*Strings*/ 
+	number 			= '0' | first_digit digits*;
+	identifier 		= letter letter_digits* '''*;
+	nl				= eol;
+	string			= '"' char* '"';
+	char			= ''' char ''';
+	blank			= blank*;
+
+	
+Ignored Tokens
+	blank;
+Productions
+
+declarations {-> declarations} = {decl} [defs]:defs {-> New declarations.decl([defs.def])};
+
+defs {-> def*} = {sinlge} [decl]:def_nl {-> [decl.def]}
+               | {multiple} [first]:def_nl nl [rest]:defs {-> [first.def, rest.def]};
+
+def_nl {-> def} = [single_def]:def nl? {-> single_def.def};
+
+def {-> def}  =	{bindval} [name]:identifier eq [body]:proc1 {-> New def.bindval(name,body.exp)};
+
+proc1 {-> exp}	= {int_choice} [left]:proc1 i_choice [right]:proc2 {-> New exp.int_choice(left.exp,right.exp)}
+				| {proc2} proc2 {-> proc2.exp};
+proc2 {-> exp}	=  	{ext_choice} [left]:proc2 e_choice [right]:proc3 {-> New exp.ext_choice(left.exp,right.exp)}
+				| {proc3} proc3 {-> proc3.exp};
+
+proc3 {-> exp}	= {prefix} [id]:identifier prefix [right]:proc3 {-> New exp.prefix(id,right.exp)}
+				|{event} atom_proc {-> atom_proc.exp};
+
+
+atom_proc {-> exp} =  {stop} stop {-> New exp.stop(stop)}
+				    | {skip} skip {-> New exp.skip(skip)}
+				    | {parentheses} par_l proc1 par_r {-> proc1.exp};
+
+/*******************************************************************
+ * Abstract Syntax Tree                                            *
+ *******************************************************************/
+Abstract Syntax Tree
+
+declarations = {decl} [defs]:def*;
+
+def = {bindval} [name]:identifier [body]:exp;
+
+exp = {int_choice} [left]:exp [right]:exp
+    | {ext_choice} [left]:exp [right]:exp
+    | {prefix} [id]:identifier [right]:exp
+    | {stop} stop
+    | {skip} skip;

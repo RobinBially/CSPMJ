@@ -1,22 +1,12 @@
-/** 
- * (c) 2009-2014 Lehrstuhl fuer Softwaretechnik und Programmiersprachen, 
- * Heinrich Heine Universitaet Duesseldorf
- * This software is licenced under EPL 1.0 (http://www.eclipse.org/org/documents/epl-v10.html) 
- * */
-
 
 import java.io.IOException;
 import java.util.Locale;
 
 import CSPMparser.analysis.DepthFirstAdapter;
-import CSPMparser.node.AExpressionDef;
-import CSPMparser.node.AIdId;
-import CSPMparser.node.AManyLinesDefs;
-import CSPMparser.node.ANewDefExpression;
-import CSPMparser.node.ASkipId;
-import CSPMparser.node.AStopId;
-import CSPMparser.node.PExpression;
+import CSPMparser.node.ASkipExp;
+import CSPMparser.node.AStopExp;
 import CSPMparser.node.Start;
+import CSPMparser.node.TIdentifier;
 import CSPMparser.node.Token;
 import CSPMparser.node.Node;
 import de.prob.prolog.output.IPrologTermOutput;
@@ -44,7 +34,7 @@ public class PrologGenerator extends DepthFirstAdapter {
 	@Override
 	public void defaultIn(final Node node) {
 		StringBuffer sb = new StringBuffer(node.getClass().getSimpleName());
-		//sb.setLength(sb.length() - 3);
+		sb.setLength(sb.length() - 3);
 		sb.deleteCharAt(0);
 		String term = sb.toString().toLowerCase(Locale.ENGLISH);
 		p.openTerm(term);
@@ -71,18 +61,18 @@ public class PrologGenerator extends DepthFirstAdapter {
 //	};
 //	
 	@Override
-	public void caseAIdId(final AIdId node) {
-		p.printAtom(node.getIdentifier().getText());
+	public void caseTIdentifier(final TIdentifier node) {
+		p.printAtom(node.getText());
 	}
 	
 	@Override
-	public void caseASkipId(final ASkipId node) {
+	public void caseASkipExp(final ASkipExp node) {
 		p.openTerm("skip");
 		printSrcLoc(node);
 		p.closeTerm();
 	}
     @Override
-	public void caseAStopId(final AStopId node) {
+	public void caseAStopExp(final AStopExp node) {
 		p.openTerm("stop");
 		printSrcLoc(node);
 		p.closeTerm();
