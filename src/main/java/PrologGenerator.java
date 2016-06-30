@@ -3,8 +3,8 @@ import java.io.IOException;
 import java.util.Locale;
 
 import CSPMparser.analysis.DepthFirstAdapter;
-import CSPMparser.node.ASkipExp;
-import CSPMparser.node.AStopExp;
+import CSPMparser.node.ASkipBuiltin;
+import CSPMparser.node.AStopBuiltin;
 import CSPMparser.node.Start;
 import CSPMparser.node.TIdentifier;
 import CSPMparser.node.Token;
@@ -66,18 +66,17 @@ public class PrologGenerator extends DepthFirstAdapter {
 	}
 	
 	@Override
-	public void caseASkipExp(final ASkipExp node) {
+	public void caseASkipBuiltin(final ASkipBuiltin node) {
 		p.openTerm("skip");
 		printSrcLoc(node);
 		p.closeTerm();
 	}
-    @Override
-	public void caseAStopExp(final AStopExp node) {
+	@Override
+	public void caseAStopBuiltin(final AStopBuiltin node) {
 		p.openTerm("stop");
 		printSrcLoc(node);
 		p.closeTerm();
 	}
-    
     
    public void printSrcLoc(Node node) {
 	   /* Data type of src_loc in cspmf 

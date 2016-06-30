@@ -168,13 +168,10 @@ Ignored Tokens
 
 Productions
 
-
 start {-> start}	=	 defs 										{-> New start.defs([defs.def])};
-defs  {->def*}		=	 {many_lines} def_nl+ def_no_nl?			{-> [def_nl.def,def_no_nl.def]}
-						|{one_line} def_no_nl						{-> [def_no_nl.def]}
-						;
-def_nl  {->def*}	=	 def? nl									{-> [def.def]};
-def_no_nl {->def+}  =	 def 										{-> [def.def]};
+
+defs {-> def*} = {sinlge} [decl]:def {-> [decl.def]}
+               | {multiple} [first]:def nl [rest]:defs {-> [first.def, rest.def]};
 
 def					=	 {expression} exp							{-> New def.expression(exp)}
 						|{types} types								{-> New def.types(types)}

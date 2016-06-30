@@ -91,7 +91,7 @@ public int parseFilesInFolder(File folder, Boolean show)
 
 				StringReader sr = new StringReader(newstream);
 				BufferedReader br = new BufferedReader(sr); 
-				Lexer l = new Lexer(new PushbackReader(br,100000));
+				Lexer l = new LexHelper(new PushbackReader(br,100000));
 				Parser p = new Parser(l);
 				Start tree = p.parse();	
 				
@@ -195,15 +195,14 @@ public void parseFile(String s, Boolean show)
 //		tree.apply(ts);
 //		tree.apply(ts);
 //		System.out.println("Typechecking successful!");
-//		StructuredPrologOutput pto = new StructuredPrologOutput();
-//		PrologGenerator pout = new PrologGenerator(pto, "root");
-//		tree.apply(pout);
-//		pto.fullstop(); // needed to end a sentence (this should be removed later)
-//		System.out.println("Get tree in prolog form:");
-//		for (Iterator<PrologTerm> iterator = pto.getSentences().iterator(); iterator.hasNext();) {
-//			System.out.println(iterator.next().toString());
-			
-//		}
+		StructuredPrologOutput pto = new StructuredPrologOutput();
+		PrologGenerator pout = new PrologGenerator(pto, "root");
+		tree.apply(pout);
+		pto.fullstop(); // needed to end a sentence (this should be removed later)
+		System.out.println("Get tree in prolog form:");
+		for (Iterator<PrologTerm> iterator = pto.getSentences().iterator(); iterator.hasNext();) {
+			System.out.println(iterator.next().toString());			
+		}
 //		System.out.println("get tree in prolog form: " + pto.getSentences().iterator().next().toString());
 	} 	
 	catch (Exception e) 
