@@ -1,3 +1,4 @@
 --channel out,e
 --TestFact2() = out!-e -> SKIP   
 -- Datei sollte nicht parsbar sein ! -e kein communication field
+A = 1
