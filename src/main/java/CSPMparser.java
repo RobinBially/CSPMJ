@@ -96,10 +96,10 @@ public int parseFilesInFolder(File folder, Boolean show)
 				Start tree = p.parse();	
 				
 				workcount++; //now 3
-//
-//				StatementPatternCheck spc = new StatementPatternCheck();
-//				tree.apply(spc);
-//				
+
+				StatementPatternCheck spc = new StatementPatternCheck();
+				tree.apply(spc);
+				
 				workcount++; //now 4
 				TreeLogicChecker tlc = new TreeLogicChecker();
 				tree.apply(tlc);
@@ -175,8 +175,8 @@ public void parseFile(String s, Boolean show)
 
 		workcount++; //now 3
 		
-//		StatementPatternCheck spc = new StatementPatternCheck();
-//		tree.apply(spc);
+		StatementPatternCheck spc = new StatementPatternCheck();
+		tree.apply(spc);
 		
 		workcount++; //now 4
 
@@ -195,6 +195,7 @@ public void parseFile(String s, Boolean show)
 //		tree.apply(ts);
 //		tree.apply(ts);
 //		System.out.println("Typechecking successful!");
+
 		StructuredPrologOutput pto = new StructuredPrologOutput();
 		PrologGenerator pout = new PrologGenerator(pto, "root");
 		tree.apply(pout);
