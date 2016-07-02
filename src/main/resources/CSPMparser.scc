@@ -191,7 +191,7 @@ types					= 	{dtype} d_type typedef 					{-> New types.dtype(typedef.types)}
 						   |{stype} s_type typedef 					{-> New types.stype(typedef.types)}
 						   |{ntype} ntype							{-> ntype.types}
 						   ;
-typedef {->types}		=  id eq typedef_list?						{-> New types.typedef(id,[typedef_list.types])};
+typedef {->types}		=  id eq typedef_list						{-> New types.typedef(id,[typedef_list.types])};
 clause {->types}		=  [clause_name]:id dotted?					{-> New types.clause(clause_name,dotted.types)};
 dotted {->types}  		=  dot type_exp								{-> New types.dotted(type_exp)};
 typedef_list {->types+} =  {single} clause pipe typedef_list		{-> [clause.types,typedef_list.types]}
@@ -202,10 +202,10 @@ ntype {->types}			=  n_type id eq type_exp					{-> New types.ntype(id,type_exp)}
 //---------------------------------------------------------------------------------------------------------------------------------------------------
 /*Creation of Channels*/
 channel {-> def}		=  {channel} chan chan_list chan_type?			{-> New def.channel([chan_list.id],chan_type.type_exp)};
-chan_list {-> id+}		=  {rek} id comma chan_list? 					{-> [id,chan_list.id]}
-						  |{end} id										{-> [id]}
+chan_list {-> id+}		=  {list} [channel_name]:id comma chan_list 	{-> [channel_name.id,chan_list.id]}
+						  |{end} [channel_name]:id						{-> [channel_name.id]}
 						  ;
-chan_type {->type_exp}	= ddot type_exp									{-> type_exp.type_exp};
+chan_type {-> type_exp}	= ddot type_exp									{-> type_exp.type_exp};
 //---------------------------------------------------------------------------------------------------------------------------------------------------			
 type_exp {->type_exp}		=  	 {dotted} type_exp dot type_exp1		{-> New type_exp.dotted(type_exp,type_exp1.type_exp)}
 								|{par} type_exp1						{-> type_exp1.type_exp}
@@ -287,7 +287,7 @@ tuple_pattern {->pattern}   =  par_l pattern1 comma pattern_list par_r 		{-> New
 /*Creation of Expressions*/	
 
 exp  				=	 {function} id parameters eq proc1 								{-> New exp.function(id,parameters,proc1.exp)}
-						|{pattern} pattern1 eq proc1 									{-> New exp.pattern(proc1.exp)}
+						|{pattern} pattern1 eq proc1 									{-> New exp.pattern(pattern1.pattern,proc1.exp)}
 						;
 
 proc1 {->exp}		=  	 {hide} proc1 b_slash proc2 									{-> New exp.hide(proc1.exp,proc2.exp)}
@@ -571,7 +571,6 @@ types  			=  {dtype} [typedef]:types
 				  |{dotted} type_exp
 				  ;
 
-
 type_exp 		=  {dotted} type_exp [type_exp1]:type_exp
 				  |{par} [type_exp_list]:type_exp*
 				  |{set} [set]:exp
@@ -617,7 +616,7 @@ pattern 		=  {double} [pattern1]:pattern [pattern2]:pattern
 				  |{false} false2
 				  ;
 exp 			=  {function} id parameters [proc1]:exp
-				  |{pattern} [proc1]:exp
+				  |{pattern} [pattern1]:pattern [proc1]:exp
 				  |{hide} [proc1]:exp [proc2]:exp
 				  |{ileave} [proc2]:exp [proc3]:exp
 				  |{except} [proc3]:exp [event]:exp [proc4]:exp
