@@ -1185,21 +1185,6 @@ public class StatementPatternCheck extends DepthFirstAdapter
     }
 
     @Override
-    public void caseAEventsExp(AEventsExp node)
-    {
-        inAEventsExp(node);
-		if(patternRequired>0)
-		{
-			throw new RuntimeException("Expecting pattern (Events const. is not allowed).");
-		}
-        if(node.getEvents() != null)
-        {
-            node.getEvents().apply(this);
-        }
-        outAEventsExp(node);
-    }
-
-    @Override
     public void caseAMapExp(AMapExp node)
     {
         inAMapExp(node);

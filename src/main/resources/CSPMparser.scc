@@ -290,10 +290,10 @@ exp  				=	 {function} id parameters eq proc1 								{-> New exp.function(id,pa
 						|{pattern} pattern1 eq proc1 									{-> New exp.pattern(pattern1.pattern,proc1.exp)}
 						;
 
-proc1 {->exp}		=  	 {hide} proc1 b_slash proc2 									{-> New exp.hide(proc1.exp,proc2.exp)}
+proc1 {->exp}		=  	 {hide} proc1 b_slash proc2 									{-> New exp.hide(proc1.exp,b_slash,proc2.exp)}
 						|{p2} proc2 													{-> proc2.exp}
 						;
-proc2 {->exp}		=    {ileave} proc2 i_leaving proc3 								{-> New exp.ileave(proc2.exp,proc3.exp)}
+proc2 {->exp}		=    {ileave} proc2 i_leaving proc3 								{-> New exp.ileave(proc2.exp,i_leaving,proc3.exp)}
 						|{p3} proc3 													{-> proc3.exp}
 						;
 proc3 {->exp}		=  	 {except} proc3 bracket_pipe_l event pipe tria_r proc4			{-> New exp.except(proc3.exp,event.exp,proc4.exp)}	
@@ -303,28 +303,28 @@ proc3 {->exp}		=  	 {except} proc3 bracket_pipe_l event pipe tria_r proc4			{-> 
 						|{linked_par} proc3 bracket_l link_comp bracket_r proc4			{-> New exp.linked_par(proc3.exp,link_comp,proc4.exp)}
 						|{p4} proc4 													{-> proc4.exp}
 						;			
-proc4 {->exp}		=  	 {int_choice} proc4 i_choice proc5								{-> New exp.int_choice(proc4.exp,proc5.exp)} 
+proc4 {->exp}		=  	 {int_choice} proc4 i_choice proc5								{-> New exp.int_choice(proc4.exp,i_choice,proc5.exp)} 
 						|{p5} proc5														{-> proc5.exp}
 						;
-proc5 {->exp}		=  	 {ext_choice} proc5 e_choice proc6 								{-> New exp.ext_choice(proc5.exp,proc6.exp)} 
+proc5 {->exp}		=  	 {ext_choice} proc5 e_choice proc6 								{-> New exp.ext_choice(proc5.exp,e_choice,proc6.exp)} 
 						|{sync_ext} proc5 sync_par_l event sync_par_r proc6				{-> New exp.sync_ext(proc5.exp,event.exp,proc6.exp)} 
 						|{p6} proc6 													{-> proc6.exp}
 						;
-proc6 {->exp}		= 	 {interrupt} proc6 interrupt proc7								{-> New exp.interrupt(proc6.exp,proc7.exp)}									
+proc6 {->exp}		= 	 {interrupt} proc6 interrupt proc7								{-> New exp.interrupt(proc6.exp,interrupt,proc7.exp)}									
 						|{sync_interrupt} proc6 sync_int_l event sync_int_r proc7		{-> New exp.sync_interrupt(proc6.exp,event.exp,proc7.exp)}
 						|{p7} proc7 													{-> proc7.exp}
 						;
-proc7 {->exp}		= 	 {sliding_choice} proc7 timeout proc8 					{-> New exp.sliding_choice(proc7.exp,proc8.exp)}
+proc7 {->exp}		= 	 {sliding_choice} proc7 timeout proc8 					{-> New exp.sliding_choice(proc7.exp,timeout,proc8.exp)}
 						|{p8} proc8 											{-> proc8.exp}
 						;
-proc8 {->exp}		= 	 {seq_composit} proc8 semicolon proc9					{-> New exp.seq_composition(proc8.exp,proc9.exp)}
+proc8 {->exp}		= 	 {seq_composit} proc8 semicolon proc9					{-> New exp.seq_composition(proc8.exp,semicolon,proc9.exp)}
 						|{p9} proc9 											{-> proc9.exp}
 						; 
-proc9 {->exp}		= 	 {guard} dot_op guard proc9								{-> New exp.guard(dot_op.exp,proc9.exp)}
-						|{prefix} event prefix proc9							{-> New exp.prefix(event.exp,proc9.exp)}
+proc9 {->exp}		= 	 {guard} dot_op guard proc9								{-> New exp.guard(dot_op.exp,guard,proc9.exp)}
+						|{prefix} event prefix proc9							{-> New exp.prefix(event.exp,prefix,proc9.exp)}
 						|{lambda_term} b_slash pattern_list at proc9			{-> New exp.lambda([pattern_list.pattern],proc9.exp)}
-						|{let_within} let defs within proc9						{-> New exp.let_within([defs.def],proc9.exp)}
-						|{if_else} if bool_exp then proc1 else proc9			{-> New exp.if_else(bool_exp.exp,proc1.exp,proc9.exp)}
+						|{let_within} let defs within proc9						{-> New exp.let_within([defs.def],within,proc9.exp)}
+						|{if_else} if bool_exp then proc1 else proc9			{-> New exp.if_else(bool_exp.exp,then,proc1.exp,else,proc9.exp)}
 						|{replicated} rep proc9									{-> New exp.replicated(rep.exp,proc9.exp)}
 						|{p10} proc10											{-> proc10.exp}
 						;				
@@ -617,24 +617,24 @@ pattern 		=  {double} [pattern1]:pattern [pattern2]:pattern
 				  ;
 exp 			=  {function} id parameters [proc1]:exp
 				  |{pattern} [pattern1]:pattern [proc1]:exp
-				  |{hide} [proc1]:exp [proc2]:exp
-				  |{ileave} [proc2]:exp [proc3]:exp
+				  |{hide} [proc1]:exp b_slash [proc2]:exp
+				  |{ileave} [proc2]:exp i_leaving [proc3]:exp
 				  |{except} [proc3]:exp [event]:exp [proc4]:exp
 				  |{gen_par} [proc3]:exp [event]:exp [proc4]:exp
 				  |{alph_par} [proc3]:exp [eventl]:exp [eventr]:exp [proc4]:exp
 				  |{linked_par} [proc3]:exp link_comp [proc4]:exp
-				  |{int_choice} [proc4]:exp [proc5]:exp
-				  |{ext_choice} [proc5]:exp [proc6]:exp
+				  |{int_choice} [proc4]:exp i_choice [proc5]:exp
+				  |{ext_choice} [proc5]:exp e_choice [proc6]:exp
 				  |{sync_ext} [proc5]:exp [event]:exp [proc6]:exp
-				  |{interrupt} [proc6]:exp [proc7]:exp
+				  |{interrupt} [proc6]:exp interrupt [proc7]:exp
 				  |{sync_interrupt} [proc6]:exp [event]:exp [proc7]:exp
-				  |{sliding_choice} [proc7]:exp [proc8]:exp
-				  |{seq_composition} [proc8]:exp [proc9]:exp
-				  |{guard} [dot_op]:exp [proc9]:exp
-				  |{prefix} [event]:exp [proc9]:exp
+				  |{sliding_choice} [proc7]:exp timeout [proc8]:exp
+				  |{seq_composition} [proc8]:exp semicolon [proc9]:exp
+				  |{guard} [dot_op]:exp guard [proc9]:exp
+				  |{prefix} [event]:exp prefix [proc9]:exp
 				  |{lambda} [pattern_list]:pattern+ [proc9]:exp
-				  |{let_within} [defs]:def* [proc9]:exp
-				  |{if_else} [bool_exp]:exp [proc1]:exp [proc9]:exp								  
+				  |{let_within} [defs]:def* within [proc9]:exp
+				  |{if_else} [bool_exp]:exp then [proc1]:exp else [proc9]:exp								  
 //Replicated 	  
 				  |{replicated} [rep]:exp [proc9]:exp
 				  |{ext_choice_rep} stmts
@@ -683,8 +683,7 @@ exp 			=  {function} id parameters [proc1]:exp
 				  |{ranged_compr_set} [lval]:exp [rval]:exp stmts
 				  |{infinite_compr_set}[val_exp]:exp stmts
 				  |{enumerated_set} arguments
-				  |{enumerated_compr_set} arguments stmts	
-				  |{events} events
+				  |{enumerated_compr_set} arguments stmts
 //Maps
 				  |{map} [lbool]:exp [rbool]:exp
 				  |{empty_map} empty_map

@@ -108,7 +108,8 @@ public class StructuredPrologOutput implements IPrologTermOutput {
 	}
 
 	public IPrologTermOutput printString(final String content) {
-		throw new UnsupportedOperationException();
+		//throw new UnsupportedOperationException();
+		return this;
 	}
 
 	public IPrologTermOutput printVariable(final String var) {
