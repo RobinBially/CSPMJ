@@ -1,0 +1,5 @@
+--f(w,x,y,z,a) = {w,(x,y),z} < {a}
+--a = (1,2)
+A = STOP
+B(x,y) = SKIP
+C(x,y) = x

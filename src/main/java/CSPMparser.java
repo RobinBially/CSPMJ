@@ -203,11 +203,10 @@ public void parseFile(String s, Boolean show)
 		StructuredPrologOutput pto = new StructuredPrologOutput();
 		PrologGenerator pout = new PrologGenerator(pto, "root");
 		tree.apply(pout);
-		pto.fullstop(); // needed to end a sentence (this should be removed later)
+	//	pto.fullstop(); // needed to end a sentence (this should be removed later)
 		System.out.println("Get tree in prolog form:");
-		for (Iterator<PrologTerm> iterator = pto.getSentences().iterator(); iterator.hasNext();) {
-			System.out.println(iterator.next().toString());			
-		}
+		createPrologFile(pto);
+
 //		System.out.println("get tree in prolog form: " + pto.getSentences().iterator().next().toString());
 	} 	
 	catch (Exception e) 
@@ -240,6 +239,31 @@ public void parseFile(String s, Boolean show)
 			throw new RuntimeException("\nUnknown Error: "+e.getMessage());
 		}
 	}		
+}
+
+public void createPrologFile(StructuredPrologOutput pto)
+{
+		System.out.println(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
+							+"\n:- dynamic module/4."
+							+"\n'parserVersionStr'('0.6.1.1')."
+							+"\n'parseResult'('ok','',0,0,0)."
+							+"\n:- dynamic channel/2, bindval/3, agent/3."
+							+"\n:- dynamic agent_curry/3, symbol/4."
+							+"\n:- dynamic dataTypeDef/2, subTypeDef/2, nameType/2."
+							+"\n:- dynamic cspTransparent/1."
+							+"\n:- dynamic cspPrint/1."
+							+"\n:- dynamic pragma/1."
+							+"\n:- dynamic comment/2."
+							+"\n:- dynamic assertBool/1, assertRef/5, assertTauPrio/6."
+							+"\n:- dynamic assertModelCheckExt/4, assertModelCheck/3."
+							+"\n:- dynamic assertLtl/4, assertCtl/4."
+							+"\n'parserVersionNum'([0,11,0,1])."
+							+"\n'parserVersionStr'('CSPM-Frontent-0.11.0.1').");
+							
+		for (Iterator<PrologTerm> iterator = pto.getSentences().iterator(); iterator.hasNext();) 
+		{
+			System.out.println(iterator.next().toString());			
+		}
 }
 
 

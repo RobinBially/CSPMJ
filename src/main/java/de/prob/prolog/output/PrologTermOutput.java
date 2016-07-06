@@ -157,8 +157,8 @@ public class PrologTermOutput implements IPrologTermOutput {
 		return this;
 	}
 
-	private void printIndention() {
-		if (use_indention && ignore_indention_level == 0) {
+	private void printIndention(){
+		if (use_indention && ignore_indention_level == 0){
 			// synchronized to speed up printing
 			synchronized (out) {
 				out.println();
@@ -209,7 +209,9 @@ public class PrologTermOutput implements IPrologTermOutput {
 				escape(content, false, true);
 				out.print('\'');
 			} else {
+				out.print('\''); //@Robin
 				out.print(content);
+				out.print('\''); //@Robin
 			}
 			comma_needed = true;
 		}
@@ -346,7 +348,7 @@ public class PrologTermOutput implements IPrologTermOutput {
 	 */
 	public IPrologTermOutput printVariable(final String var) {
 		printCommaIfNeeded();
-		checkVariable(var);
+		//checkVariable(var);
 		out.print(var);
 		comma_needed = true;
 		return this;
@@ -396,15 +398,20 @@ public class PrologTermOutput implements IPrologTermOutput {
 	 * de.be4.classicalb.core.parser.analysis.prolog.IPrologTermOutput#fullstop
 	 * ()
 	 */
-	public IPrologTermOutput fullstop() {
+	public IPrologTermOutput fullstop() 
+	{
+
 		if (listCount != 0)
-			throw new IllegalStateException(
-					"Number of openList and closeList do not match. openList Counter is "
+		{
+			throw new IllegalStateException("Number of openList and closeList do not match. openList Counter is "
 							+ listCount);
+		}
 		if (termCount != 0)
-			throw new IllegalStateException(
-					"Number of openTerm and closeTerm do not match. openTerm Counter is "
+		{
+			throw new IllegalStateException("Number of openTerm and closeTerm do not match. openTerm Counter is "
 							+ termCount);
+		}
+		System.out.println("NOW IN FULLSTOP");
 		out.println('.');
 		comma_needed = false;
 		return this;
@@ -414,4 +421,5 @@ public class PrologTermOutput implements IPrologTermOutput {
 		term.toTermOutput(this);
 		return this;
 	}
+	
 }
