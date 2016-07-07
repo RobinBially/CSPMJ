@@ -25,7 +25,7 @@ ________________________________________________________________________________
 * CSPMF *
 *********
 
-cspmf-windows.exe translate test.csp --prologOut=test.csp.pl
+cspmf-windows.exe translate test2.csp --prologOut=test2.csp.pl
 
 _________________________________________________________________________________________
 

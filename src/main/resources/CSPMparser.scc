@@ -207,8 +207,10 @@ chan_list {-> id+}		=  {list} [channel_name]:id comma chan_list 	{-> [channel_na
 						  ;
 chan_type {-> type_exp}	= ddot type_exp									{-> type_exp.type_exp};
 //---------------------------------------------------------------------------------------------------------------------------------------------------			
-type_exp {->type_exp}		=  	 {dotted} type_exp dot type_exp1		{-> New type_exp.dotted(type_exp,type_exp1.type_exp)}
-								|{par} type_exp1						{-> type_exp1.type_exp}
+type_exp 					=    type_exp0								{-> New type_exp.dotted([type_exp0.type_exp])};
+
+type_exp0 {->type_exp+}		=  	 {dotted} type_exp1 dot type_exp0		{-> [type_exp1.type_exp,type_exp0.type_exp]}
+								|{par} type_exp1						{-> [type_exp1.type_exp]}
 								;
 type_exp1 {->type_exp}		= 	 {par} par_l type_exp_list par_r		{-> New type_exp.par([type_exp_list.type_exp])}
 								|{set_type} type_exp2					{-> type_exp2.type_exp}
@@ -216,8 +218,8 @@ type_exp1 {->type_exp}		= 	 {par} par_l type_exp_list par_r		{-> New type_exp.pa
 type_exp2 {->type_exp} 		=  	 {set} set								{-> New type_exp.set(set.exp)}
 								|{set_name} id tuple?					{-> New type_exp.id(id,tuple)}
 								;
-type_exp_list {->type_exp*}  = 	 {list} type_exp comma type_exp_list	{->[type_exp,type_exp_list.type_exp]}
-								|{end} type_exp							{->[type_exp]}
+type_exp_list {->type_exp+}  = 	 {list} type_exp0 comma type_exp_list	{->[type_exp0.type_exp,type_exp_list.type_exp]}
+								|{end} type_exp0						{->[type_exp0.type_exp]}
 								;
 
 //---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -571,8 +573,8 @@ types  			=  {dtype} [typedef]:types
 				  |{dotted} type_exp
 				  ;
 
-type_exp 		=  {dotted} type_exp [type_exp1]:type_exp
-				  |{par} [type_exp_list]:type_exp*
+type_exp 		=  {dotted}[type_exp0]:type_exp+
+				  |{par} [type_exp_list]:type_exp+
 				  |{set} [set]:exp
 				  |{id} id tuple?
 				  ;

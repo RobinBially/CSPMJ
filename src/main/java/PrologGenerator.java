@@ -17,21 +17,23 @@ public class PrologGenerator extends DepthFirstAdapter
 	private HashMap<String,ArrayList<SymInfo>> symbols; //Identifier,Counter
 	private int groundrep;
 	private ArrayList<String> currentParams;
+	private boolean currentInChannel;
 	
-	public PrologGenerator(final IPrologTermOutput pto,final String currentStateID) 
+	public PrologGenerator(final IPrologTermOutput pto,final String currentStateID,HashMap<String,ArrayList<SymInfo>> symbols) 
 	{
 		//super();
-		this.p = pto;
+		currentInChannel = false;
+		p = pto;
 		this.currentStateID = currentStateID;
-		this.currentInParams = 0;
+		currentInParams = 0;
 		groundrep = 0;
-		symbols = new HashMap<String,ArrayList<SymInfo>>();
+		this.symbols = symbols;
 		currentParams = new ArrayList<String>();
 	}
 
 	protected void applyPrologGenerator(StructuredPrologOutput pto,String stateID, Start ast) 
 	{
-		final PrologGenerator prologGenerator = new PrologGenerator(pto,stateID);
+		final PrologGenerator prologGenerator = new PrologGenerator(pto,stateID,symbols);
 		ast.apply(prologGenerator);
 	}
 	
@@ -77,7 +79,11 @@ public class PrologGenerator extends DepthFirstAdapter
             for(PDef e : copy)
             {
                 e.apply(this);
-				p.fullstop();
+				if(!currentInChannel)
+				{
+					p.fullstop();
+				}
+				currentInChannel = false;
             }
         }
 
@@ -118,6 +124,128 @@ public class PrologGenerator extends DepthFirstAdapter
 		
         outADefsStart(node);
     }
+//***************************************************************************************************************************************************
+//Channel
+
+	@Override
+    public void caseAChannelDef(AChannelDef node)
+    {
+		currentInChannel = true;
+		ArrayList<String> strList = new ArrayList<String>();
+        inAChannelDef(node);
+        {
+            List<PId> copy = new ArrayList<PId>(node.getChanList());
+            for(PId e : copy)
+            {
+                e.apply(this);
+				String str = e.toString().replace(" ","");
+				strList.add(str);
+            }
+        }
+        if(node.getChanType() != null)
+        {
+			for(int i = 0;i<strList.size();i++)
+			{
+				p.openTerm("channel");
+				p.printAtom(strList.get(i));
+				p.openTerm("type");
+				node.getChanType().apply(this);
+				p.closeTerm();
+				p.closeTerm();
+				p.fullstop();
+			}
+        }
+		else
+		{
+			
+			for(int i = 0;i<strList.size();i++)
+			{
+				p.openTerm("channel");
+				p.printAtom(strList.get(i));
+				p.openTerm("type");
+				p.printAtom("dotUnitType");
+				p.closeTerm();
+				p.closeTerm();
+				p.fullstop();
+			}
+		}
+        outAChannelDef(node);
+    }
+	
+//***************************************************************************************************************************************************
+//Type Eypressions
+
+    @Override
+    public void caseADottedTypeExp(ADottedTypeExp node)
+    {
+        inADottedTypeExp(node);
+        {
+			p.openTerm("dotTupleType");
+			p.openList();
+            List<PTypeExp> copy = new ArrayList<PTypeExp>(node.getTypeExp0());
+            for(PTypeExp e : copy)
+            {
+                e.apply(this);
+            }
+			p.closeList();
+			p.closeTerm();
+        }
+        outADottedTypeExp(node);
+    }
+
+    @Override
+    public void caseAParTypeExp(AParTypeExp node)
+    {
+        inAParTypeExp(node);
+        {
+			p.openTerm("typeTuple");
+			p.openList();
+            List<PTypeExp> copy = new ArrayList<PTypeExp>(node.getTypeExpList());
+            for(PTypeExp e : copy)
+            {
+                e.apply(this);
+            }
+			p.closeList();
+			p.closeTerm();
+        }
+        outAParTypeExp(node);
+    }
+	
+    @Override
+    public void caseASetTypeExp(ASetTypeExp node)
+    {
+        inASetTypeExp(node);
+		p.openTerm("setExp");
+        if(node.getSet() != null)
+        {
+            node.getSet().apply(this);
+        }
+		p.closeTerm();
+        outASetTypeExp(node);
+    }
+
+    @Override
+    public void caseAIdTypeExp(AIdTypeExp node)
+    {
+        inAIdTypeExp(node);
+		String str = node.getId().toString().replace(" ","");
+        if(node.getId() != null)
+        {
+            node.getId().apply(this);
+        }
+        if(node.getTuple() != null)
+        {
+            node.getTuple().apply(this);
+        }
+		else if(!isBuiltin(str))
+		{
+			p.openTerm("val_of");
+			p.printAtom(str);
+			printSrcLoc(node.getId());
+			p.closeTerm();
+		}
+        outAIdTypeExp(node);
+    }
 	
 //***************************************************************************************************************************************************
 //Expressions Left Side	
@@ -142,14 +270,7 @@ public class PrologGenerator extends DepthFirstAdapter
 		p.openTerm("agent");
         if(node.getId() != null)
         {
-            node.getId().apply(this);
-			String id = node.getId().toString().replace(" ","");
-
-			ArrayList<SymInfo> temp = new ArrayList<SymInfo>();
-			SymInfo si = new SymInfo(node,"Function or Process");
-			temp.add(si);
-			symbols.put(id,temp);
-				
+            node.getId().apply(this);				
 			p.openTerm(node.getId().toString().replace(" ",""));
         }
         if(node.getParameters() != null)
@@ -192,40 +313,11 @@ public class PrologGenerator extends DepthFirstAdapter
         inAVarPattern(node);
 		String str = node.getId().toString().replaceAll(" ","");
 		
-		
-		if(groundrep>0)
-		{
-				ArrayList<SymInfo> temp = new ArrayList<SymInfo>();
-				SymInfo si = new SymInfo(node,"Ident (Groundrep.)");
-				temp.add(si);
-				symbols.put(str,temp);
-		}
-		else if(currentInParams>0)
-		{		
-			currentParams.add(str);
-		
-			if(symbols.containsKey("_"+str))
-			{
-				ArrayList<SymInfo> temp = symbols.get("_"+str);
-				SymInfo si = new SymInfo(node,"Ident (Prolog Variable)");
-				temp.add(si);
-				symbols.put("_"+str,temp);
-			}
-			else
-			{
-				ArrayList<SymInfo> temp = new ArrayList<SymInfo>();
-				SymInfo si = new SymInfo(node,"Ident (Prolog Variable)");
-				temp.add(si);
-				symbols.put("_"+str,temp);
-			}
-		}
-		
         if(node.getId() != null)
         {
             node.getId().apply(this);
         }
 		
-
 		if(currentInParams<1)
 		{
 			p.printAtom(str);

@@ -10,3 +10,4 @@ G = F(1,2)
 H = Events
 I = 1 \ 2
 J = 1 ||| 2
+channel c,d,e: Bool.Int

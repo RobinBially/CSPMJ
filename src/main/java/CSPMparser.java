@@ -148,7 +148,7 @@ public int parseFilesInFolder(File folder, Boolean show)
 		
 public void parseFile(String s, Boolean show)
 {
-	System.out.println("Parsing '"+s+"' :");
+	System.out.println("Parsing '"+s+"'...");
 	workcount = 0;
 	try 
 	{			
@@ -185,7 +185,7 @@ public void parseFile(String s, Boolean show)
 		
 		TreeLogicChecker tlc = new TreeLogicChecker();
 		tree.apply(tlc);
-		System.out.println("\nYour CSPM-File has been successfully parsed.\n"
+		System.out.println("Your CSPM-File has been successfully parsed.\n"
 							+"Checking Identifier occurrences...");
 							
 		IdentifierAnalysis ia = new IdentifierAnalysis();
@@ -201,11 +201,20 @@ public void parseFile(String s, Boolean show)
 //		System.out.println("Typechecking successful!");
 
 		StructuredPrologOutput pto = new StructuredPrologOutput();
-		PrologGenerator pout = new PrologGenerator(pto, "root");
+		
+		SymbolCollector sc = new SymbolCollector();
+		tree.apply(sc);
+		HashMap<String,ArrayList<SymInfo>> symbols = sc.getSymbols();
+		
+		PrologGenerator pout = new PrologGenerator(pto,"root",symbols);
 		tree.apply(pout);
+
 	//	pto.fullstop(); // needed to end a sentence (this should be removed later)
-		System.out.println("Get tree in prolog form:");
-		createPrologFile(pto);
+		//System.out.println("Get tree in prolog form:");
+		workcount++; //now 6
+		System.out.println("Creating Prolog-File...");
+		createPrologFile(pto,s);
+		System.out.println("Prolog File created.");
 
 //		System.out.println("get tree in prolog form: " + pto.getSentences().iterator().next().toString());
 	} 	
@@ -235,15 +244,23 @@ public void parseFile(String s, Boolean show)
 		{
 			throw new RuntimeException("\nTypechecking Error: "+e.getMessage());
 		}
+		else if(workcount == 6)
+		{
+			throw new RuntimeException("\nProlog-File creation failed: "+e.getMessage());
+		}
 		else {
 			throw new RuntimeException("\nUnknown Error: "+e.getMessage());
 		}
 	}		
 }
 
-public void createPrologFile(StructuredPrologOutput pto)
+public void createPrologFile(StructuredPrologOutput pto,String filename)
 {
-		System.out.println(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
+	try
+	{
+		PrintWriter writer = new PrintWriter(filename+".pl", "UTF-8");
+
+		writer.println(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
 							+"\n:- dynamic module/4."
 							+"\n'parserVersionStr'('0.6.1.1')."
 							+"\n'parseResult'('ok','',0,0,0)."
@@ -260,10 +277,17 @@ public void createPrologFile(StructuredPrologOutput pto)
 							+"\n'parserVersionNum'([0,11,0,1])."
 							+"\n'parserVersionStr'('CSPM-Frontent-0.11.0.1').");
 							
+		File file = new File(filename+".pl");					
 		for (Iterator<PrologTerm> iterator = pto.getSentences().iterator(); iterator.hasNext();) 
 		{
-			System.out.println(iterator.next().toString());			
+			writer.println(iterator.next().toString()+".");			
 		}
+		writer.close();
+	}
+	catch(Exception e)
+	{
+		throw new RuntimeException(e.getMessage());
+	}
 }
 
 
