@@ -312,11 +312,11 @@ proc1 {->exp}		=  	 {hide} proc1 b_slash proc2 									{-> New exp.hide(proc1.e
 proc2 {->exp}		=    {ileave} proc2 i_leaving proc3 								{-> New exp.ileave(proc2.exp,i_leaving,proc3.exp)}
 						|{p3} proc3 													{-> proc3.exp}
 						;
-proc3 {->exp}		=  	 {except} proc3 bracket_pipe_l event pipe tria_r proc4			{-> New exp.except(proc3.exp,event.exp,proc4.exp)}	
-						|{gen_par} proc3 bracket_pipe_l event bracket_pipe_r proc4		{-> New exp.gen_par(proc3.exp,event.exp,proc4.exp)}
+proc3 {->exp}		=  	 {except} proc3 bracket_pipe_l event pipe tria_r proc4			{-> New exp.except(proc3.exp,bracket_pipe_l,event.exp,proc4.exp)}	
+						|{gen_par} proc3 bracket_pipe_l event bracket_pipe_r proc4		{-> New exp.gen_par(proc3.exp,bracket_pipe_l,event.exp,proc4.exp)}
 						|{alph_par} proc3 bracket_l [eventl]:event dpipe
-								[eventr]:event bracket_r proc4 							{-> New exp.alph_par(proc3.exp,eventl.exp,eventr.exp,proc4.exp)}
-						|{linked_par} proc3 bracket_l link_comp bracket_r proc4			{-> New exp.linked_par(proc3.exp,link_comp,proc4.exp)}
+								[eventr]:event bracket_r proc4 							{-> New exp.alph_par(proc3.exp,bracket_l,eventl.exp,eventr.exp,proc4.exp)}
+						|{linked_par} proc3 bracket_l link_comp bracket_r proc4			{-> New exp.linked_par(proc3.exp,bracket_l,link_comp,proc4.exp)}
 						|{p4} proc4 													{-> proc4.exp}
 						;			
 proc4 {->exp}		=  	 {int_choice} proc4 i_choice proc5								{-> New exp.int_choice(proc4.exp,i_choice,proc5.exp)} 
@@ -639,10 +639,10 @@ exp 			=  {function} id parameters [proc1]:exp
 				  |{pattern} [pattern1]:pattern [proc1]:exp
 				  |{hide} [proc1]:exp b_slash [proc2]:exp
 				  |{ileave} [proc2]:exp i_leaving [proc3]:exp
-				  |{except} [proc3]:exp [event]:exp [proc4]:exp
-				  |{gen_par} [proc3]:exp [event]:exp [proc4]:exp
-				  |{alph_par} [proc3]:exp [eventl]:exp [eventr]:exp [proc4]:exp
-				  |{linked_par} [proc3]:exp link_comp [proc4]:exp
+				  |{except} [proc3]:exp [op_start]:bracket_pipe_l [event]:exp [proc4]:exp
+				  |{gen_par} [proc3]:exp [op_start]:bracket_pipe_l [event]:exp [proc4]:exp
+				  |{alph_par} [proc3]:exp [op_start]:bracket_l [eventl]:exp [eventr]:exp [proc4]:exp
+				  |{linked_par} [proc3]:exp [op_start]:bracket_l link_comp [proc4]:exp
 				  |{int_choice} [proc4]:exp i_choice [proc5]:exp
 				  |{ext_choice} [proc5]:exp e_choice [proc6]:exp
 				  |{sync_ext} [proc5]:exp [event]:exp [proc6]:exp

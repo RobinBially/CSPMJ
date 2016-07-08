@@ -8,12 +8,14 @@ public class SymInfo
 {
 	private Node node;
 	private String symbolInfo;
+	private boolean called; 	//Is this var already printed?
 	
 	
 	public SymInfo(Node n, String st)
 	{
 		node = n;
 		symbolInfo = st;
+		called = false;
 	}
 	
 	public String getSymbolInfo()
@@ -34,6 +36,16 @@ public class SymInfo
 	public void setNode(Node n)
 	{
 		node = n;
+	}
+	
+	public boolean getCalled()
+	{
+		return called;
+	}
+	
+	public void setCalled(boolean b)
+	{
+		called = b;
 	}
 	
 	

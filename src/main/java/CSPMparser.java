@@ -117,35 +117,25 @@ public class CSPMparser
 					
 					workcount++; //now 5
 					
+					PrologTermOutput pto = new PrologTermOutput();
+					SymbolCollector sc = new SymbolCollector();
+					tree.apply(sc);
+					HashMap<String,ArrayList<SymInfo>> symbols = sc.getSymbols();
+					
+					PrologGenerator pout = new PrologGenerator(pto,symbols);
+					tree.apply(pout);
+
+					workcount++; //now 6
+					System.out.println("Generating Prolog-File...");
+					createPrologFile(pto,fileEntry.toString(),null);
+					
 					//		Typechecker ts = new Typechecker();
 					//		tree.apply(ts);
 				} 	
 				catch (Exception e) 
 				{
-					if(workcount == 0)
-					{
-						throw new RuntimeException(e.getMessage());
-					}
-					if(workcount == 1)//Error in StreamEdit
-					{
-						throw new RuntimeException("\nError in bracket transformation: "+e.getMessage());
-					}
-					else if(workcount == 2) //Parsing Error
-					{
-						throw new RuntimeException("\nParsing Error: "+e.getMessage());
-					}
-					else if(workcount == 3) //Error in statement pattern checking
-					{
-						throw new RuntimeException("\nError in pattern checking: "+e.getMessage());
-					}
-					else if(workcount == 4) //Error in occurs checking
-					{
-						throw new RuntimeException("\nError in Identifier Analysis: "+e.getMessage());
-					}
-					else if(workcount == 5)
-					{
-						throw new RuntimeException("\nTypechecking Error: "+e.getMessage());
-					}
+					System.out.println("An Exception was thrown!");
+					createPrologFile(null,fileEntry.toString(),e);
 				}
 			}
 		}
@@ -214,82 +204,59 @@ public class CSPMparser
 
 			workcount++; //now 6
 			System.out.println("Generating Prolog-File...");
-			createPrologFile(pto,s);
+			createPrologFile(pto,s,null);
 			System.out.println("Your Prolog File has been generated successfully.");
 
 
 		} 	
 		catch (Exception e) 
 		{
-			if(workcount == 0)
-			{
-				throw new RuntimeException(e.getMessage());
-			}
-			if(workcount == 1)//Error in StreamEdit
-			{
-				throw new RuntimeException("\nError in bracket transformation: "+e.getMessage());
-			}
-			else if(workcount == 2) //Parsing Error
-			{
-				throw new RuntimeException("\nParsing Error: "+e.getMessage());
-			}
-			else if(workcount == 3) //Error in statement pattern checking
-			{
-				throw new RuntimeException("\nError in pattern checking: "+e.getMessage());
-			}
-			else if(workcount == 4) //Error in occurs checking
-			{
-				throw new RuntimeException("\nError in Identifier Analysis: "+e.getMessage());
-			}
-			else if(workcount == 5)
-			{
-				throw new RuntimeException("\nTypechecking Error: "+e.getMessage());
-			}
-			else if(workcount == 6)
-			{
-				throw new RuntimeException("\nProlog-File creation failed: "+e.getMessage());
-			}
-			else {
-				throw new RuntimeException("\nUnknown Error: "+e.getMessage());
-			}
+			System.out.println("An Exception was thrown!");
+			createPrologFile(null,s,e);
 		}		
 	}
 
-	public void createPrologFile(PrologTermOutput pto,String filename)
+	public void createPrologFile(PrologTermOutput pto,String filename, Exception e)
 	{
 		try
 		{
 			PrintWriter writer = new PrintWriter(filename+".pl", "UTF-8");
+			if(e == null)
+			{
+				writer.println(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
+				+"\n:- dynamic module/4."
+				+"\n'parserVersionStr'('0.6.1.1')."
+				+"\n'parseResult'('ok','',0,0,0)."
+				+"\n:- dynamic channel/2, bindval/3, agent/3."
+				+"\n:- dynamic agent_curry/3, symbol/4."
+				+"\n:- dynamic dataTypeDef/2, subTypeDef/2, nameType/2."
+				+"\n:- dynamic cspTransparent/1."
+				+"\n:- dynamic cspPrint/1."
+				+"\n:- dynamic pragma/1."
+				+"\n:- dynamic comment/2."
+				+"\n:- dynamic assertBool/1, assertRef/5, assertTauPrio/6."
+				+"\n:- dynamic assertModelCheckExt/4, assertModelCheck/3."
+				+"\n:- dynamic assertLtl/4, assertCtl/4."
+				+"\n'parserVersionNum'([0,11,0,1])."
+				+"\n'parserVersionStr'('CSPM-Frontent-0.11.0.1').");
+				File file = new File(filename+".pl");	
+				String str = pto.getStringWriter().toString();
+				writer.println(str);
+				writer.close();
+			}
+			else
+			{
+				writer.println(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
+				+"\n:- dynamic module/4."
+				+"\n'parserVersionStr'('0.6.1.1')."
+				+"\n'parseResult'('parseError','"+e.getMessage()+"',0,0,0).");
+				writer.close();
+			}
 
-			writer.println(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
-			+"\n:- dynamic module/4."
-			+"\n'parserVersionStr'('0.6.1.1')."
-			+"\n'parseResult'('ok','',0,0,0)."
-			+"\n:- dynamic channel/2, bindval/3, agent/3."
-			+"\n:- dynamic agent_curry/3, symbol/4."
-			+"\n:- dynamic dataTypeDef/2, subTypeDef/2, nameType/2."
-			+"\n:- dynamic cspTransparent/1."
-			+"\n:- dynamic cspPrint/1."
-			+"\n:- dynamic pragma/1."
-			+"\n:- dynamic comment/2."
-			+"\n:- dynamic assertBool/1, assertRef/5, assertTauPrio/6."
-			+"\n:- dynamic assertModelCheckExt/4, assertModelCheck/3."
-			+"\n:- dynamic assertLtl/4, assertCtl/4."
-			+"\n'parserVersionNum'([0,11,0,1])."
-			+"\n'parserVersionStr'('CSPM-Frontent-0.11.0.1').");
-			
-			File file = new File(filename+".pl");	
-			String str = pto.getStringWriter().toString();
-			writer.println(str);
-			// for (Iterator<PrologTerm> iterator = pto.getSentences().iterator(); iterator.hasNext();) 
-			// {
-			// writer.println(iterator.next().toString()+".");			
-			// }
-			writer.close();
 		}
-		catch(Exception e)
+		catch(Exception ex)
 		{
-			throw new RuntimeException(e.getMessage());
+			throw new RuntimeException(ex.getMessage());
 		}
 	}
 
