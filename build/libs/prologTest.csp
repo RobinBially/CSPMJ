@@ -1,5 +1,9 @@
---f(w,x,y,z,a) = {w,(x,y),z} < {a}
---a = (1,2)
+-- This is a line comment
+{-
+And this is
+a multiline comment!
+-}
+channel c,d,e: Bool.Int
 A = STOP
 B(x,y) = SKIP
 C = (| |)
@@ -10,4 +14,4 @@ G = F(1,2)
 H = Events
 I = 1 \ 2
 J = 1 ||| 2
-channel c,d,e: Bool.Int
+K = A

@@ -23,6 +23,7 @@ Helpers
     cr = 13;
     lf = 10;
 	not_cr_lf = [all - [cr + lf]];	
+	no_brace_r = [all - '}'];
 	eol = cr lf | cr | lf;
 	blank = (' '|tab);
 	white = (' '|tab|cr|lf)*;
@@ -39,6 +40,11 @@ Helpers
 	less		=	0x20AC;
 
 Tokens
+
+//Comments
+	line_comment 		= '--' not_cr_lf* eol?;
+	multiline_comment 	= '{-' all* '-}';
+
 //---------------------------------------------------------------------------------------------------------------------------------------------------
 //Builtin functions and constants
 	stop 			= 'STOP';
@@ -164,7 +170,10 @@ Tokens
 
 	
 Ignored Tokens
-	blank;
+	blank,
+	line_comment,
+	multiline_comment;
+	
 
 Productions
 

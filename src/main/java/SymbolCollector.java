@@ -4,9 +4,8 @@ import CSPMparser.analysis.*;
 import CSPMparser.node.*;
 import java.util.*;
 import java.io.*;
-import de.prob.prolog.output.IPrologTermOutput;
-import de.prob.prolog.output.StructuredPrologOutput;
-import de.prob.prolog.term.PrologTerm;
+
+
 
 
 public class SymbolCollector extends DepthFirstAdapter

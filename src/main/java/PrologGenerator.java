@@ -1,73 +1,37 @@
-
 import java.io.IOException;
 import java.util.Locale;
 import CSPMparser.analysis.*;
 import CSPMparser.node.*;
 import java.util.*;
 import java.io.*;
-import de.prob.prolog.output.IPrologTermOutput;
-import de.prob.prolog.output.StructuredPrologOutput;
-import de.prob.prolog.term.PrologTerm;
+
+
 
 public class PrologGenerator extends DepthFirstAdapter
 {
-	private final IPrologTermOutput p;
-	private final String currentStateID;
+	private final PrologTermOutput p;
 	private int currentInParams;
 	private HashMap<String,ArrayList<SymInfo>> symbols; //Identifier,Counter
 	private int groundrep;
 	private ArrayList<String> currentParams;
 	private boolean currentInChannel;
 	
-	public PrologGenerator(final IPrologTermOutput pto,final String currentStateID,HashMap<String,ArrayList<SymInfo>> symbols) 
+	public PrologGenerator(final PrologTermOutput pto,HashMap<String,ArrayList<SymInfo>> symbols) 
 	{
 		//super();
 		currentInChannel = false;
 		p = pto;
-		this.currentStateID = currentStateID;
 		currentInParams = 0;
 		groundrep = 0;
 		this.symbols = symbols;
 		currentParams = new ArrayList<String>();
 	}
-
-	protected void applyPrologGenerator(StructuredPrologOutput pto,String stateID, Start ast) 
-	{
-		final PrologGenerator prologGenerator = new PrologGenerator(pto,stateID,symbols);
-		ast.apply(prologGenerator);
-	}
 	
 	@Override
-	public void defaultIn(final Node node) 
+	public void defaultCase(Node node)
 	{
-	//	StringBuffer sb = new StringBuffer(node.getClass().getSimpleName());
-	//	sb.setLength(sb.length() - 3);
-	//  sb.deleteCharAt(0);
-	//	String term = sb.toString().toLowerCase(Locale.ENGLISH);
-	//	p.openTerm(term);
-	//	p.openTerm("test");
+		//System.out.println(node.toString());	
 	}
-    @Override
-	public void defaultOut(final Node node) 
-	{
-	//	p.closeTerm();
-	}
-	
-	@Override
-	public void inStart(final Start node) 
-	{
-		// Do not call default in Method
-	}
-
-	@Override
-	public void outStart(final Start node) 
-	{
-		// Do not call default out Method
-	}
-	
-	
-	
-	
 	
 	@Override
     public void caseADefsStart(ADefsStart node)
@@ -1388,8 +1352,8 @@ public class PrologGenerator extends DepthFirstAdapter
         {
             node.getNumber().apply(this);
 			p.openTerm("int");
-			long l = Long.valueOf(node.getNumber().getText());
-			p.printNumber(l);
+			int i = Integer.valueOf(node.getNumber().getText());
+			p.printNumber(i);
 			p.closeTerm();
         }
         outANumberExp(node);
@@ -1480,7 +1444,11 @@ public class PrologGenerator extends DepthFirstAdapter
 			}
 			else if(!isBuiltin(str))
 			{
+				p.openTerm("val_of");
 				p.printAtom(str);
+				printSrcLoc(node.getId());
+				p.closeTerm();
+				
 			}
 		}
 		
