@@ -42,7 +42,7 @@ Helpers
 Tokens
 
 //Comments
-	line_comment 		= '--' not_cr_lf* eol?;
+	line_comment 		= '--' not_cr_lf*;
 	multiline_comment 	= '{-' all* '-}';
 
 //---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -170,29 +170,34 @@ Tokens
 
 	
 Ignored Tokens
-	blank,
-	line_comment,
-	multiline_comment;
+	blank;
+//	line_comment,
+//	multiline_comment;
 	
 
 Productions
 
-start {-> start}	=	nl* defs 									{-> New start.defs([defs.def])};
+start {-> start}	=	nl* defs 											{-> New start.defs([defs.def])};
 
-defs {-> def*} 		= 	 {sinlge} [decl]:def nl*					{-> [decl.def]}
-						|{multiple} [first]:def nl [rest]:defs 		{-> [first.def, rest.def]}
+defs {-> def*} 		= 	 {sinlge} [decl]:def nl*							{-> [decl.def]}
+						|{multiple} [first]:def seperator [rest]:defs 		{-> [first.def,rest.def]}
+						;
+seperator {->def}	=	{newline} nl										{-> New def.newline_seperator(nl)}
+						|{short_comment} line_comment nl					{-> New def.short_comment_seperator(line_comment)}				
 						;
 
-def					=	 {expression} exp							{-> New def.expression(exp)}
-						|{types} types								{-> New def.types(types)}
-						|{channel} channel							{-> channel.def}
-						|{assertion} assertion						{-> New def.assertion(assertion)}
-						|{print} print_exp							{-> print_exp.def}
-						|{timed_section} time						{-> time.def}
-						|{module} module							{-> module.def}
-						|{include_file} include_file				{-> include_file.def}
-						|{trans} transparent id						{-> New def.transparent(id)}
-						|{ext} external id							{-> New def.external(id)}
+def					=	 {expression} exp									{-> New def.expression(exp)}
+						|{types} types										{-> New def.types(types)}
+						|{channel} channel									{-> channel.def}
+						|{assertion} assertion								{-> New def.assertion(assertion)}
+						|{print} print_exp									{-> print_exp.def}
+						|{timed_section} time								{-> time.def}
+						|{module} module									{-> module.def}
+						|{include_file} include_file						{-> include_file.def}
+						|{trans} transparent id								{-> New def.transparent(id)}
+						|{ext} external id									{-> New def.external(id)}
+						|{short_comment} line_comment 						{-> New def.line_comment(line_comment)}
+						|{long_comment} multiline_comment					{-> New def.multiline_comment(multiline_comment)}
 						; 
 					
 //---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -573,6 +578,10 @@ def 			=  {expression} exp
 				  |{timed} [proc1]:exp [defs]:def+
 				  |{module} id [ldefs]:def+ [rdefs]:def+
 				  |{include_file} string
+				  |{line_comment} line_comment
+				  |{multiline_comment} multiline_comment
+				  |{newline_seperator} nl
+				  |{short_comment_seperator} line_comment
 				  ;
 types  			=  {dtype} [typedef]:types
 				  |{stype} [typedef]:types

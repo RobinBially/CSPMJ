@@ -1,7 +1,8 @@
--- This is a line comment
+-- This is a Line-Comment.
+Eol = 42 -- This is an End-Of-Line-Comment.
 {-
 And this is
-a multiline comment!
+a Multiline-Comment.
 -}
 channel c,d,e: Bool.Int
 A = STOP
@@ -15,3 +16,4 @@ H = Events
 I = 1 \ 2
 J = 1 ||| 2
 K = A
+-- This is an End-Of-File-Comment.

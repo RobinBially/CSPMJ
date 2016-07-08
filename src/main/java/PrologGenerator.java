@@ -26,13 +26,66 @@ public class PrologGenerator extends DepthFirstAdapter
 		this.symbols = symbols;
 		currentParams = new ArrayList<String>();
 	}
+//***************************************************************************************************************************************************
+//Comments
+    @Override
+    public void caseAMultilineCommentDef(AMultilineCommentDef node)
+    {
+        inAMultilineCommentDef(node);
+        if(node.getMultilineComment() != null)
+        {
+            node.getMultilineComment().apply(this);
+			p.openTerm("comment");
+			p.openTerm("blockComment");
+			String comment = node.getMultilineComment().getText();
+			comment = comment.replaceAll("\n","\\\\n");
+			comment = comment.replaceAll("\r","\\\\r");
+			p.printAtom(comment);
+			printSrcLoc(node.getMultilineComment());
+			p.closeTerm();
+			p.closeTerm();
+        }
+        outAMultilineCommentDef(node);
+    }
 	
-	@Override
-	public void defaultCase(Node node)
-	{
-		//System.out.println(node.toString());	
-	}
+    @Override
+    public void caseALineCommentDef(ALineCommentDef node)
+    {
+        inALineCommentDef(node);
+        if(node.getLineComment() != null)
+        {
+            node.getLineComment().apply(this);
+			p.openTerm("comment");
+			p.openTerm("lineComment");
+			p.printAtom(node.getLineComment().getText());
+			printSrcLoc(node.getLineComment());
+			p.closeTerm();
+			p.closeTerm();
+        
+        }
+        outALineCommentDef(node);
+    }
 	
+    @Override
+    public void caseAShortCommentSeperatorDef(AShortCommentSeperatorDef node)
+    {
+        inAShortCommentSeperatorDef(node);
+        if(node.getLineComment() != null)
+        {
+            node.getLineComment().apply(this);
+			p.fullstop();
+			p.openTerm("comment");
+			p.openTerm("lineComment");
+			p.printAtom(node.getLineComment().getText());
+			printSrcLoc(node.getLineComment());
+			p.closeTerm();
+			p.closeTerm();
+        }
+        outAShortCommentSeperatorDef(node);
+    }	
+//***************************************************************************************************************************************************
+//Definitions
+
 	@Override
     public void caseADefsStart(ADefsStart node)
     {
