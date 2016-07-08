@@ -24,7 +24,74 @@ public class SymbolCollector extends DepthFirstAdapter
 		currentParams = new ArrayList<String>();
 	}
 //***************************************************************************************************************************************************
-//Datatypes and Patterns	
+//Datatype, Subtype, Nametype
+
+    @Override
+    public void caseANtypeTypes(ANtypeTypes node)
+    {
+        inANtypeTypes(node);
+        if(node.getId() != null)
+        {
+            node.getId().apply(this);
+			String str = node.getId().toString().replace(" ","");
+			ArrayList<SymInfo> temp = new ArrayList<SymInfo>();
+			SymInfo si = new SymInfo(node.getId(),"Nametype");
+			temp.add(si);
+			symbols.put(str,temp);
+        }
+        if(node.getTypeExp() != null)
+        {
+            node.getTypeExp().apply(this);
+        }
+
+        outANtypeTypes(node);
+    }
+
+    @Override
+    public void caseATypedefTypes(ATypedefTypes node)
+    {
+        inATypedefTypes(node);
+        if(node.getId() != null)
+        {
+            node.getId().apply(this);
+			String str = node.getId().toString().replace(" ","");
+			ArrayList<SymInfo> temp = new ArrayList<SymInfo>();
+			SymInfo si = new SymInfo(node.getId(),"Datatype");
+			temp.add(si);
+			symbols.put(str,temp);
+        }
+        {
+            List<PTypes> copy = new ArrayList<PTypes>(node.getTypedefList());
+            for(PTypes e : copy)
+            {
+                e.apply(this);
+            }		
+        }
+        outATypedefTypes(node);
+    }
+
+    @Override
+    public void caseAClauseTypes(AClauseTypes node)
+    {
+        inAClauseTypes(node);	
+        if(node.getClauseName() != null)
+        {
+            node.getClauseName().apply(this);
+			String str = node.getClauseName().toString().replace(" ","");
+			ArrayList<SymInfo> temp = new ArrayList<SymInfo>();
+			SymInfo si = new SymInfo(node.getClauseName(),"Constructor of Datatype");
+			temp.add(si);
+			symbols.put(str,temp);
+        }
+        if(node.getDotted() != null)
+        {
+            node.getDotted().apply(this);
+        }
+        outAClauseTypes(node);
+    }
+
+//***************************************************************************************************************************************************
+//Channels
 	@Override
     public void caseAChannelDef(AChannelDef node)
     {
@@ -47,6 +114,8 @@ public class SymbolCollector extends DepthFirstAdapter
         }
         outAChannelDef(node);
     }
+//***************************************************************************************************************************************************
+//Patterns	
 	
     @Override
     public void caseAPatternExp(APatternExp node)

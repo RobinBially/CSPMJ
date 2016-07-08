@@ -27,6 +27,103 @@ public class PrologGenerator extends DepthFirstAdapter
 		currentParams = new ArrayList<String>();
 	}
 //***************************************************************************************************************************************************
+//Types
+
+    @Override
+    public void caseADtypeTypes(ADtypeTypes node)
+    {
+        inADtypeTypes(node);
+        if(node.getTypedef() != null)
+        {
+			p.openTerm("dataTypeDef");
+            node.getTypedef().apply(this);
+			p.closeTerm();
+        }
+        outADtypeTypes(node);
+    }
+
+    @Override
+    public void caseAStypeTypes(AStypeTypes node)
+    {
+        inAStypeTypes(node);
+        if(node.getTypedef() != null)
+        {
+			p.openTerm("subTypeDef");
+            node.getTypedef().apply(this);
+			p.closeTerm();
+        }
+        outAStypeTypes(node);
+    }
+
+    @Override
+    public void caseANtypeTypes(ANtypeTypes node)
+    {
+        inANtypeTypes(node);
+		p.openTerm("nameType");
+        if(node.getId() != null)
+        {
+            node.getId().apply(this);
+			p.printAtom(node.getId().toString().replace(" ",""));
+        }
+        if(node.getTypeExp() != null)
+        {
+			p.openTerm("type");
+            node.getTypeExp().apply(this);
+			p.closeTerm();
+        }
+		p.closeTerm();
+        outANtypeTypes(node);
+    }
+
+    @Override
+    public void caseATypedefTypes(ATypedefTypes node)
+    {
+        inATypedefTypes(node);
+        if(node.getId() != null)
+        {
+            node.getId().apply(this);
+			p.printAtom(node.getId().toString().replace(" ",""));
+        }
+		p.openList();
+        {
+            List<PTypes> copy = new ArrayList<PTypes>(node.getTypedefList());
+            for(PTypes e : copy)
+            {
+                e.apply(this);
+				p.closeTerm();
+            }		
+        }
+		p.closeList();
+        outATypedefTypes(node);
+    }
+
+    @Override
+    public void caseAClauseTypes(AClauseTypes node)
+    {
+        inAClauseTypes(node);
+		if(node.getDotted() == null)
+		{
+			p.openTerm("constructor");
+		}
+		else
+		{
+			p.openTerm("constructorC");
+		}
+		
+        if(node.getClauseName() != null)
+        {
+            node.getClauseName().apply(this);
+			p.printAtom(node.getClauseName().toString().replace(" ",""));
+        }
+        if(node.getDotted() != null)
+        {
+            node.getDotted().apply(this);
+        }
+        outAClauseTypes(node);
+    }
+
+	
+//***************************************************************************************************************************************************
 //Comments
     @Override
     public void caseAMultilineCommentDef(AMultilineCommentDef node)

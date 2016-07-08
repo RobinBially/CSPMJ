@@ -4,7 +4,10 @@ Eol = 42 -- This is an End-Of-Line-Comment.
 And this is
 a Multiline-Comment.
 -}
-channel c,d,e: Bool.Int
+datatype dt = cn|cn2.Bool
+subtype st = cn
+nametype nt = Bool.Int
+channel c1,c2,c3: Bool.Int
 A = STOP
 B(x,y) = SKIP
 C = (| |)
