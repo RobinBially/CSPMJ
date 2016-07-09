@@ -124,10 +124,10 @@ Tokens
 	less	 		= less white;		
 	tria_l			= '<' white;
 	tria_r			= white '>';
-	sync_par_l		= '[+' white;	
-	sync_par_r		= white '+]';
-	sync_int_l 		= '/+' white;
-	sync_int_r		= white '+\';
+	sync_par_l		= white '[+' white;	
+	sync_par_r		= white '+]' white;
+	sync_int_l 		= white '/+' white;
+	sync_int_r		= white '+\' white;
 	dbracket_l 		= white '[[' white;
 	dbracket_r 		= white ']]';
 	dp_bracket 		= white ':[' white;
@@ -259,17 +259,17 @@ builtin 		= 	 {ltl} ltl 						{-> New builtin.ltl(ltl)}
 parameters 	  =	{parameters} par_l pattern_list par_r 						{-> New parameters.parameters([pattern_list.pattern])};
 //---------------------------------------------------------------------------------------------------------------------------------------------------
 							
-pattern1 {->pattern}   	  =	{double_pattern} pattern1 doubleat pattern2		{-> New pattern.double(pattern1.pattern,pattern2.pattern)}
-							|{p2} pattern2 									{-> pattern2.pattern}
-						    ;
-pattern2 {->pattern}	  =  {dot_pattern} pattern2 dot pattern3			{-> New pattern.dot(pattern2.pattern,pattern3.pattern)} 
-							|{p3} pattern3 									{-> pattern3.pattern}
+pattern1 {->pattern}   	  =	{double_pattern} double_list					{-> New pattern.double([double_list.pattern])};
+double_list {->pattern+}  = {list} double_list doubleat pattern2			{->[double_list.pattern,pattern2.pattern]}
+							|{end} pattern2									{->[pattern2.pattern]}
 							;
-pattern3 {->pattern}	  =  {restricted} pattern4 ddot bool_exp			{-> New pattern.restricted(pattern4.pattern, bool_exp.exp)} 
-							|{p4} pattern4									{-> pattern4.pattern}
+pattern2 {->pattern}	  =  {dot_pattern} dot_list							{-> New pattern.dot([dot_list.pattern])};							
+dot_list {->pattern+}	  =  {list} dot_list dot pattern3 					{-> [dot_list.pattern,pattern3.pattern]}
+							|{end2} pattern3								{-> [pattern3.pattern]}
 							;
-pattern4 {->pattern}	  =  {concat_pattern} pattern4 cat pattern_atom 	{-> New pattern.concat(pattern4.pattern, pattern_atom.pattern)} 
-							|{pat_atom} pattern_atom 					    {-> pattern_atom.pattern}
+pattern3 {->pattern}	  =  {concat_pattern} concat_list					{-> New pattern.concat([concat_list.pattern])};
+concat_list {->pattern+}  =  {list} concat_list cat pattern_atom			{-> [concat_list.pattern, pattern_atom.pattern]}
+							|{end} pattern_atom								{-> [pattern_atom.pattern]}
 							;
 pattern_atom {->pattern}  =  {set} set_pattern 						{-> set_pattern.pattern}
 							|{list} list_pattern 					{-> list_pattern.pattern}
@@ -323,11 +323,11 @@ proc4 {->exp}		=  	 {int_choice} proc4 i_choice proc5								{-> New exp.int_cho
 						|{p5} proc5														{-> proc5.exp}
 						;
 proc5 {->exp}		=  	 {ext_choice} proc5 e_choice proc6 								{-> New exp.ext_choice(proc5.exp,e_choice,proc6.exp)} 
-						|{sync_ext} proc5 sync_par_l event sync_par_r proc6				{-> New exp.sync_ext(proc5.exp,event.exp,proc6.exp)} 
+						|{sync_ext} proc5 sync_par_l event sync_par_r proc6				{-> New exp.sync_ext(proc5.exp,sync_par_l,event.exp,proc6.exp)} 
 						|{p6} proc6 													{-> proc6.exp}
 						;
 proc6 {->exp}		= 	 {interrupt} proc6 interrupt proc7								{-> New exp.interrupt(proc6.exp,interrupt,proc7.exp)}									
-						|{sync_interrupt} proc6 sync_int_l event sync_int_r proc7		{-> New exp.sync_interrupt(proc6.exp,event.exp,proc7.exp)}
+						|{sync_interrupt} proc6 sync_int_l event sync_int_r proc7		{-> New exp.sync_interrupt(proc6.exp,sync_int_l,event.exp,proc7.exp)}
 						|{p7} proc7 													{-> proc7.exp}
 						;
 proc7 {->exp}		= 	 {sliding_choice} proc7 timeout proc8 					{-> New exp.sliding_choice(proc7.exp,timeout,proc8.exp)}
@@ -344,8 +344,8 @@ proc9 {->exp}		= 	 {guard} dot_op guard proc9								{-> New exp.guard(dot_op.ex
 						|{replicated} rep proc9									{-> New exp.replicated(rep.exp,proc9.exp)}
 						|{p10} proc10											{-> proc10.exp}
 						;				
-proc10 {->exp} 		=	 {renaming} proc10 dbracket_l rename_comp dbracket_r	{-> New exp.renaming(proc10.exp,rename_comp)}
-						|{e_renaming} proc10 dbracket_l dbracket_r				{-> New exp.e_renaming(proc10.exp)}
+proc10 {->exp} 		=	 {renaming} proc10 dbracket_l rename_comp dbracket_r	{-> New exp.renaming(proc10.exp,dbracket_l,rename_comp)}
+						|{e_renaming} proc10 dbracket_l dbracket_r				{-> New exp.e_renaming(proc10.exp,dbracket_l)}
 						|{event} event 											{-> event.exp}
 						;
 			
@@ -356,17 +356,20 @@ f1_list	{->pattern+}	=	{list} field1 f1_list							{-> [field1.pattern,f1_list.p
 f2_list {->pattern+}	=	 {list} field2 f2_list							{-> [field2.pattern,f2_list.pattern]}
 							|{end} field2									{-> [field2.pattern]}
 							;
-field1 	{->pattern}	= 	 {nondet_rest} dollar pattern1						{-> New pattern.nondet_rest(pattern1.pattern)};
-field2 	{->pattern}	= 	 {input_rest} q_mark pattern1						{-> New pattern.input_rest(pattern1.pattern)}
+field1 	{->pattern}	= 	 {nondet_input} dollar pattern1	restriction?		{-> New pattern.nondet_input(pattern1.pattern,restriction.exp)};
+field2 	{->pattern}	= 	 {input} q_mark pattern1 restriction?				{-> New pattern.input(pattern1.pattern,restriction.exp)}
 					    |{output} excl_mark dot_op							{-> New pattern.output(dot_op.exp)}
 						;
+restriction {->exp} =  {restricted} ddot dot_op								{-> New exp.restriction(dot_op.exp)};
 
-dpattern {->exp}	=    {dpattern} dpattern doubleat dot_op				{-> New exp.dpattern(dpattern.exp,dot_op.exp)} 
-						|{dotop} dot_op 									{-> dot_op.exp}
+dpattern {->exp}	=    {dpattern} double_list2							{-> New exp.dpattern([double_list2.exp])};
+double_list2 {->exp+} =  {list} dot_op doubleat double_list2				{-> [dot_op.exp,double_list2.exp]}
+						|{end} dot_op										{-> [dot_op.exp]}
 						;
-dot_op {->exp}		=	 {dot} dot_op dot bool_exp							{-> New exp.dot(dot_op.exp,bool_exp.exp)} 
-						|{ss} bool_exp 										{-> bool_exp.exp}
-						;				
+dot_op {->exp}		=	 dot_op_list										{-> New exp.dot_op([dot_op_list.exp])};
+dot_op_list {->exp+}	= 	 {list} bool_exp dot dot_op_list					{-> [bool_exp.exp,dot_op_list.exp]}
+						|{end} bool_exp										{-> [bool_exp.exp]}
+						;
 				
 bool_exp {->exp} 	= 	 {or} bool_exp or bool_exp2							{-> New exp.or(bool_exp.exp,bool_exp2.exp)} 
 						|{bool_exp2} bool_exp2 								{-> bool_exp2.exp}
@@ -391,14 +394,15 @@ val_exp1 {->exp}	= 	 {multiplication} val_exp1 mul_div_mod val_exp2 	{-> New exp
 						|{val_exp2} val_exp2 								{-> val_exp2.exp}
 						;		
 val_exp2 {->exp}	= 	 {un_minus} minus val_exp2						{-> New exp.un_minus(val_exp2.exp)} 
-						|{sequence0} sequence0 							{-> sequence0.exp}
+						|{length} length 								{-> length.exp}
 						;				
-sequence0 {->exp}	= 	 {length} hash sequence0 						{-> New exp.length(sequence0.exp)}
-						|{sequence1} sequence1 							{-> sequence1.exp}
+length {->exp}		= 	 {length} hash length 							{-> New exp.length(length.exp)}
+						|{concat} concat 								{-> concat.exp}
 						;			
-sequence1 {->exp}	=	 {cat} sequence1 cat atom 						{-> New exp.cat(sequence1.exp,atom.exp)}
-						| {atom} atom 									{-> atom.exp}
-						;	
+concat {->exp}		=	{concat} concat_list2							{-> New exp.concat([concat_list2.exp])};
+concat_list2 {->exp+}=	 {list} concat_list2 cat atom					{-> [concat_list2.exp,atom.exp]}
+						|{end} atom										{-> [atom.exp]}
+						;
 atom {->exp}		= 	 {sequence} sequence 							{-> sequence.exp}
 						|{set} set 										{-> set.exp}
 						|{map} map 										{-> map.exp}
@@ -614,13 +618,12 @@ builtin			=  {ltl} ltl
 				  
 parameters 		= {parameters} [pattern_list]:pattern+;
 
-pattern 		=  {double} [pattern1]:pattern [pattern2]:pattern
-				  |{dot} [pattern2]:pattern [pattern3]:pattern
-				  |{nondet_rest} [pattern1]:pattern
-				  |{input_rest}[pattern1]:pattern
+pattern 		=  {double} [double_list]:pattern+
+				  |{dot} [dot_list]:pattern+
+				  |{nondet_input} [pattern1]:pattern [restriction]:exp?
+				  |{input} [pattern1]:pattern [restriction]:exp?
 				  |{output} [dot_op]:exp
-				  |{restricted} [pattern4]:pattern [bool_exp]:exp
-				  |{concat} [pattern4]:pattern [pattern_atom]:pattern
+				  |{concat} [concat_list]:pattern+
 				  |{empty_set}
 				  |{set} [pattern1]:pattern
 				  |{empty_list}
@@ -645,9 +648,9 @@ exp 			=  {function} id parameters [proc1]:exp
 				  |{linked_par} [proc3]:exp [op_start]:bracket_l link_comp [proc4]:exp
 				  |{int_choice} [proc4]:exp i_choice [proc5]:exp
 				  |{ext_choice} [proc5]:exp e_choice [proc6]:exp
-				  |{sync_ext} [proc5]:exp [event]:exp [proc6]:exp
+				  |{sync_ext} [proc5]:exp [op_start]:sync_par_l [event]:exp [proc6]:exp
 				  |{interrupt} [proc6]:exp interrupt [proc7]:exp
-				  |{sync_interrupt} [proc6]:exp [event]:exp [proc7]:exp
+				  |{sync_interrupt} [proc6]:exp sync_int_l [event]:exp [proc7]:exp
 				  |{sliding_choice} [proc7]:exp timeout [proc8]:exp
 				  |{seq_composition} [proc8]:exp semicolon [proc9]:exp
 				  |{guard} [dot_op]:exp guard [proc9]:exp
@@ -666,11 +669,12 @@ exp 			=  {function} id parameters [proc1]:exp
 				  |{linked_par_rep} link_comp stmts
 				  |{sync_par_rep} [event]:exp stmts
 //rep end				  
-				  |{renaming} [proc10]:exp rename_comp
-				  |{e_renaming} [proc10]:exp
+				  |{renaming} [proc10]:exp dbracket_l rename_comp
+				  |{e_renaming} [proc10]:exp dbracket_l
 				  |{event} [dpattern]:exp [f1_list]:pattern* [f2_list]:pattern*
-				  |{dpattern} [dpattern]:exp [dot_op]:exp
-				  |{dot} [dot_op]:exp [bool_exp]:exp
+				  |{restriction} [dot_op]:exp
+				  |{dpattern} [double_list2]:exp+
+				  |{dot_op} [dot_op_list]:exp+
 				  |{or} [bool_exp]:exp [bool_exp2]:exp
 				  |{and} [bool_exp2]:exp [bool_exp3]:exp
 				  |{not} [bool_exp3]:exp
@@ -682,8 +686,8 @@ exp 			=  {function} id parameters [proc1]:exp
 				  |{subtraction} [val_exp]:exp [val_exp1]:exp
 				  |{multiplication}	[val_exp1]:exp [val_exp2]:exp
 				  |{un_minus} [val_exp2]:exp 
-				  |{length} [sequence0]:exp
-				  |{cat} [sequence1]:exp [atom]:exp
+				  |{length} [length]:exp
+				  |{concat} [concat_list2]:exp+
 //Sequences			  				  				  				  
 				  |{empty_seq}
 				  |{expl_seq} arguments

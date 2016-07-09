@@ -5,7 +5,7 @@ import java.util.Arrays;
 
 public class PrologTermOutput
 {
-	private final StringWriter out;
+	private StringWriter out;
 
 	// comma_needed states if the next term can be printed directly (false) or
 	// if a separating comma is needed first
@@ -228,6 +228,11 @@ public class PrologTermOutput
 			throw new RuntimeException("Could not close StringWriter.");
 		}
 		return out;
-	}	 
+	}
+	
+	public void setStringWriter(StringWriter sw)
+	{
+		out = sw;
+	}	 	
 	
 }

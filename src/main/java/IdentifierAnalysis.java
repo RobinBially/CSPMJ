@@ -305,25 +305,25 @@ public class IdentifierAnalysis extends DepthFirstAdapter
         outAPatternExp(node);
     }
 	
-    @Override
-    public void caseARestrictedPattern(ARestrictedPattern node)
-    {
-        inARestrictedPattern(node);
-		if(currentLeft || currentInLambdaLeft)
-		{
-			throw new RuntimeException("':'- Operator is illegal here!");
-		}
+    // @Override
+    // public void caseARestrictedPattern(ARestrictedPattern node)
+    // {
+        // inARestrictedPattern(node);
+		// if(currentLeft || currentInLambdaLeft)
+		// {
+			// throw new RuntimeException("':'- Operator is illegal here!");
+		// }
 		
-        if(node.getPattern4() != null)
-        {
-            node.getPattern4().apply(this);
-        }
-        if(node.getBoolExp() != null)
-        {
-            node.getBoolExp().apply(this);
-        }
-        outARestrictedPattern(node);
-    }
+        // if(node.getPattern4() != null)
+        // {
+            // node.getPattern4().apply(this);
+        // }
+        // if(node.getDotOp() != null)
+        // {
+            // node.getDotOp().apply(this);
+        // }
+        // outARestrictedPattern(node);
+    // }
 	
     @Override
     public void caseAVarPattern(AVarPattern node)
@@ -692,29 +692,29 @@ public class IdentifierAnalysis extends DepthFirstAdapter
 //***************************************************************************************
 //Input fields	
     @Override
-    public void caseANondetRestPattern(ANondetRestPattern node)
+    public void caseANondetInputPattern(ANondetInputPattern node)
     {
-        inANondetRestPattern(node);
+        inANondetInputPattern(node);
 		currentInInput = true;
         if(node.getPattern1() != null)
         {
             node.getPattern1().apply(this);
         }
 		currentInInput = false;
-        outANondetRestPattern(node);
+        outANondetInputPattern(node);
     }
 	
     @Override
-    public void caseAInputRestPattern(AInputRestPattern node)
+    public void caseAInputPattern(AInputPattern node)
     {
-        inAInputRestPattern(node);
+        inAInputPattern(node);
 		currentInInput = true;
         if(node.getPattern1() != null)
         {
             node.getPattern1().apply(this);
         }
 		currentInInput = false;
-        outAInputRestPattern(node);
+        outAInputPattern(node);
     }
 
 	@Override

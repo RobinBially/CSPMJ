@@ -9,16 +9,22 @@ import java.io.*;
 
 public class PrologGenerator extends DepthFirstAdapter
 {
+	private boolean expectingPattern;
+	private boolean currentInInput;
+	private boolean currentInNondetInput;
 	private final PrologTermOutput p;
 	private int currentInParams;
 	private HashMap<String,ArrayList<SymInfo>> symbols; //Identifier,Counter
 	private int groundrep;
 	private ArrayList<String> currentParams;
 	private boolean currentInChannel;
-	
+	private int leftFromPrefix;
 	public PrologGenerator(final PrologTermOutput pto,HashMap<String,ArrayList<SymInfo>> symbols) 
 	{
-		//super();
+		expectingPattern = false;
+		currentInInput = false;
+		currentInNondetInput = false;
+		leftFromPrefix = 0;
 		currentInChannel = false;
 		p = pto;
 		currentInParams = 0;
@@ -457,6 +463,218 @@ public class PrologGenerator extends DepthFirstAdapter
 		}
 		
         outAVarPattern(node);
+    }
+	
+    @Override
+    public void caseADoublePattern(ADoublePattern node)
+    {
+        inADoublePattern(node);
+        {
+            List<PPattern> copy = new ArrayList<PPattern>(node.getDoubleList());
+			if(copy.size()>1)
+			{
+				p.openTerm("alsoPattern");
+				p.openList();
+			}
+            for(PPattern e : copy)
+            {
+                e.apply(this);
+            }
+			if(copy.size()>1)
+			{
+				p.closeList();
+				p.closeTerm();
+			}
+        }
+        outADoublePattern(node);
+    }
+
+    @Override
+    public void caseADotPattern(ADotPattern node)
+    {
+        inADotPattern(node);
+        {
+            List<PPattern> copy = new ArrayList<PPattern>(node.getDotList());
+			if(copy.size()>1)
+			{
+				p.openTerm("dotpat");
+				p.openList();
+			}
+            for(PPattern e : copy)
+            {
+                e.apply(this);
+            }
+			if(copy.size()>1)
+			{ 
+				p.closeList();
+				p.closeTerm();
+			}
+
+        }
+        outADotPattern(node);
+    }
+   
+
+    @Override
+    public void caseAConcatPattern(AConcatPattern node)
+    {
+        inAConcatPattern(node);
+        {
+            List<PPattern> copy = new ArrayList<PPattern>(node.getConcatList());
+			if(copy.size()>1)
+			{
+				p.openTerm("appendPattern");
+				p.openList();
+			}
+            for(PPattern e : copy)
+            {
+                e.apply(this);
+            }
+			if(copy.size()>1)
+			{
+				p.closeList();
+				p.closeTerm();
+			}
+        }
+        outAConcatPattern(node);
+    }
+
+    @Override
+    public void caseAEmptySetPattern(AEmptySetPattern node)
+    {
+        inAEmptySetPattern(node);
+        outAEmptySetPattern(node);
+    }
+
+    @Override
+    public void caseASetPattern(ASetPattern node)
+    {
+        inASetPattern(node);
+        if(node.getPattern1() != null)
+        {
+            node.getPattern1().apply(this);
+        }
+        outASetPattern(node);
+    }
+	
+    @Override
+    public void caseAEmptyListPattern(AEmptyListPattern node)
+    {
+        inAEmptyListPattern(node);
+        outAEmptyListPattern(node);
+    }
+
+    @Override
+    public void caseAListPattern(AListPattern node)
+    {
+        inAListPattern(node);
+        {
+            List<PPattern> copy = new ArrayList<PPattern>(node.getPatternList());
+            for(PPattern e : copy)
+            {
+                e.apply(this);
+            }
+        }
+        outAListPattern(node);
+    }
+
+    @Override
+    public void caseAParPattern(AParPattern node)
+    {
+        inAParPattern(node);
+        if(node.getPattern1() != null)
+        {
+            node.getPattern1().apply(this);
+        }
+        outAParPattern(node);
+    }
+
+    @Override
+    public void caseATuplePattern(ATuplePattern node)
+    {
+        inATuplePattern(node);
+        if(node.getPattern1() != null)
+        {
+            node.getPattern1().apply(this);
+        }
+        {
+            List<PPattern> copy = new ArrayList<PPattern>(node.getPatternList());
+            for(PPattern e : copy)
+            {
+                e.apply(this);
+            }
+        }
+        outATuplePattern(node);
+    }
+
+    @Override
+    public void caseAWildcardPattern(AWildcardPattern node)
+    {
+        inAWildcardPattern(node);
+        if(node.getWildcard() != null)
+        {
+            node.getWildcard().apply(this);
+        }
+        outAWildcardPattern(node);
+    }
+
+    @Override
+    public void caseAStringPattern(AStringPattern node)
+    {
+        inAStringPattern(node);
+        if(node.getString() != null)
+        {
+            node.getString().apply(this);
+        }
+        outAStringPattern(node);
+    }
+
+    @Override
+    public void caseACharPattern(ACharPattern node)
+    {
+        inACharPattern(node);
+        if(node.getChar() != null)
+        {
+            node.getChar().apply(this);
+        }
+        outACharPattern(node);
+    }
+
+    @Override
+    public void caseANumberPattern(ANumberPattern node)
+    {
+        inANumberPattern(node);
+        if(node.getNumber() != null)
+        {
+			p.openTerm("int");
+            node.getNumber().apply(this);
+			int i = Integer.valueOf(node.getNumber().getText());
+			p.printNumber(i);
+			p.closeTerm();
+        }
+        outANumberPattern(node);
+    }
+
+    @Override
+    public void caseATruePattern(ATruePattern node)
+    {
+        inATruePattern(node);
+        if(node.getTrue2() != null)
+        {
+            node.getTrue2().apply(this);
+        }
+        outATruePattern(node);
+    }
+
+    @Override
+    public void caseAFalsePattern(AFalsePattern node)
+    {
+        inAFalsePattern(node);
+        if(node.getFalse2() != null)
+        {
+            node.getFalse2().apply(this);
+        }
+        outAFalsePattern(node);
     }	
 //***************************************************************************************************************************************************	
 //Expressions Right Side
@@ -650,14 +868,24 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseAExtChoiceExp(AExtChoiceExp node)
     {
         inAExtChoiceExp(node);
+		p.openTerm("[]");
         if(node.getProc5() != null)
         {
             node.getProc5().apply(this);
+        }
+		if(node.getEChoice() != null)
+        {
+            node.getEChoice().apply(this);
         }
         if(node.getProc6() != null)
         {
             node.getProc6().apply(this);
         }
+		p.openTerm("src_span_operator");
+		p.printAtom("no_loc_info_available");
+		printSrcLoc(node.getEChoice());
+		p.closeTerm();
+		p.closeTerm();
         outAExtChoiceExp(node);
     }
 	
@@ -665,9 +893,14 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseASyncExtExp(ASyncExtExp node)
     {
         inASyncExtExp(node);
+		p.openTerm("syncExtChoice");
         if(node.getProc5() != null)
         {
             node.getProc5().apply(this);
+        }
+        if(node.getOpStart() != null)
+        {
+            node.getOpStart().apply(this);
         }
         if(node.getEvent() != null)
         {
@@ -677,6 +910,8 @@ public class PrologGenerator extends DepthFirstAdapter
         {
             node.getProc6().apply(this);
         }
+		printSrcLoc(node.getOpStart());
+		p.closeTerm();
         outASyncExtExp(node);
     }
 
@@ -684,14 +919,24 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseAInterruptExp(AInterruptExp node)
     {
         inAInterruptExp(node);
+		p.openTerm("/\\");
         if(node.getProc6() != null)
         {
             node.getProc6().apply(this);
+        }
+        if(node.getInterrupt() != null)
+        {
+            node.getInterrupt().apply(this);
         }
         if(node.getProc7() != null)
         {
             node.getProc7().apply(this);
         }
+		p.openTerm("src_span_operator");
+		p.printAtom("no_loc_info_available");
+		printSrcLoc(node.getInterrupt());
+		p.closeTerm();
+		p.closeTerm();
         outAInterruptExp(node);
     }
 
@@ -699,9 +944,14 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseASyncInterruptExp(ASyncInterruptExp node)
     {
         inASyncInterruptExp(node);
+		p.openTerm("syncInterrupt");
         if(node.getProc6() != null)
         {
             node.getProc6().apply(this);
+        }
+        if(node.getSyncIntL() != null)
+        {
+            node.getSyncIntL().apply(this);
         }
         if(node.getEvent() != null)
         {
@@ -711,6 +961,8 @@ public class PrologGenerator extends DepthFirstAdapter
         {
             node.getProc7().apply(this);
         }
+		printSrcLoc(node.getSyncIntL());
+		p.closeTerm();
         outASyncInterruptExp(node);
     }
 
@@ -718,14 +970,24 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseASlidingChoiceExp(ASlidingChoiceExp node)
     {
         inASlidingChoiceExp(node);
+		p.openTerm("[>");
         if(node.getProc7() != null)
         {
             node.getProc7().apply(this);
+        }
+        if(node.getTimeout() != null)
+        {
+            node.getTimeout().apply(this);
         }
         if(node.getProc8() != null)
         {
             node.getProc8().apply(this);
         }
+		p.openTerm("src_span_operator");
+		p.printAtom("no_loc_info_available");
+		printSrcLoc(node.getTimeout());
+		p.closeTerm();
+		p.closeTerm();
         outASlidingChoiceExp(node);
     }
 
@@ -733,14 +995,24 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseASeqCompositionExp(ASeqCompositionExp node)
     {
         inASeqCompositionExp(node);
+		p.openTerm(";");
         if(node.getProc8() != null)
         {
             node.getProc8().apply(this);
+        }
+        if(node.getSemicolon() != null)
+        {
+            node.getSemicolon().apply(this);
         }
         if(node.getProc9() != null)
         {
             node.getProc9().apply(this);
         }
+		p.openTerm("src_span_operator");
+		p.printAtom("no_loc_info_available");
+		printSrcLoc(node.getSemicolon());
+		p.closeTerm();
+		p.closeTerm();
         outASeqCompositionExp(node);
     }
 
@@ -748,6 +1020,7 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseAGuardExp(AGuardExp node)
     {
         inAGuardExp(node);
+		p.openTerm("&");
         if(node.getDotOp() != null)
         {
             node.getDotOp().apply(this);
@@ -756,6 +1029,7 @@ public class PrologGenerator extends DepthFirstAdapter
         {
             node.getProc9().apply(this);
         }
+		p.closeTerm();
         outAGuardExp(node);
     }
 
@@ -763,14 +1037,23 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseAPrefixExp(APrefixExp node)
     {
         inAPrefixExp(node);
+		p.openTerm("prefix");
+		leftFromPrefix += 1;
         if(node.getEvent() != null)
         {
             node.getEvent().apply(this);
+        }
+		leftFromPrefix -= 1;
+        if(node.getPrefix() != null)
+        {
+            node.getPrefix().apply(this);
         }
         if(node.getProc9() != null)
         {
             node.getProc9().apply(this);
         }
+		printSrcLoc(node.getPrefix());
+		p.closeTerm();
         outAPrefixExp(node);
     }
 
@@ -978,55 +1261,151 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseAEventExp(AEventExp node)
     {
         inAEventExp(node);
+        
+		List<PPattern> copy1 = new ArrayList<PPattern>(node.getF1List());
+		List<PPattern> copy2 = new ArrayList<PPattern>(node.getF2List());
+		
+		if(copy1.size()>0 || copy2.size()>0)
+		{
+			printSrcLoc(node.getDpattern());
+			p.openList();
+			for(PPattern e : copy1)
+			{
+				e.apply(this);
+			}	
+			
+			for(PPattern e : copy2)
+			{
+				e.apply(this);
+			}
+			p.closeList();
+		}
+		else if(leftFromPrefix > 0)
+		{
+			printSrcLoc(node.getDpattern());
+			p.openList();
+			p.closeList();
+		}
+        
         if(node.getDpattern() != null)
         {
             node.getDpattern().apply(this);
         }
-        {
-            List<PPattern> copy = new ArrayList<PPattern>(node.getF1List());
-            for(PPattern e : copy)
-            {
-                e.apply(this);
-            }
-        }
-        {
-            List<PPattern> copy = new ArrayList<PPattern>(node.getF2List());
-            for(PPattern e : copy)
-            {
-                e.apply(this);
-            }
-        }
         outAEventExp(node);
     }
+	
+    @Override
+    public void caseANondetInputPattern(ANondetInputPattern node)
+    {
+        inANondetInputPattern(node);
+		if(node.getRestriction() == null)
+		{
+			p.openTerm("nondetIn");
+		}
+		else
+		{
+			p.openTerm("nondetInGuard");
+		}
+		
+        if(node.getPattern1() != null)
+        {
+            node.getPattern1().apply(this);
+        }
+        if(node.getRestriction() != null)
+        {
+            node.getRestriction().apply(this);
+        }
+		
+		p.closeTerm();
+        outANondetInputPattern(node);
+    }
+	
+    @Override
+    public void caseAInputPattern(AInputPattern node)
+    {
+        inAInputPattern(node);
+		
+		if(node.getRestriction() == null)
+		{
+			p.openTerm("in");
+		}
+		else
+		{
+			p.openTerm("inGuard");
+		}
+		
+        if(node.getPattern1() != null)
+        {
+            node.getPattern1().apply(this);
+        }
+        if(node.getRestriction() != null)
+        {
+            node.getRestriction().apply(this);
+        }
 
+		p.closeTerm();
+        outAInputPattern(node);
+    }
+
+    @Override
+    public void caseAOutputPattern(AOutputPattern node)
+    {
+        inAOutputPattern(node);
+		p.openTerm("out");
+        if(node.getDotOp() != null)
+        {
+            node.getDotOp().apply(this);
+        }
+		p.closeTerm();
+        outAOutputPattern(node);
+    }
+	
     @Override
     public void caseADpatternExp(ADpatternExp node)
     {
         inADpatternExp(node);
-        if(node.getDpattern() != null)
         {
-            node.getDpattern().apply(this);
-        }
-        if(node.getDotOp() != null)
-        {
-            node.getDotOp().apply(this);
+            List<PExp> copy = new ArrayList<PExp>(node.getDoubleList2());
+			if(copy.size()>1)
+			{
+				p.openTerm("alsoPattern");
+				p.openList();
+			}
+            for(PExp e : copy)
+            {
+                e.apply(this);
+            }
+			if(copy.size()>1)
+			{
+				p.closeList();
+				p.closeTerm();
+			}
         }
         outADpatternExp(node);
     }
 
     @Override
-    public void caseADotExp(ADotExp node)
+    public void caseADotOpExp(ADotOpExp node)
     {
-        inADotExp(node);
-        if(node.getDotOp() != null)
+        inADotOpExp(node);
         {
-            node.getDotOp().apply(this);
+            List<PExp> copy = new ArrayList<PExp>(node.getDotOpList());
+			if(copy.size()>1)
+			{
+				p.openTerm("dotTuple");
+				p.openList();
+			}
+            for(PExp e : copy)
+            {
+                e.apply(this);
+            }
+			if(copy.size()>1)
+			{
+				p.closeList();
+				p.closeTerm();
+			}
         }
-        if(node.getBoolExp() != null)
-        {
-            node.getBoolExp().apply(this);
-        }
-        outADotExp(node);
+        outADotOpExp(node);
     }
 
     @Override
@@ -1190,26 +1569,43 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseALengthExp(ALengthExp node)
     {
         inALengthExp(node);
-        if(node.getSequence0() != null)
+        if(node.getLength() != null)
         {
-            node.getSequence0().apply(this);
+            node.getLength().apply(this);
         }
         outALengthExp(node);
     }
 	
-    @Override
-    public void caseACatExp(ACatExp node)
+   @Override
+    public void caseAConcatExp(AConcatExp node)
     {
-        inACatExp(node);
-        if(node.getSequence1() != null)
+        inAConcatExp(node);
         {
-            node.getSequence1().apply(this);
+            List<PExp> copy = new ArrayList<PExp>(node.getConcatList2());
+			if(copy.size()>1 && expectingPattern)
+			{
+				p.openTerm("appendPattern");
+				p.openList();
+			}
+			else if(copy.size()>1)
+			{
+				p.openTerm("^");
+			}
+            for(PExp e : copy)
+            {
+                e.apply(this);
+            }
+			if(copy.size()>1 && expectingPattern)
+			{
+				p.closeList();
+				p.closeTerm();
+			}
+			else if(copy.size()>1)
+			{
+				p.closeTerm();
+			}
         }
-        if(node.getAtom() != null)
-        {
-            node.getAtom().apply(this);
-        }
-        outACatExp(node);
+        outAConcatExp(node);
     }
 
     @Override
@@ -1649,6 +2045,7 @@ public class PrologGenerator extends DepthFirstAdapter
 		
         outAIdExp(node);
     }
+
 //***************************************************************************************************************************************************
 //Linked & Renamed + Comprehensions
 

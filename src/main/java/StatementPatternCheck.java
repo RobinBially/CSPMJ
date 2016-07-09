@@ -625,34 +625,20 @@ public class StatementPatternCheck extends DepthFirstAdapter
     public void caseADpatternExp(ADpatternExp node)
     {
         inADpatternExp(node);
-		if(patternRequired == 0)
-		{
-			throw new RuntimeException("Patterns are not allowed here.");
-		}
-        if(node.getDpattern() != null)
         {
-            node.getDpattern().apply(this);
-        }
-        if(node.getDotOp() != null)
-        {
-            node.getDotOp().apply(this);
+            List<PExp> copy = new ArrayList<PExp>(node.getDoubleList2());
+			
+			if(patternRequired == 0 && copy.size()>1)
+			{
+				throw new RuntimeException("Patterns are not allowed here.");
+			}
+			
+            for(PExp e : copy)
+            {
+                e.apply(this);
+            }
         }
         outADpatternExp(node);
-    }
-
-    @Override
-    public void caseADotExp(ADotExp node)
-    {
-        inADotExp(node);
-        if(node.getDotOp() != null)
-        {
-            node.getDotOp().apply(this);
-        }
-        if(node.getBoolExp() != null)
-        {
-            node.getBoolExp().apply(this);
-        }
-        outADotExp(node);
     }
 
     @Override
@@ -864,44 +850,11 @@ public class StatementPatternCheck extends DepthFirstAdapter
 		{
 			throw new RuntimeException("Expecting pattern (Length Op. not allowed).");
 		}
-        if(node.getSequence0() != null)
+        if(node.getLength() != null)
         {
-            node.getSequence0().apply(this);
+            node.getLength().apply(this);
         }
         outALengthExp(node);
-    }
-
-    @Override
-    public void caseACatExp(ACatExp node)
-    {
-        inACatExp(node);
-        if(node.getSequence1() != null)
-        {
-            node.getSequence1().apply(this);
-        }
-        if(node.getAtom() != null)
-        {
-            node.getAtom().apply(this);
-        }
-        outACatExp(node);
-    }
-
-    @Override
-    public void caseAEmptySeqExp(AEmptySeqExp node)
-    {
-        inAEmptySeqExp(node);
-        outAEmptySeqExp(node);
-    }
-
-    @Override
-    public void caseAExplSeqExp(AExplSeqExp node)
-    {
-        inAExplSeqExp(node);
-        if(node.getArguments() != null)
-        {
-            node.getArguments().apply(this);
-        }
-        outAExplSeqExp(node);
     }
 	
     @Override
