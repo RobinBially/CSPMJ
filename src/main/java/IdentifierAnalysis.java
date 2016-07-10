@@ -21,9 +21,9 @@ public class IdentifierAnalysis extends DepthFirstAdapter
 	private HashMap<Integer,ArrayList<String>> right = new HashMap<Integer,ArrayList<String>>();
 					//letWithinDepth,     id
 	private ArrayList<String> builtIn = new ArrayList<String>();
-	private ArrayList<String> variable = new ArrayList<String>();
 	private ArrayList<String> currentLambdaParams = new ArrayList<String>();
 	private ArrayList<String> currentParams = new ArrayList<String>();
+	private ArrayList<String> currentInput = new ArrayList<String>();
 	private ArrayList<String> pendingId = new ArrayList<String>();
 	private ArrayList<String> statementVar = new ArrayList<String>();
 	private HashMap<Integer,ArrayList<String>> letWithinArgs = new HashMap<Integer,ArrayList<String>>();
@@ -242,7 +242,8 @@ public class IdentifierAnalysis extends DepthFirstAdapter
     {
         inAFunctionExp(node);
 
-		currentParams = new ArrayList<String>();
+		currentParams.clear();
+		currentInput.clear();
 		pendingId = new ArrayList<String>();
 		currentLeft = true;
 		
@@ -288,7 +289,8 @@ public class IdentifierAnalysis extends DepthFirstAdapter
     public void caseAPatternExp(APatternExp node)
     {
         inAPatternExp(node);
-		currentParams = new ArrayList<String>();
+		currentParams.clear();
+		currentInput.clear();
 		pendingId = new ArrayList<String>();
 		
 		currentLeft = true;		
@@ -305,26 +307,6 @@ public class IdentifierAnalysis extends DepthFirstAdapter
         outAPatternExp(node);
     }
 	
-    // @Override
-    // public void caseARestrictedPattern(ARestrictedPattern node)
-    // {
-        // inARestrictedPattern(node);
-		// if(currentLeft || currentInLambdaLeft)
-		// {
-			// throw new RuntimeException("':'- Operator is illegal here!");
-		// }
-		
-        // if(node.getPattern4() != null)
-        // {
-            // node.getPattern4().apply(this);
-        // }
-        // if(node.getDotOp() != null)
-        // {
-            // node.getDotOp().apply(this);
-        // }
-        // outARestrictedPattern(node);
-    // }
-	
     @Override
     public void caseAVarPattern(AVarPattern node)
     {
@@ -337,6 +319,10 @@ public class IdentifierAnalysis extends DepthFirstAdapter
 			{}	
 			else if(currentInParameters)
 			{
+				if(currentParams.contains(str))
+				{
+					throw new RuntimeException("Redefinition of Identifier: "+str+".");
+				}
 				currentParams.add(str);
 			}
 			else if(currentLeft) //Single Identifier without params
@@ -359,11 +345,19 @@ public class IdentifierAnalysis extends DepthFirstAdapter
 			}
 			else if(currentInLambdaLeft)
 			{
+				if(currentLambdaParams.contains(str))
+				{
+					throw new RuntimeException("Redefinition of Identifier: "+str+".");
+				}
 				currentLambdaParams.add(str);
 			}
 			else if(currentInInput)
 			{//c?x 
-				currentParams.add(str);
+				if(currentInput.contains(str))
+				{
+					throw new RuntimeException("Redefinition of Identifier: "+str+".");
+				}
+				currentInput.add(str);
 			}
 			else
 			{	
@@ -371,7 +365,7 @@ public class IdentifierAnalysis extends DepthFirstAdapter
 				{
 					right.put(letWithinDepth,new ArrayList<String>());
 				}	
-				if(!right.get(letWithinDepth).contains(str) && !currentParams.contains(str))
+				if(!right.get(letWithinDepth).contains(str) && !currentParams.contains(str) && !currentInput.contains(str))
 				{
 					ArrayList<String> temp = right.get(letWithinDepth);
 					temp.add(str);
@@ -804,12 +798,16 @@ public class IdentifierAnalysis extends DepthFirstAdapter
                 e.apply(this);
             }
         }
+
         if(node.getProc9() != null)
         {
             node.getProc9().apply(this);
         }
 		
-		check(letWithinDepth);
+		if(right.get(letWithinDepth) != null)
+		{
+			check(letWithinDepth);
+		}
 		left.remove(letWithinDepth);
 		right.remove(letWithinDepth);
 		letWithinDepth -= 1;
@@ -867,6 +865,7 @@ public class IdentifierAnalysis extends DepthFirstAdapter
 			}
 			else if(currentInGenerator>0 
 					&& !currentParams.contains(str)
+					&& !currentInput.contains(str)
 					&& !statementVar.contains(str))
 			{
 				statementVar.add(str);
@@ -874,6 +873,7 @@ public class IdentifierAnalysis extends DepthFirstAdapter
 			else if(!builtIn.contains(str)
 				 && !right.get(letWithinDepth).contains(str) 
 			   	 && !currentParams.contains(str)
+				 && !currentInput.contains(str)
 				 && !currentLambdaParams.contains(str)
 				 && !statementVar.contains(str))
 			{
@@ -956,6 +956,8 @@ public class IdentifierAnalysis extends DepthFirstAdapter
 	//	System.out.println("right: "+right);
 		ArrayList<String> l = new ArrayList<String>(); //0-depth
 		ArrayList<String> r = right.get(depth); //depth only
+
+		
 		
 		for(int i = 0; i<left.size();i++)
 		{

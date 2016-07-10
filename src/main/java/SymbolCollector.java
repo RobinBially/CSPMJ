@@ -14,14 +14,19 @@ public class SymbolCollector extends DepthFirstAdapter
 	private int currentInParams;
 	private HashMap<String,ArrayList<SymInfo>> symbols; //Identifier,Counter
 	private int groundrep;
-	private ArrayList<String> currentParams;	
-	
+	private int letWithinCount; //renumber let-within blocks
+	private int currentLetWithinNum; //Saves a reference to the current let-within block
+	private HashMap<Integer,Integer> letWithinStruct;
+				// counter ,predecessor
 	public SymbolCollector()
 	{
+		letWithinCount = 0;
+		currentLetWithinNum = 0;
+		letWithinStruct = new HashMap<Integer,Integer>();
 		currentInParams = 0;
 		groundrep = 0;
 		symbols = new HashMap<String,ArrayList<SymInfo>>();
-		currentParams = new ArrayList<String>();
+		//currentParams = new ArrayList<String>();
 	}
 //***************************************************************************************************************************************************
 //Datatype, Subtype, Nametype
@@ -35,7 +40,7 @@ public class SymbolCollector extends DepthFirstAdapter
             node.getId().apply(this);
 			String str = node.getId().toString().replace(" ","");
 			ArrayList<SymInfo> temp = new ArrayList<SymInfo>();
-			SymInfo si = new SymInfo(node.getId(),"Nametype");
+			SymInfo si = new SymInfo(node.getId(),"Nametype",0);
 			temp.add(si);
 			symbols.put(str,temp);
         }
@@ -56,7 +61,7 @@ public class SymbolCollector extends DepthFirstAdapter
             node.getId().apply(this);
 			String str = node.getId().toString().replace(" ","");
 			ArrayList<SymInfo> temp = new ArrayList<SymInfo>();
-			SymInfo si = new SymInfo(node.getId(),"Datatype");
+			SymInfo si = new SymInfo(node.getId(),"Datatype",0);
 			temp.add(si);
 			symbols.put(str,temp);
         }
@@ -79,7 +84,7 @@ public class SymbolCollector extends DepthFirstAdapter
             node.getClauseName().apply(this);
 			String str = node.getClauseName().toString().replace(" ","");
 			ArrayList<SymInfo> temp = new ArrayList<SymInfo>();
-			SymInfo si = new SymInfo(node.getClauseName(),"Constructor of Datatype");
+			SymInfo si = new SymInfo(node.getClauseName(),"Constructor of Datatype",0);
 			temp.add(si);
 			symbols.put(str,temp);
         }
@@ -103,7 +108,7 @@ public class SymbolCollector extends DepthFirstAdapter
                 e.apply(this);
 				String str = e.toString().replace(" ","");
 				ArrayList<SymInfo> temp = new ArrayList<SymInfo>();
-				SymInfo si = new SymInfo(e,"Channel");
+				SymInfo si = new SymInfo(e,"Channel",0);
 				temp.add(si);
 				symbols.put(str,temp);
             }
@@ -145,35 +150,33 @@ public class SymbolCollector extends DepthFirstAdapter
 				if(symbols.containsKey(str))
 				{
 					ArrayList<SymInfo> temp = symbols.get(str);
-					SymInfo si = new SymInfo(node.getId(),"Ident (Groundrep.)");
-					si.setCalled(true);
+					SymInfo si = new SymInfo(node.getId(),"Ident (Groundrep.)",currentLetWithinNum);
 					temp.add(si);
 					symbols.put(str,temp);
 				}
 				else
 				{
 					ArrayList<SymInfo> temp = new ArrayList<SymInfo>();
-					SymInfo si = new SymInfo(node.getId(),"Ident (Groundrep.)");
-					si.setCalled(true);
+					SymInfo si = new SymInfo(node.getId(),"Ident (Groundrep.)",currentLetWithinNum);
 					temp.add(si);
 					symbols.put(str,temp);
 				}
 		}
 		else if(currentInParams>0)
 		{		
-			currentParams.add(str);
+			//currentParams.add(str);
 		
 			if(symbols.containsKey(str))
 			{
 				ArrayList<SymInfo> temp = symbols.get(str);
-				SymInfo si = new SymInfo(node.getId(),"Ident (Prolog Variable)");
+				SymInfo si = new SymInfo(node.getId(),"Ident (Prolog Variable)",currentLetWithinNum);
 				temp.add(si);
 				symbols.put(str,temp);
 			}
 			else
 			{
 				ArrayList<SymInfo> temp = new ArrayList<SymInfo>();
-				SymInfo si = new SymInfo(node.getId(),"Ident (Prolog Variable)");
+				SymInfo si = new SymInfo(node.getId(),"Ident (Prolog Variable)",currentLetWithinNum);
 				temp.add(si);
 				symbols.put(str,temp);
 			}
@@ -194,13 +197,43 @@ public class SymbolCollector extends DepthFirstAdapter
         inAFunctionExp(node);
         if(node.getId() != null)
         {
-            node.getId().apply(this);
-			
+            node.getId().apply(this);			
 			String id = node.getId().toString().replace(" ","");
-			ArrayList<SymInfo> temp = new ArrayList<SymInfo>();
-			SymInfo si = new SymInfo(node.getId(),"Function or Process");
-			temp.add(si);
-			symbols.put(id,temp);
+			boolean found = false;
+			if(symbols.get(id) != null)
+			{
+				for(int k = 0;k<symbols.get(id).size();k++)
+				{
+					if(symbols.get(id).get(k).getSymbolInfo().equals("Function or Process"))
+					{
+						int v = symbols.get(id).get(k).getLetWithinCount();
+						if(v == currentLetWithinNum)
+						{
+							found = true;
+							//keep in symbols, do not replace !!!
+							break;
+						}
+					}
+					
+				}
+			}
+			if(!found)
+			{
+				if(symbols.get(id) == null)
+				{
+					ArrayList<SymInfo> temp = new ArrayList<SymInfo>();
+					SymInfo si = new SymInfo(node.getId(),"Function or Process",currentLetWithinNum);
+					temp.add(si);
+					symbols.put(id,temp);
+				}
+				else
+				{
+					ArrayList<SymInfo> temp = symbols.get(id);
+					SymInfo si = new SymInfo(node.getId(),"Function or Process",currentLetWithinNum);
+					temp.add(si);
+					symbols.put(id,temp);
+				}
+			}
         }
         if(node.getParameters() != null)
         {
@@ -234,6 +267,29 @@ public class SymbolCollector extends DepthFirstAdapter
         }
         outALambdaExp(node);
     }
+	
+    @Override
+    public void caseALetWithinExp(ALetWithinExp node)
+    {
+        inALetWithinExp(node);
+		letWithinCount++;
+		letWithinStruct.put(letWithinCount,currentLetWithinNum);
+		currentLetWithinNum = letWithinCount;
+        {
+            List<PDef> copy = new ArrayList<PDef>(node.getDefs());
+            for(PDef e : copy)
+            {
+                e.apply(this);
+            }
+        }
+		currentLetWithinNum = letWithinStruct.get(letWithinCount);
+        if(node.getProc9() != null)
+        {
+            node.getProc9().apply(this);
+        }
+        outALetWithinExp(node);
+    }
+	
     @Override
     public void caseANondetInputPattern(ANondetInputPattern node)
     {
@@ -292,4 +348,28 @@ public class SymbolCollector extends DepthFirstAdapter
 	{
 		return symbols;
 	}
+	
+	
+    // public ArrayList<Integer> getSrcLoc(Node node) 
+    // {
+		   // /* Data type of src_loc in cspmf 
+			// * src_loc 
+			// {
+			   // fixedStartLine   = getStartLine s
+			  // ,fixedStartCol    = getStartCol s
+			  // ,fixedEndLine     = getEndLine e
+			  // ,fixedEndCol      = getEndCol e
+			  // ,fixedLen         = getEndOffset e - getStartOffset s
+			  // ,fixedStartOffset = getStartOffset s
+			// }
+		  // */
+		// ArrayList<Integer> al
+		// p.printNumber(node.getStartPos().getLine());
+		// p.printNumber(node.getStartPos().getPos());
+		// p.printNumber(node.getEndPos().getLine());
+		// p.printNumber(node.getEndPos().getPos());
+		// p.printNumber(node.getEndPos().getPos()-node.getStartPos().getPos());
+		// p.printNumber(node.getEndPos().getPos()-node.getStartPos().getPos());
+		// p.closeTerm();
+    // }
 }

@@ -17,10 +17,23 @@ public class PrologGenerator extends DepthFirstAdapter
 	private HashMap<String,ArrayList<SymInfo>> symbols; //Identifier,Counter
 	private int groundrep;
 	private ArrayList<String> currentParams;
+	private ArrayList<String> currentLambdaParams;
+	private HashMap<Integer,ArrayList<String>> letWithinArgs;
+	private int currentInLambdaLeft;
+	private int currentInLambdaRight;
 	private boolean currentInChannel;
 	private int leftFromPrefix;
+	
+	private int letWithinCount; //renumber let-within blocks
+	private int currentLetWithinNum; //Saves a reference to the current let-within block
+	private HashMap<Integer,Integer> letWithinStruct;
+	
 	public PrologGenerator(final PrologTermOutput pto,HashMap<String,ArrayList<SymInfo>> symbols) 
 	{
+		letWithinCount = 0;
+		currentLetWithinNum = 0;
+		letWithinStruct = new HashMap<Integer,Integer>();
+		letWithinArgs = new HashMap<Integer,ArrayList<String>>();
 		expectingPattern = false;
 		currentInInput = false;
 		currentInNondetInput = false;
@@ -31,6 +44,9 @@ public class PrologGenerator extends DepthFirstAdapter
 		groundrep = 0;
 		this.symbols = symbols;
 		currentParams = new ArrayList<String>();
+		currentLambdaParams = new ArrayList<String>();
+		currentInLambdaLeft = 0;
+		currentInLambdaRight = 0;
 	}
 //***************************************************************************************************************************************************
 //Types
@@ -383,8 +399,27 @@ public class PrologGenerator extends DepthFirstAdapter
 		p.openTerm("agent");
         if(node.getId() != null)
         {
-            node.getId().apply(this);				
-			p.openTerm(node.getId().toString().replace(" ",""));
+            node.getId().apply(this);
+			String str = node.getId().toString().replace(" ","");
+			for(int k = 0;k<symbols.get(str).size();k++)
+			{
+				if(symbols.get(str).get(k).getSymbolInfo().equals("Function or Process")
+					&& (symbols.get(str).get(k).getLetWithinCount() == currentLetWithinNum))
+				{
+
+					if(k>0)
+					{
+						p.openTerm(str+(k+1));
+					}
+					else
+					{
+						p.openTerm(str);
+					}
+					break;
+					
+				}
+			}
+			
         }
         if(node.getParameters() != null)
         {
@@ -431,17 +466,59 @@ public class PrologGenerator extends DepthFirstAdapter
             node.getId().apply(this);
         }
 		
-		if(currentInParams<1)
-		{
-			p.printAtom(str);
-		}
-		else
+		if(groundrep>0)
 		{
 			for(int k = 0;k<symbols.get(str).size();k++)
 			{
-				if(!symbols.get(str).get(k).getCalled())
+				if(symbols.get(str).get(k).getNode() == node.getId())
 				{
-					symbols.get(str).get(k).setCalled(true);
+					if(k == 0)
+					{
+						p.printAtom(str);
+					}
+					else
+					{
+						p.printAtom(str+(k+1));
+					}
+					break;
+				}
+			}
+		}
+		else if(currentInLambdaLeft>0)
+		{
+			for(int k = 0;k<symbols.get(str).size();k++)
+			{
+				if(symbols.get(str).get(k).getNode() == node.getId())
+				{
+					if(k == 0)
+					{
+						p.printVariable("_"+str);
+						currentLambdaParams.add(str);
+					}
+					else
+					{
+						p.printVariable("_"+str+(k+1));
+						currentLambdaParams.add(str+(k+1));
+					}
+					break;
+				}
+			}			
+		}
+		else if(currentInParams>0)
+		{
+			for(int k = 0;k<symbols.get(str).size();k++)
+			{
+				//Input and nondetInput replace current parameters
+				if(k == 0 && currentParams.contains(str))
+				{
+					currentParams.remove(str);
+				}
+				else if(currentParams.contains(str+k))
+				{
+					currentParams.remove(str+k);
+				}
+				if(symbols.get(str).get(k).getNode() == node.getId())
+				{
 					if(k == 0)
 					{
 						p.printVariable("_"+str);
@@ -1060,18 +1137,24 @@ public class PrologGenerator extends DepthFirstAdapter
             List<PPattern> copy = new ArrayList<PPattern>(node.getPatternList());
 			p.openTerm("lambda");
 			p.openList();
+			currentInLambdaLeft +=1;
 			currentInParams +=1;
             for(PPattern e : copy)
             {
                 e.apply(this);
             }
 			currentInParams -=1;
+			currentInLambdaLeft -=1;
 			p.closeList();
         }
         if(node.getProc9() != null)
         {
+			currentInLambdaRight +=1;
             node.getProc9().apply(this);
+			//System.out.println(currentLambdaParams+"\n"+currentParams);
+			currentInLambdaRight -=1;
         }
+		currentLambdaParams.clear();
 		p.closeTerm();
         outALambdaExp(node);
     }
@@ -1080,17 +1163,28 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseALetWithinExp(ALetWithinExp node)
     {
         inALetWithinExp(node);
+		letWithinCount++;
+		letWithinStruct.put(letWithinCount,currentLetWithinNum);		
+		currentLetWithinNum = letWithinCount;
+		
+		letWithinArgs.put(letWithinCount,currentParams);
+		
         {
+			p.openTerm("let");
+			p.openList();
             List<PDef> copy = new ArrayList<PDef>(node.getDefs());
             for(PDef e : copy)
             {
                 e.apply(this);
             }
+			p.closeList();
         }
+		currentLetWithinNum = letWithinStruct.get(letWithinCount);
         if(node.getProc9() != null)
         {
             node.getProc9().apply(this);
         }
+		p.closeTerm();
         outALetWithinExp(node);
     }
 
@@ -2016,19 +2110,86 @@ public class PrologGenerator extends DepthFirstAdapter
 			p.openTerm("agent_call");
 			printSrcLoc(node);
 			boolean found = false;
-			for(int u = 1; u<=symbols.size();u++)
+			if(currentInLambdaRight>0)
 			{
-				if((u == 1) && currentParams.contains(str))
+				for(int u = 1; u<=symbols.size();u++)
 				{
-					found = true;
-					p.printVariable("_"+str);
-					break;
+					if((u == 1) && currentLambdaParams.contains(str))
+					{
+						found = true;
+						p.printVariable("_"+str);
+						break;
+					}
+					else if(currentLambdaParams.contains(str+u))
+					{
+						found = true;
+						p.printVariable("_"+str+u);
+						break;
+					}
 				}
-				else if(currentParams.contains(str+u))
+			}
+			if(!found) 
+			{
+				for(int u = 1; u<=symbols.size();u++)
 				{
-					found = true;
-					p.printVariable("_"+str+u);
-					break;
+					if((u == 1) && currentParams.contains(str))
+					{
+						found = true;
+						p.printVariable("_"+str);
+						break;
+					}
+					else if(currentParams.contains(str+u))
+					{
+						found = true;
+						p.printVariable("_"+str+u);
+						break;
+					}
+				}
+			}
+			if(!found && currentLetWithinNum > 0)
+			{
+				int dimCounter = currentLetWithinNum;
+				
+				while(dimCounter>0 && !found)
+				{
+					for(int a = 0;a<symbols.get(str).size();a++)
+					{
+						
+						for(int i = 0; i<letWithinArgs.get(dimCounter).size();i++)
+						{
+							if((i == 0) && letWithinArgs.get(dimCounter).get(i) == str)
+							{
+								found = true;
+								p.printAtom(str);
+								break;
+							}
+							if((i>0) && letWithinArgs.get(dimCounter).get(i) == str+(i+1))
+							{
+								found = true;	
+								p.printAtom(str+(i+1));
+								break; //Symbol was found in letWithinArgs of this dimension
+							}
+						}
+						
+						
+						if((symbols.get(str).get(a).getSymbolInfo().equals("Function or Process") 
+							&& symbols.get(str).get(a).getLetWithinCount() == dimCounter)	
+							|| (symbols.get(str).get(a).getSymbolInfo().equals("Ident (Groundrep.)")
+							&& symbols.get(str).get(a).getLetWithinCount() == dimCounter))
+							{
+								found = true;
+								if(a == 0)
+								{
+									p.printAtom(str);
+								}
+								else
+								{
+									p.printAtom(str+(a+1));
+								}
+								break; //symbol was found in current dimension
+							}
+					}
+					dimCounter = letWithinStruct.get(dimCounter); //Not found, search in predecessor
 				}
 			}
 			if(!isBuiltin(str) && !found)
@@ -2043,19 +2204,86 @@ public class PrologGenerator extends DepthFirstAdapter
 		else
 		{
 			boolean found = false;
-			for(int u = 1; u<=symbols.size();u++)
+			if(currentInLambdaRight>0)
 			{
-				if((u == 1) && currentParams.contains(str))
+				for(int u = 1; u<=symbols.size();u++)
 				{
-					found = true;
-					p.printVariable("_"+str);
-					break;
+					if((u == 1) && currentLambdaParams.contains(str))
+					{
+						found = true;
+						p.printVariable("_"+str);
+						break;
+					}
+					else if(currentLambdaParams.contains(str+u))
+					{
+						found = true;
+						p.printVariable("_"+str+u);
+						break;
+					}
 				}
-				else if(currentParams.contains(str+u))
+			}
+			if(!found) 
+			{
+				for(int u = 1; u<=symbols.size();u++)
 				{
-					found = true;
-					p.printVariable("_"+str+u);
-					break;
+					if((u == 1) && currentParams.contains(str))
+					{
+						found = true;
+						p.printVariable("_"+str);
+						break;
+					}
+					else if(currentParams.contains(str+u))
+					{
+						found = true;
+						p.printVariable("_"+str+u);
+						break;
+					}
+				}
+			}
+			if(!found && currentLetWithinNum > 0)
+			{
+				int dimCounter = currentLetWithinNum;
+				
+				while(dimCounter>0 && !found)
+				{
+					for(int a = 0;a<symbols.get(str).size();a++)
+					{
+						
+						for(int i = 0; i<letWithinArgs.get(dimCounter).size();i++)
+						{
+							if((i == 0) && letWithinArgs.get(dimCounter).get(i) == str)
+							{
+								found = true;
+								p.printAtom(str);
+								break;
+							}
+							if((i>0) && letWithinArgs.get(dimCounter).get(i) == str+(i+1))
+							{
+								found = true;	
+								p.printAtom(str+(i+1));
+								break; //Symbol was found in letWithinArgs of this dimension
+							}
+						}
+						
+						
+						if((symbols.get(str).get(a).getSymbolInfo().equals("Function or Process") 
+							&& symbols.get(str).get(a).getLetWithinCount() == dimCounter)	
+							|| (symbols.get(str).get(a).getSymbolInfo().equals("Ident (Groundrep.)")
+							&& symbols.get(str).get(a).getLetWithinCount() == dimCounter))
+							{
+								found = true;
+								if(a == 0)
+								{
+									p.printAtom(str);
+								}
+								else
+								{
+									p.printAtom(str+(a+1));
+								}
+								break; //symbol was found in current dimension
+							}
+					}
+					dimCounter = letWithinStruct.get(dimCounter); //Not found, search in predecessor
 				}
 			}
 			if(!isBuiltin(str) && !found)

@@ -15,9 +15,12 @@ C = (| |)
 D = (|1=>2|)
 E = 'a'
 F(x,y) = (1,2)
-G = F(1,2)
+G(a) = F(a)
 H = Events
 I(a) = A
+I(a) = a
+I(A) = a
+I(A) = A
 J = 1 \ 2
 K = 1 ||| 2
 L = 2 [|3|> 4
@@ -35,7 +38,8 @@ W = 2 ; 3
 X = 2 & 3 
 Y = 1 -> 5
 Z = 1?1.2 -> 5
-a = 1?1.2:1.2 -> 5
+a(d) = 1?1.2:1.2 -> 5
+a(d) = 1
 b = 1$1.2 -> 5
 c = 1$1.2:1.2 -> 5
 d = 1!1.2 -> 5
@@ -43,4 +47,17 @@ e = 1?1@@2 -> 5
 f = 1?1^2 -> 5
 g = 1^2
 h = \a,b@3
+i(a) = \b@a+b
+-- j(y,y) = y -- This should throw a redef. error!
+-- j(y) = 1?y?y -> 5 -- This should throw a redef. error!
+-- j(y) = \b,b@a+b -- This should throw a redef. error!
+j(y) = 1?y -> y
+k = let
+		I(a) = 1
+		I(a) = let
+				I(a) = a
+			within 8
+		I(a) = 3
+	within 9
+	
 -- This is an End-Of-File-Comment.

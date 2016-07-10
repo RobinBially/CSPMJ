@@ -186,7 +186,6 @@ public class CSPMparser
 			tree.apply(tlc);
 			System.out.println("\nYour CSPM-File has been successfully parsed.\n"
 			+"Checking Identifier occurrences...");
-			
 			IdentifierAnalysis ia = new IdentifierAnalysis();
 			tree.apply(ia);
 			
@@ -198,7 +197,6 @@ public class CSPMparser
 			SymbolCollector sc = new SymbolCollector();
 			tree.apply(sc);
 			HashMap<String,ArrayList<SymInfo>> symbols = sc.getSymbols();
-			
 			PrologGenerator pout = new PrologGenerator(pto,symbols);
 			tree.apply(pout);
 

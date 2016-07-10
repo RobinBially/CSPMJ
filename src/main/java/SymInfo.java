@@ -8,14 +8,14 @@ public class SymInfo
 {
 	private Node node;
 	private String symbolInfo;
-	private boolean called; 	//Is this var already printed?
+	private int letWithinCount; //Reference to letWithin block
 	
 	
-	public SymInfo(Node n, String st)
+	public SymInfo(Node n, String st, int lwc)
 	{
 		node = n;
 		symbolInfo = st;
-		called = false;
+		letWithinCount = lwc;
 	}
 	
 	public String getSymbolInfo()
@@ -38,15 +38,9 @@ public class SymInfo
 		node = n;
 	}
 	
-	public boolean getCalled()
+	public int getLetWithinCount()
 	{
-		return called;
+		return letWithinCount;
 	}
-	
-	public void setCalled(boolean b)
-	{
-		called = b;
-	}
-	
 	
 }
