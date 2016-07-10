@@ -213,31 +213,24 @@ public class PrologGenerator extends DepthFirstAdapter
 			for(int i = 0;i<symbols.get(key).size();i++)
 			{
 				Node n = symbols.get(key).get(i).getNode();
-				String s = "";
 				p.openTerm("symbol");
-				if(key.startsWith("_"))
-				{
-					s = key.substring(1);
-				}
-				else
-				{
-					s = key;
-				}
+
 				if(i == 0)
 				{
-					p.printAtom(s);
-					p.printAtom(s);
+					p.printAtom(key);
+					p.printAtom(key);
 				}
 				else
 				{
-					p.printAtom(s+(i+1));
-					p.printAtom(s);
+					p.printAtom(key+(i+1));
+					p.printAtom(key);
 				}				
 		
 				printSrcLoc(n);
 				p.printAtom(symbols.get(key).get(i).getSymbolInfo());
 				p.closeTerm();
 				p.fullstop();
+
 			}
 
 		}
@@ -444,18 +437,20 @@ public class PrologGenerator extends DepthFirstAdapter
 		}
 		else
 		{
-			for(int k = 0;k<symbols.get("_"+str).size();k++)
+			for(int k = 0;k<symbols.get(str).size();k++)
 			{
-				if(!symbols.get("_"+str).get(k).getCalled())
+				if(!symbols.get(str).get(k).getCalled())
 				{
-					symbols.get("_"+str).get(k).setCalled(true);
+					symbols.get(str).get(k).setCalled(true);
 					if(k == 0)
 					{
 						p.printVariable("_"+str);
+						currentParams.add(str);
 					}
 					else
 					{
 						p.printVariable("_"+str+(k+1));
+						currentParams.add(str+(k+1));
 					}
 					break;
 				}
@@ -1063,15 +1058,21 @@ public class PrologGenerator extends DepthFirstAdapter
         inALambdaExp(node);
         {
             List<PPattern> copy = new ArrayList<PPattern>(node.getPatternList());
+			p.openTerm("lambda");
+			p.openList();
+			currentInParams +=1;
             for(PPattern e : copy)
             {
                 e.apply(this);
             }
+			currentInParams -=1;
+			p.closeList();
         }
         if(node.getProc9() != null)
         {
             node.getProc9().apply(this);
         }
+		p.closeTerm();
         outALambdaExp(node);
     }
 
@@ -1306,11 +1307,12 @@ public class PrologGenerator extends DepthFirstAdapter
 		{
 			p.openTerm("nondetInGuard");
 		}
-		
+		currentInParams +=1;
         if(node.getPattern1() != null)
         {
             node.getPattern1().apply(this);
         }
+		currentInParams -=1;
         if(node.getRestriction() != null)
         {
             node.getRestriction().apply(this);
@@ -1333,11 +1335,12 @@ public class PrologGenerator extends DepthFirstAdapter
 		{
 			p.openTerm("inGuard");
 		}
-		
+		currentInParams +=1;
         if(node.getPattern1() != null)
         {
             node.getPattern1().apply(this);
         }
+		currentInParams -=1;
         if(node.getRestriction() != null)
         {
             node.getRestriction().apply(this);
@@ -2012,12 +2015,23 @@ public class PrologGenerator extends DepthFirstAdapter
         {
 			p.openTerm("agent_call");
 			printSrcLoc(node);
-			if(currentParams.contains(str))
+			boolean found = false;
+			for(int u = 1; u<=symbols.size();u++)
 			{
-				int i = symbols.get("_"+str).size();
-				p.printVariable("_"+str+i);
+				if((u == 1) && currentParams.contains(str))
+				{
+					found = true;
+					p.printVariable("_"+str);
+					break;
+				}
+				else if(currentParams.contains(str+u))
+				{
+					found = true;
+					p.printVariable("_"+str+u);
+					break;
+				}
 			}
-			else if(!isBuiltin(str))
+			if(!isBuiltin(str) && !found)
 			{
 				p.printAtom(str);
 			}
@@ -2028,15 +2042,43 @@ public class PrologGenerator extends DepthFirstAdapter
         }
 		else
 		{
-			if(currentParams.contains(str))
+			boolean found = false;
+			for(int u = 1; u<=symbols.size();u++)
 			{
-				int i = symbols.get("_"+str).size();
-				p.printVariable("_"+str+i);
+				if((u == 1) && currentParams.contains(str))
+				{
+					found = true;
+					p.printVariable("_"+str);
+					break;
+				}
+				else if(currentParams.contains(str+u))
+				{
+					found = true;
+					p.printVariable("_"+str+u);
+					break;
+				}
 			}
-			else if(!isBuiltin(str))
+			if(!isBuiltin(str) && !found)
 			{
+				ArrayList<SymInfo> al = symbols.get(str);
+				int i = 0;
+				for(int j = 0; j< al.size();j++)
+				{
+					if(al.get(j).getSymbolInfo().equals("Ident (Groundrep.)"))
+					{
+						i = j;
+					}
+				}
+			
 				p.openTerm("val_of");
-				p.printAtom(str);
+				if(i>0)
+				{
+					p.printAtom(str+(i+1));
+				}
+				else
+				{
+					p.printAtom(str);
+				}
 				printSrcLoc(node.getId());
 				p.closeTerm();
 				

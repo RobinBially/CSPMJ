@@ -142,28 +142,40 @@ public class SymbolCollector extends DepthFirstAdapter
 		
 		if(groundrep>0)
 		{
-				ArrayList<SymInfo> temp = new ArrayList<SymInfo>();
-				SymInfo si = new SymInfo(node.getId(),"Ident (Groundrep.)");
-				temp.add(si);
-				symbols.put(str,temp);
+				if(symbols.containsKey(str))
+				{
+					ArrayList<SymInfo> temp = symbols.get(str);
+					SymInfo si = new SymInfo(node.getId(),"Ident (Groundrep.)");
+					si.setCalled(true);
+					temp.add(si);
+					symbols.put(str,temp);
+				}
+				else
+				{
+					ArrayList<SymInfo> temp = new ArrayList<SymInfo>();
+					SymInfo si = new SymInfo(node.getId(),"Ident (Groundrep.)");
+					si.setCalled(true);
+					temp.add(si);
+					symbols.put(str,temp);
+				}
 		}
 		else if(currentInParams>0)
 		{		
 			currentParams.add(str);
 		
-			if(symbols.containsKey("_"+str))
+			if(symbols.containsKey(str))
 			{
-				ArrayList<SymInfo> temp = symbols.get("_"+str);
+				ArrayList<SymInfo> temp = symbols.get(str);
 				SymInfo si = new SymInfo(node.getId(),"Ident (Prolog Variable)");
 				temp.add(si);
-				symbols.put("_"+str,temp);
+				symbols.put(str,temp);
 			}
 			else
 			{
 				ArrayList<SymInfo> temp = new ArrayList<SymInfo>();
 				SymInfo si = new SymInfo(node.getId(),"Ident (Prolog Variable)");
 				temp.add(si);
-				symbols.put("_"+str,temp);
+				symbols.put(str,temp);
 			}
 		}
 		
@@ -201,7 +213,60 @@ public class SymbolCollector extends DepthFirstAdapter
             node.getProc1().apply(this);
         }
         outAFunctionExp(node);
-    }		
+    }	
+	
+    @Override
+    public void caseALambdaExp(ALambdaExp node)
+    {
+        inALambdaExp(node);
+        {
+			List<PPattern> copy = new ArrayList<PPattern>(node.getPatternList());
+			currentInParams +=1;
+            for(PPattern e : copy)
+            {
+                e.apply(this);
+            }
+			currentInParams -=1;
+        }
+        if(node.getProc9() != null)
+        {
+            node.getProc9().apply(this);
+        }
+        outALambdaExp(node);
+    }
+    @Override
+    public void caseANondetInputPattern(ANondetInputPattern node)
+    {
+        inANondetInputPattern(node);
+		currentInParams +=1;
+        if(node.getPattern1() != null)
+        {
+            node.getPattern1().apply(this);
+        }
+		currentInParams -=1;
+        if(node.getRestriction() != null)
+        {
+            node.getRestriction().apply(this);
+        }
+        outANondetInputPattern(node);
+    }
+	
+    @Override
+    public void caseAInputPattern(AInputPattern node)
+    {
+        inAInputPattern(node);
+		currentInParams +=1;
+        if(node.getPattern1() != null)
+        {
+            node.getPattern1().apply(this);
+        }
+		currentInParams -=1;
+        if(node.getRestriction() != null)
+        {
+            node.getRestriction().apply(this);
+        }
+        outAInputPattern(node);
+    }
 	
 	@Override
     public void caseAIdExp(AIdExp node)
