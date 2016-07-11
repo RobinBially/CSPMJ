@@ -27,9 +27,8 @@ configurations {
 
 dependencies {
     sablecc(group: 'de.hhu.stups', name: 'sablecc', version: '3.2.10')
-    //compile 'com.google.code.findbugs:jsr305:1.3.9'
-    testCompile 'junit:junit:4.8.2'
-
+//    compile 'com.google.code.findbugs:jsr305:1.3.9'
+    testCompile group: 'junit', name: 'junit', version: '4.+'
 //    prologlib(group: 'de.hhu.stups', name: 'prologlib', version: '2.4.40')
 //    compile "de.hhu.stups:prologlib:2.4.40"
 //    testCompile 'de.hhu.stups:prologlib:2.4.40'
@@ -40,25 +39,9 @@ sourceSets {
         java {
           srcDirs = ['build/temp','src/main/java']
         }
-        resources {
-          srcDirs = ['src/main/resources']
-        }
+
     }
 }
-
-/*
-task cleanEclipseJdt {
-    file(".settings/org.eclipse.jdt.ui.prefs").delete()
-}
-
-task eclipseJdt {
-    inputFile = file("scripts/org.eclipse.jdt.core.prefs")
-    copy {  from 'scripts'
-        into '.settings'
-        include 'org.eclipse.jdt.ui.prefs'
-    }
-}
-*/
 
 task genLtlParser(type:JavaExec) {
     doFirst{ file('build/temp').mkdirs() }
@@ -108,3 +91,4 @@ compileJava {
  dependsOn = ['genLtlParser','genCtlParser','genCSPMparser'] 
 }
 
+sourceSets.test.runtimeClasspath += files(sourceSets.main.java.srcDirs)

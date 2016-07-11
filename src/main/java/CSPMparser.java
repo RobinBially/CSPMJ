@@ -9,7 +9,6 @@ import java.nio.file.Paths;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
-
 import CSPMparser.parser.*;
 import CSPMparser.lexer.*;
 import CSPMparser.node.*;
@@ -122,7 +121,7 @@ public class CSPMparser
 					tree.apply(sc);
 					HashMap<String,ArrayList<SymInfo>> symbols = sc.getSymbols();
 					
-					PrologGenerator pout = new PrologGenerator(pto,symbols);
+					PrologGenerator pout = new PrologGenerator(pto,symbols,true);
 					tree.apply(pout);
 
 					workcount++; //now 6
@@ -143,6 +142,52 @@ public class CSPMparser
 	}
 
 	
+	public String parseString(String s) throws CSPMparserException {
+		String ret = "";
+		
+		newstream = saveComments(s);
+		newstream = includeFile(newstream);
+		newstream = saveComments(newstream);
+		StringReader sr = new StringReader(newstream);
+		BufferedReader br = new BufferedReader(sr); 
+		Lexer l = new LexHelper(new PushbackReader(br,100000));
+		Parser p = new Parser(l);
+		try {
+			Start tree = p.parse();
+			
+			StatementPatternCheck spc = new StatementPatternCheck();
+			tree.apply(spc);
+						
+			TreeLogicChecker tlc = new TreeLogicChecker();
+			tree.apply(tlc);
+			System.out.println("\nYour CSPM-File has been successfully parsed.\n"
+			+"Checking Identifier occurrences...");
+			IdentifierAnalysis ia = new IdentifierAnalysis();
+			tree.apply(ia);
+			
+			PrologTermOutput pto = new PrologTermOutput();
+			SymbolCollector sc = new SymbolCollector();
+			tree.apply(sc);
+			HashMap<String,ArrayList<SymInfo>> symbols = sc.getSymbols();
+			PrologGenerator pout = new PrologGenerator(pto,symbols,false);
+			tree.apply(pout);
+			
+			ret = pto.getStringWriter().toString();
+			
+		} catch (ParserException e) {
+			e.printStackTrace();
+			throw new CSPMparserException(e.getToken(),e.getLocalizedMessage());
+		} catch (LexerException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return ret;
+	}
+
+
 	public void parseFile(String s, Boolean show)
 	{
 		System.out.println("Parsing '"+s+"'...");
@@ -197,7 +242,7 @@ public class CSPMparser
 			SymbolCollector sc = new SymbolCollector();
 			tree.apply(sc);
 			HashMap<String,ArrayList<SymInfo>> symbols = sc.getSymbols();
-			PrologGenerator pout = new PrologGenerator(pto,symbols);
+			PrologGenerator pout = new PrologGenerator(pto,symbols,true);
 			tree.apply(pout);
 
 			workcount++; //now 6
