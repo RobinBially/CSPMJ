@@ -1,4 +1,4 @@
-a(x) =  let
+l(x) =  let
 			u = 1
 			b(u) = let
 					c = u

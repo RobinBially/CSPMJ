@@ -59,5 +59,16 @@ k = let
 			within 8
 		I(a) = 3
 	within 9
+l(x) =  let
+			u = 1
+			b(u) = let
+					c = u
+				within 1
+		within x
+
+	
+	
+m = if true then 1 else 1
+
 	
 -- This is an End-Of-File-Comment.

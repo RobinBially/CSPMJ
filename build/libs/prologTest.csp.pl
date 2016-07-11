@@ -1,6 +1,6 @@
 :- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5.
 :- dynamic module/4.
-'parserVersionStr'('0.6.1.1').
+'parserVersionStr'('CSPMJ V0.49').
 'parseResult'('ok','',0,0,0).
 :- dynamic channel/2, bindval/3, agent/3.
 :- dynamic agent_curry/3, symbol/4.
@@ -12,8 +12,8 @@
 :- dynamic assertBool/1, assertRef/5, assertTauPrio/6.
 :- dynamic assertModelCheckExt/4, assertModelCheck/3.
 :- dynamic assertLtl/4, assertCtl/4.
-'parserVersionNum'([0,11,0,1]).
-'parserVersionStr'('CSPM-Frontent-0.11.0.1').
+'parserVersionNum'([0,49]).
+'parserVersionStr'('CSPMJ V0.49').
 'comment'('lineComment'('-- This is a Line-Comment.','src_span'(1,1,1,27,26,26))).
 'bindval'('Eol','int'(42),'src_span'(2,1,2,9,8,8)).
 'comment'('blockComment'('{-\r\nAnd this is\r\na Multiline-Comment.\r\n-}','src_span'(3,1,3,42,41,41))).
@@ -68,7 +68,14 @@
 'comment'('lineComment'('-- j(y) = \b,b@a+b -- This should throw a redef. error!','src_span'(53,1,53,56,55,55))).
 'agent'('j'(_y4),'prefix'('src_span'(54,8,54,9,1,1),['in'(_y5)],'int'(1),_y5,'src_span'(54,11,54,15,4,4)),'src_span'(54,1,54,16,15,15)).
 'bindval'('k','let'(['agent'('I2'(_a7),'int'(1),'src_span'(56,3,56,11,8,8)),'agent'('I2'(_a8),'let'(['agent'('I3'(_a9),_a9,'src_span'(58,5,58,13,8,8))],'int'(8)),'src_span'(57,3,59,12,9,9)),'agent'('I2'(_a10),'int'(3),'src_span'(60,3,60,11,8,8))],'int'(9)),'src_span'(55,1,61,10,9,9)).
-'comment'('lineComment'('-- This is an End-Of-File-Comment.','src_span'(63,1,63,35,34,34))).
+'agent'('l'(_x4),'let'(['bindval'('u','int'(1),'src_span'(63,4,63,9,5,5)),'agent'('b4'(_u2),'let'(['bindval'('c2',_u2,'src_span'(65,6,65,11,5,5))],'int'(1)),'src_span'(64,4,66,13,9,9))],_x4),'src_span'(62,1,67,11,10,10)).
+'bindval'('m','ifte'('true','int'(1),'int'(1),'src_span'(71,5,71,7,2,2),'src_span'(71,12,71,18,6,6),'src_span'(71,19,71,25,6,6)),'src_span'(71,1,71,26,25,25)).
+'comment'('lineComment'('-- This is an End-Of-File-Comment.','src_span'(74,1,74,35,34,34))).
+'symbol'('dt','dt','src_span'(7,10,7,12,2,2),'Datatype').
+'symbol'('cn2','cn2','src_span'(7,18,7,21,3,3),'Constructor of Datatype').
+'symbol'('c1','c1','src_span'(10,9,10,11,2,2),'Channel').
+'symbol'('c2','c2','src_span'(10,12,10,14,2,2),'Channel').
+'symbol'('c3','c3','src_span'(10,15,10,17,2,2),'Channel').
 'symbol'('A','A','src_span'(11,1,11,2,1,1),'Ident (Groundrep.)').
 'symbol'('A2','A','src_span'(22,3,22,4,1,1),'Ident (Prolog Variable)').
 'symbol'('A3','A','src_span'(23,3,23,4,1,1),'Ident (Prolog Variable)').
@@ -89,7 +96,6 @@
 'symbol'('M','M','src_span'(27,1,27,2,1,1),'Ident (Groundrep.)').
 'symbol'('N','N','src_span'(28,1,28,2,1,1),'Ident (Groundrep.)').
 'symbol'('O','O','src_span'(29,1,29,2,1,1),'Ident (Groundrep.)').
-'symbol'('dt','dt','src_span'(7,10,7,12,2,2),'Datatype').
 'symbol'('P','P','src_span'(30,1,30,2,1,1),'Ident (Groundrep.)').
 'symbol'('Q','Q','src_span'(31,1,31,2,1,1),'Ident (Groundrep.)').
 'symbol'('R','R','src_span'(32,1,32,2,1,1),'Ident (Groundrep.)').
@@ -115,13 +121,14 @@
 'symbol'('b','b','src_span'(43,1,43,2,1,1),'Ident (Groundrep.)').
 'symbol'('b2','b','src_span'(49,8,49,9,1,1),'Ident (Prolog Variable)').
 'symbol'('b3','b','src_span'(50,9,50,10,1,1),'Ident (Prolog Variable)').
+'symbol'('b4','b','src_span'(64,4,64,5,1,1),'Function or Process').
 'symbol'('Eol','Eol','src_span'(2,1,2,4,3,3),'Ident (Groundrep.)').
 'symbol'('c','c','src_span'(44,1,44,2,1,1),'Ident (Groundrep.)').
+'symbol'('c2','c','src_span'(65,6,65,7,1,1),'Ident (Groundrep.)').
 'symbol'('d','d','src_span'(41,3,41,4,1,1),'Ident (Prolog Variable)').
 'symbol'('d2','d','src_span'(42,3,42,4,1,1),'Ident (Prolog Variable)').
 'symbol'('d3','d','src_span'(45,1,45,2,1,1),'Ident (Groundrep.)').
 'symbol'('e','e','src_span'(46,1,46,2,1,1),'Ident (Groundrep.)').
-'symbol'('cn2','cn2','src_span'(7,18,7,21,3,3),'Constructor of Datatype').
 'symbol'('f','f','src_span'(47,1,47,2,1,1),'Ident (Groundrep.)').
 'symbol'('g','g','src_span'(48,1,48,2,1,1),'Ident (Groundrep.)').
 'symbol'('h','h','src_span'(49,1,49,2,1,1),'Ident (Groundrep.)').
@@ -129,12 +136,14 @@
 'symbol'('j','j','src_span'(54,1,54,2,1,1),'Function or Process').
 'symbol'('cn','cn','src_span'(8,14,8,16,2,2),'Constructor of Datatype').
 'symbol'('k','k','src_span'(55,1,55,2,1,1),'Ident (Groundrep.)').
-'symbol'('c1','c1','src_span'(10,9,10,11,2,2),'Channel').
-'symbol'('c2','c2','src_span'(10,12,10,14,2,2),'Channel').
-'symbol'('c3','c3','src_span'(10,15,10,17,2,2),'Channel').
+'symbol'('l','l','src_span'(62,1,62,2,1,1),'Function or Process').
+'symbol'('m','m','src_span'(71,1,71,2,1,1),'Ident (Groundrep.)').
+'symbol'('u','u','src_span'(63,4,63,5,1,1),'Ident (Groundrep.)').
+'symbol'('u2','u','src_span'(64,6,64,7,1,1),'Ident (Prolog Variable)').
 'symbol'('x','x','src_span'(12,3,12,4,1,1),'Ident (Prolog Variable)').
 'symbol'('x2','x','src_span'(13,3,13,4,1,1),'Ident (Prolog Variable)').
 'symbol'('x3','x','src_span'(17,3,17,4,1,1),'Ident (Prolog Variable)').
+'symbol'('x4','x','src_span'(62,3,62,4,1,1),'Ident (Prolog Variable)').
 'symbol'('y','y','src_span'(12,5,12,6,1,1),'Ident (Prolog Variable)').
 'symbol'('y2','y','src_span'(13,5,13,6,1,1),'Ident (Prolog Variable)').
 'symbol'('y3','y','src_span'(17,5,17,6,1,1),'Ident (Prolog Variable)').

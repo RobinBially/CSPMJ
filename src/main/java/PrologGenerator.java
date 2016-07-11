@@ -17,7 +17,7 @@ public class PrologGenerator extends DepthFirstAdapter
 	private HashMap<String,ArrayList<SymInfo>> symbols; //Identifier,Counter
 	private int groundrep;
 	private HashMap<String,String> currentParams;
-	private ArrayList<String> currentLambdaParams;
+	private HashMap<String,String> currentLambdaParams;
 	private HashMap<Integer,HashMap<String,String>> letWithinArgs;
 	private int currentInLambdaLeft;
 	private int currentInLambdaRight;
@@ -27,14 +27,14 @@ public class PrologGenerator extends DepthFirstAdapter
 	private int letWithinCount; //renumber let-within blocks
 	private int currentInWithin;
 	private int currentLetWithinNum; //Saves a reference to the current let-within block
-	private HashMap<Integer,Integer> letWithinStruct;
+	private TreeMap<Integer,Integer> letWithinStruct;
 	
 	public PrologGenerator(final PrologTermOutput pto,HashMap<String,ArrayList<SymInfo>> symbols) 
 	{
 		letWithinCount = 0;
 		currentInWithin = 0;
 		currentLetWithinNum = 0;
-		letWithinStruct = new HashMap<Integer,Integer>();
+		letWithinStruct = new TreeMap<Integer,Integer>();
 		letWithinArgs = new HashMap<Integer,HashMap<String,String>>();
 		expectingPattern = false;
 		currentInInput = false;
@@ -46,7 +46,7 @@ public class PrologGenerator extends DepthFirstAdapter
 		groundrep = 0;
 		this.symbols = symbols;
 		currentParams = new HashMap<String,String>();
-		currentLambdaParams = new ArrayList<String>();
+		currentLambdaParams = new HashMap<String,String>();
 		currentInLambdaLeft = 0;
 		currentInLambdaRight = 0;
 	}
@@ -407,8 +407,7 @@ public class PrologGenerator extends DepthFirstAdapter
 			{
 				if(symbols.get(str).get(k).getSymbolInfo().equals("Function or Process")
 					&& (symbols.get(str).get(k).getLetWithinCount() == currentLetWithinNum))
-				{
-
+				{	
 					if(k>0)
 					{
 						p.openTerm(str+(k+1));
@@ -417,8 +416,7 @@ public class PrologGenerator extends DepthFirstAdapter
 					{
 						p.openTerm(str);
 					}
-					break;
-					
+					break;		
 				}
 			}
 			
@@ -495,12 +493,12 @@ public class PrologGenerator extends DepthFirstAdapter
 					if(k == 0)
 					{
 						p.printVariable("_"+str);
-						currentLambdaParams.add(str);
+						currentLambdaParams.put(str,str);
 					}
 					else
 					{
 						p.printVariable("_"+str+(k+1));
-						currentLambdaParams.add(str+(k+1));
+						currentLambdaParams.put(str,str+(k+1));
 					}
 					break;
 				}
@@ -1156,7 +1154,7 @@ public class PrologGenerator extends DepthFirstAdapter
 			//System.out.println(currentLambdaParams+"\n"+currentParams);
 			currentInLambdaRight -=1;
         }
-		currentLambdaParams.clear();
+		currentLambdaParams = new HashMap<String,String>(); //reset
 		p.closeTerm();
         outALambdaExp(node);
     }
@@ -1195,18 +1193,35 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseAIfElseExp(AIfElseExp node)
     {
         inAIfElseExp(node);
+		p.openTerm("ifte");
+        if(node.getIf() != null)
+        {
+            node.getIf().apply(this);
+        }
         if(node.getBoolExp() != null)
         {
             node.getBoolExp().apply(this);
+        }
+        if(node.getThen() != null)
+        {
+            node.getThen().apply(this);
         }
         if(node.getProc1() != null)
         {
             node.getProc1().apply(this);
         }
+        if(node.getElse() != null)
+        {
+            node.getElse().apply(this);
+        }
         if(node.getProc9() != null)
         {
             node.getProc9().apply(this);
         }
+		printSrcLoc(node.getIf());
+		printSrcLoc(node.getThen());
+		printSrcLoc(node.getElse());
+		p.closeTerm();
         outAIfElseExp(node);
     }
 
@@ -2116,23 +2131,10 @@ public class PrologGenerator extends DepthFirstAdapter
 
 		
 		boolean found = false;		
-		if(currentInLambdaRight>0)
+		if(currentInLambdaRight>0 && currentLambdaParams.containsKey(str))
 		{
-			for(int u = 1; u<=symbols.size();u++)
-			{
-				if((u == 1) && currentLambdaParams.contains(str))
-				{
-					found = true;
-					p.printVariable("_"+str);
-					break;
-				}
-				else if(currentLambdaParams.contains(str+u))
-				{
-					found = true;
-					p.printVariable("_"+str+u);
-					break;
-				}
-			}
+			found = true;
+			p.printVariable("_"+currentLambdaParams.get(str));
 		}
 
 		if(!found) //in currentParams?
@@ -2148,19 +2150,20 @@ public class PrologGenerator extends DepthFirstAdapter
 									
 			if(currentInWithin>0)
 			{
-				
 				int letNumBefore = -1;
-				//reverse currentLetWithinNum after end of let 
+				ArrayList<Integer> keys = new ArrayList<Integer>(letWithinStruct.keySet());
+				for(int i = keys.size()-1; i>=0;i--)
+				{	
+					int v = letWithinStruct.get(keys.get(i));
+					int w = currentLetWithinNum;
 
-				for(int key : letWithinStruct.keySet())
-				{
-					if(letWithinStruct.get(key) == (currentLetWithinNum))
+					if(v == w)
 					{
-						letNumBefore = key;
+						letNumBefore = keys.get(i);
 						break;
 					}
+
 				}//Last let-within block was letNumBefore
-								
 				HashMap<String,String> tempMap = letWithinArgs.get(letNumBefore);
 				if(tempMap.containsKey(str))
 				{

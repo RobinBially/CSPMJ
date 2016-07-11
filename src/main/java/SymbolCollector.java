@@ -282,7 +282,7 @@ public class SymbolCollector extends DepthFirstAdapter
                 e.apply(this);
             }
         }
-		currentLetWithinNum = letWithinStruct.get(letWithinCount);
+		currentLetWithinNum = letWithinStruct.get(currentLetWithinNum);
         if(node.getProc9() != null)
         {
             node.getProc9().apply(this);
@@ -338,9 +338,8 @@ public class SymbolCollector extends DepthFirstAdapter
 		
         if(node.getTuple() != null)
         {
+			node.getTuple().apply(this);
         }
-
-		
         outAIdExp(node);
     }
 //***************************************************************************************************************************************************
