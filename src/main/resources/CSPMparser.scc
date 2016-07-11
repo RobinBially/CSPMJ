@@ -340,7 +340,7 @@ proc9 {->exp}		= 	 {guard} dot_op guard proc9								{-> New exp.guard(dot_op.ex
 						|{prefix} event prefix proc9							{-> New exp.prefix(event.exp,prefix,proc9.exp)}
 						|{lambda_term} b_slash pattern_list at proc9			{-> New exp.lambda([pattern_list.pattern],proc9.exp)}
 						|{let_within} let defs within proc9						{-> New exp.let_within([defs.def],within,proc9.exp)}
-						|{if_else} if bool_exp then proc1 else proc9			{-> New exp.if_else(bool_exp.exp,then,proc1.exp,else,proc9.exp)}
+						|{if_else} if bool_exp then proc1 else proc9			{-> New exp.if_else(if,bool_exp.exp,then,proc1.exp,else,proc9.exp)}
 						|{replicated} rep proc9									{-> New exp.replicated(rep.exp,proc9.exp)}
 						|{p10} proc10											{-> proc10.exp}
 						;				
@@ -657,7 +657,7 @@ exp 			=  {function} id parameters [proc1]:exp
 				  |{prefix} [event]:exp prefix [proc9]:exp
 				  |{lambda} [pattern_list]:pattern+ [proc9]:exp
 				  |{let_within} [defs]:def* within [proc9]:exp
-				  |{if_else} [bool_exp]:exp then [proc1]:exp else [proc9]:exp								  
+				  |{if_else} if [bool_exp]:exp then [proc1]:exp else [proc9]:exp								  
 //Replicated 	  
 				  |{replicated} [rep]:exp [proc9]:exp
 				  |{ext_choice_rep} stmts

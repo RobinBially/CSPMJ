@@ -28,6 +28,7 @@ public class IdentifierAnalysis extends DepthFirstAdapter
 	private ArrayList<String> statementVar = new ArrayList<String>();
 	private HashMap<Integer,ArrayList<String>> letWithinArgs = new HashMap<Integer,ArrayList<String>>();
 	private int letWithinDepth = 0;
+	private String previousDef = "";
 	
 	private int currentInComprArgs = 0;
 	private boolean currentLeft = true;
@@ -252,6 +253,8 @@ public class IdentifierAnalysis extends DepthFirstAdapter
            node.getId().apply(this);		
         }
 		String str = node.getId().toString().replaceAll(" ","");
+
+		
         if(node.getParameters() != null)
         {
 			currentInParameters = true;
@@ -263,7 +266,11 @@ public class IdentifierAnalysis extends DepthFirstAdapter
 			if(left.get(letWithinDepth).contains(str))
 			{
 				throw new RuntimeException("Redefinition of Identifier: "+str+".");
-			} 	
+			}
+			if(left.get(letWithinDepth).contains(str+"()") && !(str+"()").equals(previousDef))
+			{
+				throw new RuntimeException("Redefinition of Identifier: "+str+".");
+			} 			
 			else if(!left.get(letWithinDepth).contains(str+"()"))
 			{
 				ArrayList<String> temp = left.get(letWithinDepth);
@@ -279,6 +286,7 @@ public class IdentifierAnalysis extends DepthFirstAdapter
         {
             node.getProc1().apply(this);
         }
+		previousDef = str+"()";
         outAFunctionExp(node);
     }
 //***************************************************************************************
@@ -342,6 +350,7 @@ public class IdentifierAnalysis extends DepthFirstAdapter
 					temp.add(str);
 					left.put(letWithinDepth,temp);
 				}
+				previousDef = str;
 			}
 			else if(currentInLambdaLeft)
 			{
