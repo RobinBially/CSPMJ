@@ -28,8 +28,9 @@ public class PrologGenerator extends DepthFirstAdapter
 	private int currentInWithin;
 	private int currentLetWithinNum; //Saves a reference to the current let-within block
 	private HashMap<Integer,Integer> letWithinStruct;
+	private boolean printSrcLoc;
 	
-	public PrologGenerator(final PrologTermOutput pto,HashMap<String,ArrayList<SymInfo>> symbols) 
+	public PrologGenerator(final PrologTermOutput pto,HashMap<String,ArrayList<SymInfo>> symbols, boolean printSrcLoc) 
 	{
 		letWithinCount = 0;
 		currentInWithin = 0;
@@ -49,6 +50,7 @@ public class PrologGenerator extends DepthFirstAdapter
 		currentLambdaParams = new ArrayList<String>();
 		currentInLambdaLeft = 0;
 		currentInLambdaRight = 0;
+		this.printSrcLoc = printSrcLoc;
 	}
 //***************************************************************************************************************************************************
 //Types
@@ -2479,15 +2481,19 @@ public class PrologGenerator extends DepthFirstAdapter
 			  ,fixedStartOffset = getStartOffset s
 			}
 		  */
-		p.openTerm("src_span");
-        // src_loc(startline,startcolumn,endline,endcolumn,offset???,length)
-		p.printNumber(node.getStartPos().getLine());
-		p.printNumber(node.getStartPos().getPos());
-		p.printNumber(node.getEndPos().getLine());
-		p.printNumber(node.getEndPos().getPos());
-		// TODO: do we need this?? the offset (start line (file), start column (file)) to (start line (node), start position (node))
-		p.printNumber(node.getEndPos().getPos()-node.getStartPos().getPos());
-		p.printNumber(node.getEndPos().getPos()-node.getStartPos().getPos());
-		p.closeTerm();
+    	if (this.printSrcLoc) {
+    		p.openTerm("src_span");
+    		// src_loc(startline,startcolumn,endline,endcolumn,offset???,length)
+    		p.printNumber(node.getStartPos().getLine());
+    		p.printNumber(node.getStartPos().getPos());
+    		p.printNumber(node.getEndPos().getLine());
+    		p.printNumber(node.getEndPos().getPos());
+    		// TODO: do we need this?? the offset (start line (file), start column (file)) to (start line (node), start position (node))
+    		p.printNumber(node.getEndPos().getPos()-node.getStartPos().getPos());
+    		p.printNumber(node.getEndPos().getPos()-node.getStartPos().getPos());
+    		p.closeTerm();
+    	} else {
+    		p.printAtom("no_loc_info_available");
+    	}
     }
 }
