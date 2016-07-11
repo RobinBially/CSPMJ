@@ -1,4 +1,6 @@
 a(x) =  let
-			a(x) =  x
-		within 1
-
+			u = 1
+			b(u) = let
+					c = u
+				within 1
+		within x

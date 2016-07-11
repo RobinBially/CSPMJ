@@ -16,24 +16,26 @@ public class PrologGenerator extends DepthFirstAdapter
 	private int currentInParams;
 	private HashMap<String,ArrayList<SymInfo>> symbols; //Identifier,Counter
 	private int groundrep;
-	private ArrayList<String> currentParams;
+	private HashMap<String,String> currentParams;
 	private ArrayList<String> currentLambdaParams;
-	private HashMap<Integer,ArrayList<String>> letWithinArgs;
+	private HashMap<Integer,HashMap<String,String>> letWithinArgs;
 	private int currentInLambdaLeft;
 	private int currentInLambdaRight;
 	private boolean currentInChannel;
 	private int leftFromPrefix;
 	
 	private int letWithinCount; //renumber let-within blocks
+	private int currentInWithin;
 	private int currentLetWithinNum; //Saves a reference to the current let-within block
 	private HashMap<Integer,Integer> letWithinStruct;
 	
 	public PrologGenerator(final PrologTermOutput pto,HashMap<String,ArrayList<SymInfo>> symbols) 
 	{
 		letWithinCount = 0;
+		currentInWithin = 0;
 		currentLetWithinNum = 0;
 		letWithinStruct = new HashMap<Integer,Integer>();
-		letWithinArgs = new HashMap<Integer,ArrayList<String>>();
+		letWithinArgs = new HashMap<Integer,HashMap<String,String>>();
 		expectingPattern = false;
 		currentInInput = false;
 		currentInNondetInput = false;
@@ -43,7 +45,7 @@ public class PrologGenerator extends DepthFirstAdapter
 		currentInParams = 0;
 		groundrep = 0;
 		this.symbols = symbols;
-		currentParams = new ArrayList<String>();
+		currentParams = new HashMap<String,String>();
 		currentLambdaParams = new ArrayList<String>();
 		currentInLambdaLeft = 0;
 		currentInLambdaRight = 0;
@@ -509,25 +511,25 @@ public class PrologGenerator extends DepthFirstAdapter
 			for(int k = 0;k<symbols.get(str).size();k++)
 			{
 				//Input and nondetInput replace current parameters
-				if(k == 0 && currentParams.contains(str))
+				if(k == 0 && currentParams.containsKey(str))
 				{
 					currentParams.remove(str);
 				}
-				else if(currentParams.contains(str+k))
+				else if(currentParams.containsKey(str+(k+1)))
 				{
-					currentParams.remove(str+k);
+					currentParams.remove(str+(k+1));
 				}
 				if(symbols.get(str).get(k).getNode() == node.getId())
 				{
 					if(k == 0)
 					{
+						currentParams.put(str,str);
 						p.printVariable("_"+str);
-						currentParams.add(str);
 					}
 					else
 					{
+						currentParams.put(str,str+(k+1));
 						p.printVariable("_"+str+(k+1));
-						currentParams.add(str+(k+1));
 					}
 					break;
 				}
@@ -1166,9 +1168,8 @@ public class PrologGenerator extends DepthFirstAdapter
 		letWithinCount++;
 		letWithinStruct.put(letWithinCount,currentLetWithinNum);		
 		currentLetWithinNum = letWithinCount;
-		
-		letWithinArgs.put(letWithinCount,currentParams);
-		
+
+		letWithinArgs.put(letWithinCount,new HashMap<String,String>(currentParams));		
         {
 			p.openTerm("let");
 			p.openList();
@@ -1179,10 +1180,12 @@ public class PrologGenerator extends DepthFirstAdapter
             }
 			p.closeList();
         }
-		currentLetWithinNum = letWithinStruct.get(letWithinCount);
+		currentLetWithinNum = letWithinStruct.get(currentLetWithinNum);
         if(node.getProc9() != null)
         {
+			currentInWithin += 1;
             node.getProc9().apply(this);
+			currentInWithin -= 1;
         }
 		p.closeTerm();
         outALetWithinExp(node);
@@ -2109,89 +2112,103 @@ public class PrologGenerator extends DepthFirstAdapter
         {
 			p.openTerm("agent_call");
 			printSrcLoc(node);
-			boolean found = false;
-			if(currentInLambdaRight>0)
+		}
+
+		
+		boolean found = false;		
+		if(currentInLambdaRight>0)
+		{
+			for(int u = 1; u<=symbols.size();u++)
 			{
-				for(int u = 1; u<=symbols.size();u++)
+				if((u == 1) && currentLambdaParams.contains(str))
 				{
-					if((u == 1) && currentLambdaParams.contains(str))
-					{
-						found = true;
-						p.printVariable("_"+str);
-						break;
-					}
-					else if(currentLambdaParams.contains(str+u))
-					{
-						found = true;
-						p.printVariable("_"+str+u);
-						break;
-					}
+					found = true;
+					p.printVariable("_"+str);
+					break;
+				}
+				else if(currentLambdaParams.contains(str+u))
+				{
+					found = true;
+					p.printVariable("_"+str+u);
+					break;
 				}
 			}
-			if(!found) 
+		}
+
+		if(!found) //in currentParams?
+		{
+			if(currentParams.containsKey(str))
 			{
-				for(int u = 1; u<=symbols.size();u++)
-				{
-					if((u == 1) && currentParams.contains(str))
-					{
-						found = true;
-						p.printVariable("_"+str);
-						break;
-					}
-					else if(currentParams.contains(str+u))
-					{
-						found = true;
-						p.printVariable("_"+str+u);
-						break;
-					}
-				}
+				found = true;
+				p.printVariable("_"+currentParams.get(str));
 			}
-			if(!found && currentLetWithinNum > 0)
+		}
+		if(!found && (currentLetWithinNum > 0 || currentInWithin > 0))
+		{
+									
+			if(currentInWithin>0)
 			{
-				int dimCounter = currentLetWithinNum;
 				
-				while(dimCounter>0 && !found)
+				int letNumBefore = -1;
+				//reverse currentLetWithinNum after end of let 
+
+				for(int key : letWithinStruct.keySet())
 				{
-					for(int a = 0;a<symbols.get(str).size();a++)
+					if(letWithinStruct.get(key) == (currentLetWithinNum))
 					{
-						
-						for(int i = 0; i<letWithinArgs.get(dimCounter).size();i++)
-						{
-							if((i == 0) && letWithinArgs.get(dimCounter).get(i) == str)
-							{
-								found = true;
-								p.printAtom(str);
-								break;
-							}
-							if((i>0) && letWithinArgs.get(dimCounter).get(i) == str+(i+1))
-							{
-								found = true;	
-								p.printAtom(str+(i+1));
-								break; //Symbol was found in letWithinArgs of this dimension
-							}
-						}
-						
-						
-						if((symbols.get(str).get(a).getSymbolInfo().equals("Function or Process") 
-							&& symbols.get(str).get(a).getLetWithinCount() == dimCounter)	
-							|| (symbols.get(str).get(a).getSymbolInfo().equals("Ident (Groundrep.)")
-							&& symbols.get(str).get(a).getLetWithinCount() == dimCounter))
-							{
-								found = true;
-								if(a == 0)
-								{
-									p.printAtom(str);
-								}
-								else
-								{
-									p.printAtom(str+(a+1));
-								}
-								break; //symbol was found in current dimension
-							}
+						letNumBefore = key;
+						break;
 					}
-					dimCounter = letWithinStruct.get(dimCounter); //Not found, search in predecessor
+				}//Last let-within block was letNumBefore
+								
+				HashMap<String,String> tempMap = letWithinArgs.get(letNumBefore);
+				if(tempMap.containsKey(str))
+				{
+					found = true;
+					p.printVariable("_"+tempMap.get(str));
 				}
 			}
+			
+			int dimCounter = currentLetWithinNum;	
+			while(dimCounter>0 && !found)
+			{	
+				for(int a = 0;a<symbols.get(str).size();a++)
+				{
+					//In function or identifier list of this dimension?
+					if((symbols.get(str).get(a).getSymbolInfo().equals("Function or Process") 
+					&& symbols.get(str).get(a).getLetWithinCount() == dimCounter)	
+					|| (symbols.get(str).get(a).getSymbolInfo().equals("Ident (Groundrep.)")
+					&& symbols.get(str).get(a).getLetWithinCount() == dimCounter))
+					{
+						found = true;
+						if(a == 0)
+						{
+							p.printAtom(str);
+						}
+						else
+						{
+							p.printAtom(str+(a+1));
+						}
+						break; //symbol was found in current dimension
+					}					
+				}
+				
+				//In let-within-args?
+				HashMap<String,String> tempMap = letWithinArgs.get(dimCounter);
+				if(tempMap.containsKey(str) && !found)
+				{
+					p.printAtom(tempMap.get(str)); //key is var name and value string is enumerated key
+					found = true;
+					break;
+				}
+											
+				
+				dimCounter = letWithinStruct.get(dimCounter); //Not found, search in predecessor
+			}
+		}
+							
+		if(node.getTuple() != null)
+		{
 			if(!isBuiltin(str) && !found)
 			{
 				p.printAtom(str);
@@ -2200,99 +2217,17 @@ public class PrologGenerator extends DepthFirstAdapter
             node.getTuple().apply(this);
 			p.closeList();
 			p.closeTerm();
-        }
-		else
+		}
+		else //no tuple!
 		{
-			boolean found = false;
-			if(currentInLambdaRight>0)
-			{
-				for(int u = 1; u<=symbols.size();u++)
-				{
-					if((u == 1) && currentLambdaParams.contains(str))
-					{
-						found = true;
-						p.printVariable("_"+str);
-						break;
-					}
-					else if(currentLambdaParams.contains(str+u))
-					{
-						found = true;
-						p.printVariable("_"+str+u);
-						break;
-					}
-				}
-			}
-			if(!found) 
-			{
-				for(int u = 1; u<=symbols.size();u++)
-				{
-					if((u == 1) && currentParams.contains(str))
-					{
-						found = true;
-						p.printVariable("_"+str);
-						break;
-					}
-					else if(currentParams.contains(str+u))
-					{
-						found = true;
-						p.printVariable("_"+str+u);
-						break;
-					}
-				}
-			}
-			if(!found && currentLetWithinNum > 0)
-			{
-				int dimCounter = currentLetWithinNum;
-				
-				while(dimCounter>0 && !found)
-				{
-					for(int a = 0;a<symbols.get(str).size();a++)
-					{
-						
-						for(int i = 0; i<letWithinArgs.get(dimCounter).size();i++)
-						{
-							if((i == 0) && letWithinArgs.get(dimCounter).get(i) == str)
-							{
-								found = true;
-								p.printAtom(str);
-								break;
-							}
-							if((i>0) && letWithinArgs.get(dimCounter).get(i) == str+(i+1))
-							{
-								found = true;	
-								p.printAtom(str+(i+1));
-								break; //Symbol was found in letWithinArgs of this dimension
-							}
-						}
-						
-						
-						if((symbols.get(str).get(a).getSymbolInfo().equals("Function or Process") 
-							&& symbols.get(str).get(a).getLetWithinCount() == dimCounter)	
-							|| (symbols.get(str).get(a).getSymbolInfo().equals("Ident (Groundrep.)")
-							&& symbols.get(str).get(a).getLetWithinCount() == dimCounter))
-							{
-								found = true;
-								if(a == 0)
-								{
-									p.printAtom(str);
-								}
-								else
-								{
-									p.printAtom(str+(a+1));
-								}
-								break; //symbol was found in current dimension
-							}
-					}
-					dimCounter = letWithinStruct.get(dimCounter); //Not found, search in predecessor
-				}
-			}
 			if(!isBuiltin(str) && !found)
 			{
 				ArrayList<SymInfo> al = symbols.get(str);
 				int i = 0;
 				for(int j = 0; j< al.size();j++)
 				{
-					if(al.get(j).getSymbolInfo().equals("Ident (Groundrep.)"))
+					if(al.get(j).getSymbolInfo().equals("Ident (Groundrep.)") 
+						&& (al.get(j).getLetWithinCount() == 0))
 					{
 						i = j;
 					}
@@ -2309,7 +2244,6 @@ public class PrologGenerator extends DepthFirstAdapter
 				}
 				printSrcLoc(node.getId());
 				p.closeTerm();
-				
 			}
 		}
 		
