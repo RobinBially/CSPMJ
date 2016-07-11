@@ -27,12 +27,8 @@ public class PrologGenerator extends DepthFirstAdapter
 	private int letWithinCount; //renumber let-within blocks
 	private int currentInWithin;
 	private int currentLetWithinNum; //Saves a reference to the current let-within block
-<<<<<<< HEAD
-	private HashMap<Integer,Integer> letWithinStruct;
-	private boolean printSrcLoc;
-=======
 	private TreeMap<Integer,Integer> letWithinStruct;
->>>>>>> origin/master
+	private boolean printSrcLoc;
 	
 	public PrologGenerator(final PrologTermOutput pto,HashMap<String,ArrayList<SymInfo>> symbols, boolean printSrcLoc) 
 	{
