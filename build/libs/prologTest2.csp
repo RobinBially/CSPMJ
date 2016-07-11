@@ -1,6 +1,0 @@
-l(x) =  let
-			u = 1
-			b(u) = let
-					c = u
-				within 1
-		within x
