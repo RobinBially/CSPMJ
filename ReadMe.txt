@@ -14,6 +14,8 @@ Additional info:
 
 To execute the parser you can use the produced .jar-file as follows:
 
+java -jar build/libs/cspmj.jar -parse Examples/prologTest.csp
+
 java -jar cspmj.jar -parse Examples\some-file.csp
 java -jar cspmj.jar -parse -show Examples\some-file.csp   (-show shows edited Tokenstream)
 
