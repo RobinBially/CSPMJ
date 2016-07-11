@@ -1224,30 +1224,24 @@ public class PrologGenerator extends DepthFirstAdapter
 		p.closeTerm();
         outAIfElseExp(node);
     }
-
-    @Override
-    public void caseAReplicatedExp(AReplicatedExp node)
-    {
-        inAReplicatedExp(node);
-        if(node.getRep() != null)
-        {
-            node.getRep().apply(this);
-        }
-        if(node.getProc9() != null)
-        {
-            node.getProc9().apply(this);
-        }
-        outAReplicatedExp(node);
-    }
-
+//***************************************************************************************************************************************************
+//Replicated Operators
+		
     @Override
     public void caseAExtChoiceRepExp(AExtChoiceRepExp node)
     {
         inAExtChoiceRepExp(node);
+		p.openTerm("repChoice");
         if(node.getStmts() != null)
         {
             node.getStmts().apply(this);
         }
+		if(node.getProc9() != null)
+        {
+            node.getProc9().apply(this);
+        }
+		printSrcLoc(node.getStmts());
+		p.closeTerm();
         outAExtChoiceRepExp(node);
     }
 
@@ -1255,10 +1249,17 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseAIntChoiceRepExp(AIntChoiceRepExp node)
     {
         inAIntChoiceRepExp(node);
+		p.openTerm("repInternalChoice");
         if(node.getStmts() != null)
         {
             node.getStmts().apply(this);
         }
+		if(node.getProc9() != null)
+        {
+            node.getProc9().apply(this);
+        }
+		printSrcLoc(node.getStmts());
+		p.closeTerm();
         outAIntChoiceRepExp(node);
     }
 
@@ -1266,10 +1267,17 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseAILeaveRepExp(AILeaveRepExp node)
     {
         inAILeaveRepExp(node);
+		p.openTerm("repInterleave");
         if(node.getStmts() != null)
         {
             node.getStmts().apply(this);
         }
+		if(node.getProc9() != null)
+        {
+            node.getProc9().apply(this);
+        }
+		printSrcLoc(node.getStmts());
+		p.closeTerm();
         outAILeaveRepExp(node);
     }
 
@@ -1277,10 +1285,17 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseASeqCompositRepExp(ASeqCompositRepExp node)
     {
         inASeqCompositRepExp(node);
+		p.openTerm("repSequence");
         if(node.getStmts() != null)
         {
             node.getStmts().apply(this);
         }
+		if(node.getProc9() != null)
+        {
+            node.getProc9().apply(this);
+        }
+		printSrcLoc(node.getStmts());
+		p.closeTerm();
         outASeqCompositRepExp(node);
     }
 
@@ -1288,14 +1303,23 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseAAlphParRepExp(AAlphParRepExp node)
     {
         inAAlphParRepExp(node);
+		p.openTerm("procRepAParallel");
         if(node.getStmts() != null)
         {
             node.getStmts().apply(this);
         }
+		p.openTerm("pair");
         if(node.getEvent() != null)
         {
             node.getEvent().apply(this);
         }
+		if(node.getProc9() != null)
+        {
+            node.getProc9().apply(this);
+        }
+		p.closeTerm();
+		printSrcLoc(node.getStmts());
+		p.closeTerm();
         outAAlphParRepExp(node);
     }
 	
@@ -1303,6 +1327,7 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseASharingRepExp(ASharingRepExp node)
     {
         inASharingRepExp(node);
+		p.openTerm("procRepSharing");
         if(node.getValExp() != null)
         {
             node.getValExp().apply(this);
@@ -1311,6 +1336,12 @@ public class PrologGenerator extends DepthFirstAdapter
         {
             node.getStmts().apply(this);
         }
+		if(node.getProc9() != null)
+        {
+            node.getProc9().apply(this);
+        }
+		printSrcLoc(node.getStmts());
+		p.closeTerm();
         outASharingRepExp(node);
     }
 
@@ -1326,6 +1357,10 @@ public class PrologGenerator extends DepthFirstAdapter
         {
             node.getStmts().apply(this);
         }
+		if(node.getProc9() != null)
+        {
+            node.getProc9().apply(this);
+        }
         outALinkedParRepExp(node);
     }
 
@@ -1340,6 +1375,10 @@ public class PrologGenerator extends DepthFirstAdapter
         if(node.getStmts() != null)
         {
             node.getStmts().apply(this);
+        }
+		if(node.getProc9() != null)
+        {
+            node.getProc9().apply(this);
         }
         outASyncParRepExp(node);
     }
@@ -2203,9 +2242,7 @@ public class PrologGenerator extends DepthFirstAdapter
 					p.printAtom(tempMap.get(str)); //key is var name and value string is enumerated key
 					found = true;
 					break;
-				}
-											
-				
+				}															
 				dimCounter = letWithinStruct.get(dimCounter); //Not found, search in predecessor
 			}
 		}
@@ -2252,6 +2289,58 @@ public class PrologGenerator extends DepthFirstAdapter
 		
         outAIdExp(node);
     }
+//***************************************************************************************************************************************************
+//Statements
+
+    @Override
+    public void caseAStmtListStmts(AStmtListStmts node)
+    {
+        inAStmtListStmts(node);
+        {
+			p.openList();
+            List<PStmts> copy = new ArrayList<PStmts>(node.getStmtsList());
+            for(PStmts e : copy)
+            {
+                e.apply(this);
+            }
+			p.closeList();
+        }
+        outAStmtListStmts(node);
+    }
+
+    @Override
+    public void caseAGeneratorStmts(AGeneratorStmts node)
+    {
+        inAGeneratorStmts(node);
+		p.openTerm("comprehensionGenerator");
+        if(node.getDpattern() != null)
+        {
+            node.getDpattern().apply(this);
+        }
+        if(node.getGeneratorOp() != null)
+        {
+            node.getGeneratorOp().apply(this);
+        }
+        if(node.getProc1() != null)
+        {
+            node.getProc1().apply(this);
+        }
+		p.closeTerm();
+        outAGeneratorStmts(node);
+    }
+
+    @Override
+    public void caseAPredicateStmts(APredicateStmts node)
+    {
+        inAPredicateStmts(node);
+		p.openTerm("comprehensionGuard");
+        if(node.getBoolExp() != null)
+        {
+            node.getBoolExp().apply(this);
+        }
+		p.closeTerm();
+        outAPredicateStmts(node);
+    }
 
 //***************************************************************************************************************************************************
 //Linked & Renamed + Comprehensions
@@ -2268,11 +2357,7 @@ public class PrologGenerator extends DepthFirstAdapter
 			else
 			{
 				p.openTerm("linkListComp");
-				p.openList();
-				p.openTerm("comprehensionGenerator");
 				node.getStmts().apply(this);
-				p.closeTerm();
-				p.closeList();
 			}
 			p.openList();
             List<PExp> copy = new ArrayList<PExp>(node.getLcList());

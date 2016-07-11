@@ -69,6 +69,11 @@ l(x) =  let
 	
 	
 m = if true then 1 else 1
-
+n = [] true @ 1
+o = |~| 1:2 @ 1
+p = ||| 1:2,true @ 2
+q = || 1 @ [true] 1
+r = ; 1 @ 2
+s = [|true|] 1 @ 2
 	
 -- This is an End-Of-File-Comment.

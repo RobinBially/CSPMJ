@@ -70,7 +70,13 @@
 'bindval'('k','let'(['agent'('I2'(_a7),'int'(1),'src_span'(56,3,56,11,8,8)),'agent'('I2'(_a8),'let'(['agent'('I3'(_a9),_a9,'src_span'(58,5,58,13,8,8))],'int'(8)),'src_span'(57,3,59,12,9,9)),'agent'('I2'(_a10),'int'(3),'src_span'(60,3,60,11,8,8))],'int'(9)),'src_span'(55,1,61,10,9,9)).
 'agent'('l'(_x4),'let'(['bindval'('u','int'(1),'src_span'(63,4,63,9,5,5)),'agent'('b4'(_u2),'let'(['bindval'('c2',_u2,'src_span'(65,6,65,11,5,5))],'int'(1)),'src_span'(64,4,66,13,9,9))],_x4),'src_span'(62,1,67,11,10,10)).
 'bindval'('m','ifte'('true','int'(1),'int'(1),'src_span'(71,5,71,7,2,2),'src_span'(71,12,71,18,6,6),'src_span'(71,19,71,25,6,6)),'src_span'(71,1,71,26,25,25)).
-'comment'('lineComment'('-- This is an End-Of-File-Comment.','src_span'(74,1,74,35,34,34))).
+'bindval'('n','repChoice'(['comprehensionGuard'('true')],'int'(1),'src_span'(72,8,72,12,4,4)),'src_span'(72,1,72,16,15,15)).
+'bindval'('o','repInternalChoice'(['comprehensionGenerator'('int'(1),'int'(2))],'int'(1),'src_span'(73,9,73,12,3,3)),'src_span'(73,1,73,16,15,15)).
+'bindval'('p','repInterleave'(['comprehensionGenerator'('int'(1),'int'(2)),'comprehensionGuard'('true')],'int'(2),'src_span'(74,9,74,17,8,8)),'src_span'(74,1,74,21,20,20)).
+'bindval'('q','procRepAParallel'(['comprehensionGuard'('int'(1))],'pair'('true','int'(1)),'src_span'(75,8,75,9,1,1)),'src_span'(75,1,75,20,19,19)).
+'bindval'('r','repSequence'(['comprehensionGuard'('int'(1))],'int'(2),'src_span'(76,7,76,8,1,1)),'src_span'(76,1,76,12,11,11)).
+'bindval'('s','procRepSharing'('true',['comprehensionGuard'('int'(1))],'int'(2),'src_span'(77,14,77,15,1,1)),'src_span'(77,1,77,19,18,18)).
+'comment'('lineComment'('-- This is an End-Of-File-Comment.','src_span'(79,1,79,35,34,34))).
 'symbol'('dt','dt','src_span'(7,10,7,12,2,2),'Datatype').
 'symbol'('cn2','cn2','src_span'(7,18,7,21,3,3),'Constructor of Datatype').
 'symbol'('c1','c1','src_span'(10,9,10,11,2,2),'Channel').
@@ -138,6 +144,12 @@
 'symbol'('k','k','src_span'(55,1,55,2,1,1),'Ident (Groundrep.)').
 'symbol'('l','l','src_span'(62,1,62,2,1,1),'Function or Process').
 'symbol'('m','m','src_span'(71,1,71,2,1,1),'Ident (Groundrep.)').
+'symbol'('n','n','src_span'(72,1,72,2,1,1),'Ident (Groundrep.)').
+'symbol'('o','o','src_span'(73,1,73,2,1,1),'Ident (Groundrep.)').
+'symbol'('p','p','src_span'(74,1,74,2,1,1),'Ident (Groundrep.)').
+'symbol'('q','q','src_span'(75,1,75,2,1,1),'Ident (Groundrep.)').
+'symbol'('r','r','src_span'(76,1,76,2,1,1),'Ident (Groundrep.)').
+'symbol'('s','s','src_span'(77,1,77,2,1,1),'Ident (Groundrep.)').
 'symbol'('u','u','src_span'(63,4,63,5,1,1),'Ident (Groundrep.)').
 'symbol'('u2','u','src_span'(64,6,64,7,1,1),'Ident (Prolog Variable)').
 'symbol'('x','x','src_span'(12,3,12,4,1,1),'Ident (Prolog Variable)').

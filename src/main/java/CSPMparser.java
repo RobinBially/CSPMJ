@@ -223,7 +223,7 @@ public class CSPMparser
 			{
 				writer.println(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
 				+"\n:- dynamic module/4."
-				+"\n'parserVersionStr'('CSPMJ V0.49')."
+				+"\n'parserVersionStr'('CSPMJ V0.5')."
 				+"\n'parseResult'('ok','',0,0,0)."
 				+"\n:- dynamic channel/2, bindval/3, agent/3."
 				+"\n:- dynamic agent_curry/3, symbol/4."
@@ -235,8 +235,8 @@ public class CSPMparser
 				+"\n:- dynamic assertBool/1, assertRef/5, assertTauPrio/6."
 				+"\n:- dynamic assertModelCheckExt/4, assertModelCheck/3."
 				+"\n:- dynamic assertLtl/4, assertCtl/4."
-				+"\n'parserVersionNum'([0,49])."
-				+"\n'parserVersionStr'('CSPMJ V0.49').");
+				+"\n'parserVersionNum'([0,5])."
+				+"\n'parserVersionStr'('CSPMJ V0.5').");
 				File file = new File(filename+".pl");	
 				String str = pto.getStringWriter().toString();
 				writer.println(str);

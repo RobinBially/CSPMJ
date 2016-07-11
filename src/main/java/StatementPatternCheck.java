@@ -408,10 +408,6 @@ public class StatementPatternCheck extends DepthFirstAdapter
         {
             node.getRep().apply(this);
         }
-        if(node.getProc9() != null)
-        {
-            node.getProc9().apply(this);
-        }
         outAReplicatedExp(node);
     }
 
@@ -426,6 +422,10 @@ public class StatementPatternCheck extends DepthFirstAdapter
         if(node.getStmts() != null)
         {
             node.getStmts().apply(this);
+        }
+		if(node.getProc9() != null)
+        {
+            node.getProc9().apply(this);
         }
         outAExtChoiceRepExp(node);
     }
@@ -442,6 +442,10 @@ public class StatementPatternCheck extends DepthFirstAdapter
         {
             node.getStmts().apply(this);
         }
+		if(node.getProc9() != null)
+        {
+            node.getProc9().apply(this);
+        }
         outAIntChoiceRepExp(node);
     }
 
@@ -457,6 +461,10 @@ public class StatementPatternCheck extends DepthFirstAdapter
         {
             node.getStmts().apply(this);
         }
+		if(node.getProc9() != null)
+        {
+            node.getProc9().apply(this);
+        }
         outAILeaveRepExp(node);
     }
 
@@ -471,6 +479,10 @@ public class StatementPatternCheck extends DepthFirstAdapter
         if(node.getStmts() != null)
         {
             node.getStmts().apply(this);
+        }
+		if(node.getProc9() != null)
+        {
+            node.getProc9().apply(this);
         }
         outASeqCompositRepExp(node);
     }
@@ -491,6 +503,10 @@ public class StatementPatternCheck extends DepthFirstAdapter
         {
             node.getEvent().apply(this);
         }
+		if(node.getProc9() != null)
+        {
+            node.getProc9().apply(this);
+        }
         outAAlphParRepExp(node);
     }
 
@@ -509,6 +525,10 @@ public class StatementPatternCheck extends DepthFirstAdapter
         if(node.getStmts() != null)
         {
             node.getStmts().apply(this);
+        }
+		if(node.getProc9() != null)
+        {
+            node.getProc9().apply(this);
         }
         outASharingRepExp(node);
     }
@@ -529,6 +549,10 @@ public class StatementPatternCheck extends DepthFirstAdapter
         {
             node.getStmts().apply(this);
         }
+		if(node.getProc9() != null)
+        {
+            node.getProc9().apply(this);
+        }
         outALinkedParRepExp(node);
     }
 
@@ -548,6 +572,10 @@ public class StatementPatternCheck extends DepthFirstAdapter
         if(node.getStmts() != null)
         {
             node.getStmts().apply(this);
+        }
+		if(node.getProc9() != null)
+        {
+            node.getProc9().apply(this);
         }
         outASyncParRepExp(node);
     }

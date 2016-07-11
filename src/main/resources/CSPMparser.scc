@@ -341,7 +341,7 @@ proc9 {->exp}		= 	 {guard} dot_op guard proc9								{-> New exp.guard(dot_op.ex
 						|{lambda_term} b_slash pattern_list at proc9			{-> New exp.lambda([pattern_list.pattern],proc9.exp)}
 						|{let_within} let defs within proc9						{-> New exp.let_within([defs.def],within,proc9.exp)}
 						|{if_else} if bool_exp then proc1 else proc9			{-> New exp.if_else(if,bool_exp.exp,then,proc1.exp,else,proc9.exp)}
-						|{replicated} rep proc9									{-> New exp.replicated(rep.exp,proc9.exp)}
+						|{replicated} rep 										{-> New exp.replicated(rep.exp)}
 						|{p10} proc10											{-> proc10.exp}
 						;				
 proc10 {->exp} 		=	 {renaming} proc10 dbracket_l rename_comp dbracket_r	{-> New exp.renaming(proc10.exp,dbracket_l,rename_comp)}
@@ -487,15 +487,15 @@ map {->exp}	 =	  {map} par_l [lpipe]:pipe [lbool_exp]:bool_exp imp_r
 				|{emptymap} empty_map												{-> New exp.empty_map(empty_map)}
 				;
 //---------------------------------------------------------------------------------------------------------------------------------------------------		 	 
-//ACHTUNG SET STATEMENTS -> identifier : {}
-rep {->exp}	=    {ext_choice_rep} e_choice stmts at									{-> New exp.ext_choice_rep(stmts)}
-				|{int_choice_rep} i_choice stmts at									{-> New exp.int_choice_rep(stmts)}
-				|{i_leave_rep} i_leaving stmts at									{-> New exp.i_leave_rep(stmts)}
-				|{seq_composit_rep} semicolon stmts at								{-> New exp.seq_composit_rep(stmts)}
-				|{alph_par_rep} dpipe stmts at bracket_l event bracket_r			{-> New exp.alph_par_rep(stmts,event.exp)}
-				|{sharing_rep} bracket_pipe_l val_exp bracket_pipe_r stmts at		{-> New exp.sharing_rep(val_exp.exp,stmts)}
-				|{linked_par_rep} bracket_l link_comp bracket_r stmts at			{-> New exp.linked_par_rep(link_comp,stmts)}
-				|{sync_par_rep} sync_par_l event sync_par_r stmts at				{-> New exp.sync_par_rep(event.exp,stmts)}
+
+rep {->exp}	=    {ext_choice_rep} e_choice stmts at	proc9								{-> New exp.ext_choice_rep(stmts,proc9.exp)}
+				|{int_choice_rep} i_choice stmts at	proc9								{-> New exp.int_choice_rep(stmts,proc9.exp)}
+				|{i_leave_rep} i_leaving stmts at proc9									{-> New exp.i_leave_rep(stmts,proc9.exp)}
+				|{seq_composit_rep} semicolon stmts at proc9							{-> New exp.seq_composit_rep(stmts,proc9.exp)}
+				|{alph_par_rep} dpipe stmts at bracket_l event bracket_r proc9			{-> New exp.alph_par_rep(stmts,event.exp,proc9.exp)}
+				|{sharing_rep} bracket_pipe_l val_exp bracket_pipe_r stmts at proc9		{-> New exp.sharing_rep(val_exp.exp,stmts,proc9.exp)}
+				|{linked_par_rep} bracket_l link_comp bracket_r stmts at proc9			{-> New exp.linked_par_rep(link_comp,stmts,proc9.exp)}
+				|{sync_par_rep} sync_par_l event sync_par_r stmts at proc9				{-> New exp.sync_par_rep(event.exp,stmts,proc9.exp)}
 				;
 //---------------------------------------------------------------------------------------------------------------------------------------------------
 //Statements
@@ -659,15 +659,15 @@ exp 			=  {function} id parameters [proc1]:exp
 				  |{let_within} [defs]:def* within [proc9]:exp
 				  |{if_else} if [bool_exp]:exp then [proc1]:exp else [proc9]:exp								  
 //Replicated 	  
-				  |{replicated} [rep]:exp [proc9]:exp
-				  |{ext_choice_rep} stmts
-				  |{int_choice_rep} stmts
-				  |{i_leave_rep} stmts
-				  |{seq_composit_rep} stmts
-				  |{alph_par_rep} stmts [event]:exp
-				  |{sharing_rep} [val_exp]:exp stmts
-				  |{linked_par_rep} link_comp stmts
-				  |{sync_par_rep} [event]:exp stmts
+				  |{replicated} [rep]:exp
+				  |{ext_choice_rep} stmts [proc9]:exp
+				  |{int_choice_rep} stmts [proc9]:exp
+				  |{i_leave_rep} stmts [proc9]:exp
+				  |{seq_composit_rep} stmts [proc9]:exp
+				  |{alph_par_rep} stmts [event]:exp [proc9]:exp
+				  |{sharing_rep} [val_exp]:exp stmts [proc9]:exp
+				  |{linked_par_rep} link_comp stmts [proc9]:exp
+				  |{sync_par_rep} [event]:exp stmts [proc9]:exp
 //rep end				  
 				  |{renaming} [proc10]:exp dbracket_l rename_comp
 				  |{e_renaming} [proc10]:exp dbracket_l
