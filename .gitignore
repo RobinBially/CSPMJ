@@ -16,6 +16,10 @@ ltl_ctl/
 build/
 .gradle/
 
+# Prolog Files
+*.csp.pl
+*.pl
+
 # Windows Installer files
 *.cab
 *.msi

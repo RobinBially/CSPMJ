@@ -41,10 +41,6 @@ Helpers
 
 Tokens
 
-//Comments
-	line_comment 		= '--' not_cr_lf*;
-	multiline_comment 	= '{-' all* '-}';
-
 //---------------------------------------------------------------------------------------------------------------------------------------------------
 //Builtin functions and constants
 	stop 			= 'STOP';
@@ -171,19 +167,13 @@ Tokens
 	
 Ignored Tokens
 	blank;
-//	line_comment,
-//	multiline_comment;
 	
-
 Productions
 
 start {-> start}	=	nl* defs 											{-> New start.defs([defs.def])};
 
 defs {-> def*} 		= 	 {sinlge} [decl]:def nl*							{-> [decl.def]}
-						|{multiple} [first]:def seperator [rest]:defs 		{-> [first.def,rest.def]}
-						;
-seperator {->def}	=	{newline} nl										{-> New def.newline_seperator(nl)}
-						|{short_comment} line_comment nl					{-> New def.short_comment_seperator(line_comment)}				
+						|{multiple} [first]:def nl [rest]:defs 		{-> [first.def,rest.def]}
 						;
 
 def					=	 {expression} exp									{-> New def.expression(exp)}
@@ -196,8 +186,6 @@ def					=	 {expression} exp									{-> New def.expression(exp)}
 						|{include_file} include_file						{-> include_file.def}
 						|{trans} transparent id								{-> New def.transparent(id)}
 						|{ext} external id									{-> New def.external(id)}
-						|{short_comment} line_comment 						{-> New def.line_comment(line_comment)}
-						|{long_comment} multiline_comment					{-> New def.multiline_comment(multiline_comment)}
 						; 
 					
 //---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -582,10 +570,6 @@ def 			=  {expression} exp
 				  |{timed} [proc1]:exp [defs]:def+
 				  |{module} id [ldefs]:def+ [rdefs]:def+
 				  |{include_file} string
-				  |{line_comment} line_comment
-				  |{multiline_comment} multiline_comment
-				  |{newline_seperator} nl
-				  |{short_comment_seperator} line_comment
 				  ;
 types  			=  {dtype} [typedef]:types
 				  |{stype} [typedef]:types

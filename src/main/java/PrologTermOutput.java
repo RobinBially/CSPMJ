@@ -215,6 +215,12 @@ public class PrologTermOutput
 		out.write(".\n");
 		comma_needed = false;
 	}
+	
+	public void fullstopEnd() 
+	{
+		out.write(".");
+		comma_needed = false;
+	}
 
 
 	public StringWriter getStringWriter()

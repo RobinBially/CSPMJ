@@ -18,11 +18,13 @@ public class CSPMparser
 	public String newstream;
 	public String currentFile;
 	public int workcount;
+	private ArrayList<CommentInfo> commentList;
 	private HashMap<Integer,Character> commentMap;
 
 	public CSPMparser()
 	{
 		commentMap = new HashMap<Integer,Character>();
+		commentList = new ArrayList<CommentInfo>();
 	}
 
 
@@ -88,11 +90,6 @@ public class CSPMparser
 					TriangleBruteForce tbf = new TriangleBruteForce(newstream);
 					newstream = tbf.findTriangles();
 					
-					if(show)
-					{
-						printNewStream(newstream);
-					}
-					
 					workcount++; //now 2
 
 					StringReader sr = new StringReader(newstream);
@@ -121,7 +118,7 @@ public class CSPMparser
 					tree.apply(sc);
 					HashMap<String,ArrayList<SymInfo>> symbols = sc.getSymbols();
 					
-					PrologGenerator pout = new PrologGenerator(pto,symbols,true);
+					PrologGenerator pout = new PrologGenerator(pto,symbols,true,commentList);
 					tree.apply(pout);
 
 					workcount++; //now 6
@@ -137,12 +134,14 @@ public class CSPMparser
 					createPrologFile(null,fileEntry.toString(),e);
 				}
 			}
+			commentList.clear();
 		}
 		return i;
 	}
 
 	
-	public String parseString(String s) throws CSPMparserException {
+	public String parseString(String s) throws CSPMparserException 
+	{
 		String ret = "";
 		
 		newstream = saveComments(s);
@@ -169,7 +168,7 @@ public class CSPMparser
 			SymbolCollector sc = new SymbolCollector();
 			tree.apply(sc);
 			HashMap<String,ArrayList<SymInfo>> symbols = sc.getSymbols();
-			PrologGenerator pout = new PrologGenerator(pto,symbols,false);
+			PrologGenerator pout = new PrologGenerator(pto,symbols,false,commentList);
 			tree.apply(pout);
 			
 			ret = pto.getStringWriter().toString();
@@ -198,18 +197,11 @@ public class CSPMparser
 			newstream = saveComments(newstream);
 			newstream = includeFile(newstream);
 			newstream = saveComments(newstream);
-			
+
 			workcount++; //now 1
 			
 			TriangleBruteForce tbf = new TriangleBruteForce(newstream);
 			newstream = tbf.findTriangles();
-			
-			newstream = reincludeComments(newstream);
-			
-			if(show)
-			{
-				printNewStream(newstream);
-			}
 			
 			workcount++; //now 2
 			
@@ -242,7 +234,7 @@ public class CSPMparser
 			SymbolCollector sc = new SymbolCollector();
 			tree.apply(sc);
 			HashMap<String,ArrayList<SymInfo>> symbols = sc.getSymbols();
-			PrologGenerator pout = new PrologGenerator(pto,symbols,true);
+			PrologGenerator pout = new PrologGenerator(pto,symbols,true,commentList);
 			tree.apply(pout);
 
 			workcount++; //now 6
@@ -303,7 +295,6 @@ public class CSPMparser
 		}
 	}
 
-
 	public String getStringFromFile(String fp)
 	{
 		try 
@@ -318,56 +309,66 @@ public class CSPMparser
 		}	
 		
 	}
-
-	public void printNewStream(String stream)
+	
+	public int getLineFromPos(int pos, char[] c)
 	{
-		char[] ca = stream.toCharArray();
-		int i = 1;
-		int j = 0;
-		System.out.print("Line "+i+": ");
-		while(j< ca.length)
+		int lineCount = 1;
+		for(int i = 0; i<pos;i++)
 		{
-			
-			if(ca[j] != '\r' && ca[j] != '\n')
-			{	
-				try
-				{
-					PrintStream print = new PrintStream(System.out, true, "UTF-8");
-					print.print(ca[j]);
-				}
-				catch(Exception e){}
-				j++;
-			}
-			else if (j+1<ca.length && ca[j] == '\r' && ca[j+1] == '\n')
+			if(c[i] == '\r' && c[i] == '\n')
 			{
-				j=j+2; // Überspringe LF im CR LF
+				lineCount++;
 				i++;
-				System.out.print("\nLine "+i+": ");
 			}
-			else if (j<ca.length && ca[j] == '\n')
+			else if(c[i] == '\r')
 			{
-				j++; // Überspringe LF
-				i++;
-				System.out.print("\nLine "+i+": ");
+				lineCount++;
 			}
-			else if (j<ca.length && ca[j] == '\r')
+			else if(c[i] == '\n')
 			{
-				j++; // Überspringe CR
-				i++;
-				System.out.print("\nLine "+i+": ");
+				lineCount++;
 			}
-		}	
-		
+		}
+		return lineCount;
 	}
-
-	//Deletes content in range l-r in Chararray and saves it in commentMap
-	public char[] saveRange(int l, int r, char[] q)
+	
+	public int getColumnFromPos(int pos, char[] c)
 	{
+		int columnCount = 1;
+		for(int i = 0; i<pos;i++)
+		{
+			if(c[i] == '\r' && c[i] == '\n')
+			{
+				columnCount = 1;
+				i++;
+			}
+			else if(c[i] == '\r')
+			{
+				columnCount = 1;
+			}
+			else if(c[i] == '\n')
+			{
+				columnCount = 1;
+			}
+			else
+			{
+				columnCount ++;
+			}
+		}
+		return columnCount;	
+	}
+	//Deletes content in range l-r in Chararray and saves it in commentMap
+	public char[] saveRange(int l, int r, char[] q, boolean isMultiline)
+	{		
+		String temp = "";
 		for(int i = l; i<=r;i++)
 		{
-			commentMap.put(i,q[i]);
+			temp += q[i];
 			q[i] = ' ';
 		}
+		
+		CommentInfo cInfo = new CommentInfo(getLineFromPos(l,q),getColumnFromPos(l,q),l,r-l,isMultiline,temp);
+		commentList.add(cInfo);
 		return q;
 	}
 
@@ -392,7 +393,7 @@ public class CSPMparser
 
 					if(c[i+v] == '-' && c[i+v+1] == '}')
 					{
-						c = saveRange(i,i+v+1,c);
+						c = saveRange(i,i+v+1,c,true);
 						b = false;
 						i=i+v+1;
 					}
@@ -410,19 +411,19 @@ public class CSPMparser
 				{
 					if(c[i+w] == '\r' && c[i+w+1] == '\n')
 					{
-						c = saveRange(i,i+w-1,c); //nicht i+w+1, da \n erhalten bleiben muss
+						c = saveRange(i,i+w-1,c,false); //nicht i+w oder i+w+1, da newline erhalten bleiben muss
 						b = false;
 						i = i+w+1;
 					}
 					else if(c[i+w] == '\r')
 					{
-						c = saveRange(i,i+w-1,c);
+						c = saveRange(i,i+w-1,c,false);
 						b = false;
 						i = i+w;
 					}
 					else if(c[i+w] == '\n')
 					{
-						c = saveRange(i,i+w-1,c);
+						c = saveRange(i,i+w-1,c,false);
 						b = false;
 						i = i+w;
 					}
@@ -431,7 +432,7 @@ public class CSPMparser
 						w++;
 						if((i+w) == c.length-1)
 						{
-							c = saveRange(i,i+w,c);
+							c = saveRange(i,i+w,c,false);
 							b = false;
 							i = i+w;
 						}
@@ -442,17 +443,6 @@ public class CSPMparser
 		}	
 		newTS = String.valueOf(c);
 		return newTS; 
-	}
-	
-	public String reincludeComments(String ts)
-	{
-		char[] c = ts.toCharArray();
-		for(int charPos : commentMap.keySet())
-		{
-			c[charPos] = commentMap.get(charPos);
-		}
-		
-		return new String(c);
 	}
 	
 	public String includeFile(String incl)

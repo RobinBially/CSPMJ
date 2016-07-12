@@ -29,7 +29,9 @@ public class PrologGenerator extends DepthFirstAdapter
 	private TreeMap<Integer,Integer> letWithinStruct;
 	private boolean printSrcLoc;
 	
-	public PrologGenerator(final PrologTermOutput pto,HashMap<String,ArrayList<SymInfo>> symbols, boolean printSrcLoc) 
+	private ArrayList<CommentInfo> commentList;
+	
+	public PrologGenerator(final PrologTermOutput pto,HashMap<String,ArrayList<SymInfo>> symbols, boolean printSrcLoc, ArrayList<CommentInfo> commentList) 
 	{
 		letWithinCount = 0;
 		currentLetWithinNum = 0;
@@ -49,6 +51,7 @@ public class PrologGenerator extends DepthFirstAdapter
 		currentInLambdaLeft = 0;
 		currentInLambdaRight = 0;
 		this.printSrcLoc = printSrcLoc;
+		this.commentList = commentList;
 	}
 //***************************************************************************************************************************************************
 //Types
@@ -149,61 +152,61 @@ public class PrologGenerator extends DepthFirstAdapter
 	
 //***************************************************************************************************************************************************
 //Comments
-    @Override
-    public void caseAMultilineCommentDef(AMultilineCommentDef node)
-    {
-        inAMultilineCommentDef(node);
-        if(node.getMultilineComment() != null)
-        {
-            node.getMultilineComment().apply(this);
-			p.openTerm("comment");
-			p.openTerm("blockComment");
-			String comment = node.getMultilineComment().getText();
-			comment = comment.replaceAll("\n","\\\\n");
-			comment = comment.replaceAll("\r","\\\\r");
-			p.printAtom(comment);
-			printSrcLoc(node.getMultilineComment());
-			p.closeTerm();
-			p.closeTerm();
-        }
-        outAMultilineCommentDef(node);
-    }
+    // @Override
+    // public void caseAMultilineCommentDef(AMultilineCommentDef node)
+    // {
+        // inAMultilineCommentDef(node);
+        // if(node.getMultilineComment() != null)
+        // {
+            // node.getMultilineComment().apply(this);
+			// p.openTerm("comment");
+			// p.openTerm("blockComment");
+			// String comment = node.getMultilineComment().getText();
+			// comment = comment.replaceAll("\n","\\\\n");
+			// comment = comment.replaceAll("\r","\\\\r");
+			// p.printAtom(comment);
+			// printSrcLoc(node.getMultilineComment());
+			// p.closeTerm();
+			// p.closeTerm();
+        // }
+        // outAMultilineCommentDef(node);
+    // }
 	
-    @Override
-    public void caseALineCommentDef(ALineCommentDef node)
-    {
-        inALineCommentDef(node);
-        if(node.getLineComment() != null)
-        {
-            node.getLineComment().apply(this);
-			p.openTerm("comment");
-			p.openTerm("lineComment");
-			p.printAtom(node.getLineComment().getText());
-			printSrcLoc(node.getLineComment());
-			p.closeTerm();
-			p.closeTerm();
+    // @Override
+    // public void caseALineCommentDef(ALineCommentDef node)
+    // {
+        // inALineCommentDef(node);
+        // if(node.getLineComment() != null)
+        // {
+            // node.getLineComment().apply(this);
+			// p.openTerm("comment");
+			// p.openTerm("lineComment");
+			// p.printAtom(node.getLineComment().getText());
+			// printSrcLoc(node.getLineComment());
+			// p.closeTerm();
+			// p.closeTerm();
         
-        }
-        outALineCommentDef(node);
-    }
+        // }
+        // outALineCommentDef(node);
+    // }
 	
-    @Override
-    public void caseAShortCommentSeperatorDef(AShortCommentSeperatorDef node)
-    {
-        inAShortCommentSeperatorDef(node);
-        if(node.getLineComment() != null)
-        {
-            node.getLineComment().apply(this);
-			p.fullstop();
-			p.openTerm("comment");
-			p.openTerm("lineComment");
-			p.printAtom(node.getLineComment().getText());
-			printSrcLoc(node.getLineComment());
-			p.closeTerm();
-			p.closeTerm();
-        }
-        outAShortCommentSeperatorDef(node);
-    }	
+    // @Override
+    // public void caseAShortCommentSeperatorDef(AShortCommentSeperatorDef node)
+    // {
+        // inAShortCommentSeperatorDef(node);
+        // if(node.getLineComment() != null)
+        // {
+            // node.getLineComment().apply(this);
+			// p.fullstop();
+			// p.openTerm("comment");
+			// p.openTerm("lineComment");
+			// p.printAtom(node.getLineComment().getText());
+			// printSrcLoc(node.getLineComment());
+			// p.closeTerm();
+			// p.closeTerm();
+        // }
+        // outAShortCommentSeperatorDef(node);
+    // }	
 //***************************************************************************************************************************************************
 //Definitions
 
@@ -212,7 +215,6 @@ public class PrologGenerator extends DepthFirstAdapter
     {
         inADefsStart(node);
         {
-			int count = 0;
             List<PDef> copy = new ArrayList<PDef>(node.getDef());
             for(PDef e : copy)
             {
@@ -224,10 +226,48 @@ public class PrologGenerator extends DepthFirstAdapter
 				currentInChannel = false;
             }
         }
-
+		//print comments		
+		for(CommentInfo cinfo : commentList)
+		{
+			if(cinfo.isMultilineComment)
+			{
+				String comment = cinfo.comment;
+				p.openTerm("comment");
+				p.openTerm("blockComment");
+				comment = comment.replaceAll("\n","\\\\n");
+				comment = comment.replaceAll("\r","\\\\r");
+				p.printAtom(comment);
+				p.openTerm("src_position");
+				p.printNumber(cinfo.startLine);
+				p.printNumber(cinfo.startColumn);
+				p.printNumber(cinfo.offset);
+				p.printNumber(cinfo.len);
+				p.closeTerm();
+				p.closeTerm();
+				p.closeTerm();
+			}
+			else
+			{
+				p.openTerm("comment");
+				p.openTerm("lineComment");
+				p.printAtom(cinfo.comment);
+				p.openTerm("src_position");
+				p.printNumber(cinfo.startLine);
+				p.printNumber(cinfo.startColumn);
+				p.printNumber(cinfo.offset);
+				p.printNumber(cinfo.len);
+				p.closeTerm();
+				p.closeTerm();
+				p.closeTerm();				
+			}
+			p.fullstop();
+		}
+		
+		int symbolCounter = 0;
+		//print Symbols
 		for (String key : symbols.keySet()) 
 		{
-
+			symbolCounter++;
 			for(int i = 0;i<symbols.get(key).size();i++)
 			{
 				Node n = symbols.get(key).get(i).getNode();
@@ -247,7 +287,15 @@ public class PrologGenerator extends DepthFirstAdapter
 				printSrcLoc(n);
 				p.printAtom(symbols.get(key).get(i).getSymbolInfo());
 				p.closeTerm();
-				p.fullstop();
+				
+				if((symbolCounter != symbols.keySet().size()) || (i<symbols.get(key).size()-1))
+				{
+					p.fullstop();
+				}
+				else
+				{
+					p.fullstopEnd();
+				}
 
 			}
 
@@ -2431,7 +2479,12 @@ public class PrologGenerator extends DepthFirstAdapter
         inAChaosBuiltin(node);
         if(node.getChaos() != null)
         {
-			
+			p.openTerm("builtin_call");
+			p.openTerm("CHAOS");
+			printSrcLoc(node.getChaos());
+			p.closeTerm();
+			p.closeTerm();		
+			//node.getChaos().apply(this);		
         }
         outAChaosBuiltin(node);
     }

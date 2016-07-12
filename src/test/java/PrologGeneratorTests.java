@@ -12,7 +12,7 @@ public class PrologGeneratorTests
 	public void test1() throws Exception 
 	{
 		check("P=STOP","'bindval'('P','stop'('no_loc_info_available'),'no_loc_info_available')."
-				+ "\n" + "'symbol'('P','P','no_loc_info_available','Ident (Groundrep.)').\n");
+				+ "\n" + "'symbol'('P','P','no_loc_info_available','Ident (Groundrep.)').");
 	}
 
 	@Test
@@ -29,7 +29,7 @@ public class PrologGeneratorTests
 		"'bindval'('b','int'(2),'no_loc_info_available')."
 		+"\n'bindval'('a','true','val_of'('b','no_loc_info_available'),'int'(1),'no_loc_info_available')."
 		+"\n'symbol'('a','a','no_loc_info_available','Ident (Groundrep.)')."
-		+"\n'symbol'('b','b','no_loc_info_available','Ident (Groundrep.)').\n");
+		+"\n'symbol'('b','b','no_loc_info_available','Ident (Groundrep.)').");
 		
 	}
 	
@@ -44,7 +44,7 @@ public class PrologGeneratorTests
 		+"'symbol'('Q','Q','no_loc_info_available','Ident (Groundrep.)').\n"
 		+"'symbol'('R','R','no_loc_info_available','Function or Process').\n"
 		+"'symbol'('b','b','no_loc_info_available','Ident (Prolog Variable)').\n"
-		+"'symbol'('b2','b','no_loc_info_available','Ident (Groundrep.)').\n");
+		+"'symbol'('b2','b','no_loc_info_available','Ident (Groundrep.)').");
 	}
 	
 	

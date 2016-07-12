@@ -77,7 +77,7 @@ public class IdentifierAnalysis extends DepthFirstAdapter
 			}
 			else
 			{
-				throw new RuntimeException("Redefinition of Identifier "+str+".");
+				throw new RuntimeException("Redefinition of Identifier "+str+" "+getSrcLoc(node.getId())+".");
 			}
         }
         {
@@ -120,7 +120,7 @@ public class IdentifierAnalysis extends DepthFirstAdapter
 			}
 			else
 			{
-				throw new RuntimeException("Redefinition of Identifier "+str+".");
+				throw new RuntimeException("Redefinition of Identifier "+str+" "+getSrcLoc(node.getClauseName())+".");
 			}
         }
         if(node.getDotted() != null)
@@ -150,7 +150,7 @@ public class IdentifierAnalysis extends DepthFirstAdapter
 			}
 			else
 			{
-				throw new RuntimeException("Redefinition of Identifier "+str+".");
+				throw new RuntimeException("Redefinition of Identifier "+str+" "+getSrcLoc(node.getId())+".");
 			}
         }
         if(node.getTypeExp() != null)
@@ -197,7 +197,7 @@ public class IdentifierAnalysis extends DepthFirstAdapter
 				}
 				else
 				{
-					throw new RuntimeException("Redefinition of Identifier "+str+".");
+					throw new RuntimeException("Redefinition of Identifier "+str+" "+getSrcLoc(e)+".");
 				}
             }
         }
@@ -237,14 +237,13 @@ public class IdentifierAnalysis extends DepthFirstAdapter
     }
 
 //***************************************************************************************	
-//Expressions 
+//Expression Definitions 
+
     @Override
     public void caseAFunctionExp(AFunctionExp node)
     {
         inAFunctionExp(node);
-
 		currentParams.clear();
-		currentInput.clear();
 		pendingId = new ArrayList<String>();
 		currentLeft = true;
 		
@@ -265,11 +264,11 @@ public class IdentifierAnalysis extends DepthFirstAdapter
 			}
 			if(left.get(letWithinDepth).contains(str))
 			{
-				throw new RuntimeException("Redefinition of Identifier: "+str+".");
+				throw new RuntimeException("Redefinition of Identifier: "+str+" "+getSrcLoc(node.getId())+".");
 			}
 			if(left.get(letWithinDepth).contains(str+"()") && !(str+"()").equals(previousDef))
 			{
-				throw new RuntimeException("Redefinition of Identifier: "+str+".");
+				throw new RuntimeException("Redefinition of Identifier: "+str+" "+getSrcLoc(node.getId())+".");
 			} 			
 			else if(!left.get(letWithinDepth).contains(str+"()"))
 			{
@@ -289,10 +288,7 @@ public class IdentifierAnalysis extends DepthFirstAdapter
 		previousDef = str+"()";
         outAFunctionExp(node);
     }
-//***************************************************************************************
-//Patterns
-
-
+	
     @Override
     public void caseAPatternExp(APatternExp node)
     {
@@ -314,6 +310,8 @@ public class IdentifierAnalysis extends DepthFirstAdapter
         }
         outAPatternExp(node);
     }
+//***************************************************************************************
+//Patterns
 	
     @Override
     public void caseAVarPattern(AVarPattern node)
@@ -329,7 +327,7 @@ public class IdentifierAnalysis extends DepthFirstAdapter
 			{
 				if(currentParams.contains(str))
 				{
-					throw new RuntimeException("Redefinition of Identifier: "+str+".");
+					throw new RuntimeException("Redefinition of Identifier: "+str+" "+getSrcLoc(node.getId())+".");
 				}
 				currentParams.add(str);
 			}
@@ -342,7 +340,7 @@ public class IdentifierAnalysis extends DepthFirstAdapter
 				if((left.get(letWithinDepth).contains(str) 
 					|| left.get(letWithinDepth).contains(str+"()")))
 				{							
-					throw new RuntimeException("Redefinition of Identifier "+str+".");						
+					throw new RuntimeException("Redefinition of Identifier "+str+" "+getSrcLoc(node.getId())+".");						
 				}
 				else
 				{		
@@ -356,7 +354,7 @@ public class IdentifierAnalysis extends DepthFirstAdapter
 			{
 				if(currentLambdaParams.contains(str))
 				{
-					throw new RuntimeException("Redefinition of Identifier: "+str+".");
+					throw new RuntimeException("Redefinition of Identifier: "+str+" "+getSrcLoc(node.getId())+".");
 				}
 				currentLambdaParams.add(str);
 			}
@@ -364,7 +362,7 @@ public class IdentifierAnalysis extends DepthFirstAdapter
 			{//c?x 
 				if(currentInput.contains(str))
 				{
-					throw new RuntimeException("Redefinition of Identifier: "+str+".");
+					throw new RuntimeException("Redefinition of Identifier: "+str+" "+getSrcLoc(node.getId())+".");
 				}
 				currentInput.add(str);
 			}
@@ -704,6 +702,8 @@ public class IdentifierAnalysis extends DepthFirstAdapter
             node.getPattern1().apply(this);
         }
 		currentInInput = false;
+		currentParams.addAll(currentInput);
+		currentInput.clear();
         outANondetInputPattern(node);
     }
 	
@@ -717,6 +717,8 @@ public class IdentifierAnalysis extends DepthFirstAdapter
             node.getPattern1().apply(this);
         }
 		currentInInput = false;
+		currentParams.addAll(currentInput);
+		currentInput.clear();
         outAInputPattern(node);
     }
 
@@ -740,7 +742,7 @@ public class IdentifierAnalysis extends DepthFirstAdapter
 			}
 			else
 			{
-				throw new RuntimeException("Redefinition of Identifier "+str+".");
+				throw new RuntimeException("Redefinition of Identifier "+str+" "+getSrcLoc(node.getId())+".");
 			}
         }
         outATransparentDef(node);
@@ -766,7 +768,7 @@ public class IdentifierAnalysis extends DepthFirstAdapter
 			}
 			else
 			{
-				throw new RuntimeException("Redefinition of Identifier "+str+".");
+				throw new RuntimeException("Redefinition of Identifier "+str+" "+getSrcLoc(node.getId())+".");
 			}
         }
         outAExternalDef(node);
@@ -798,8 +800,6 @@ public class IdentifierAnalysis extends DepthFirstAdapter
 			}
 		}
 		letWithinArgs.put(letWithinDepth,newlist);	
-	//	System.out.println("letWithinArgs: "+letWithinArgs);
-
         {
             List<PDef> copy = new ArrayList<PDef>(node.getDefs());
             for(PDef e : copy)
@@ -953,7 +953,7 @@ public class IdentifierAnalysis extends DepthFirstAdapter
 				&& !left.get(0).contains(right.get(0).get(i)+"()")
 				&& !builtIn.contains(right.get(0).get(i)))
 				{
-					throw new RuntimeException("Unbound Identifier: "+right.get(0).get(i));
+					throw new RuntimeException("Unbound Identifier: "+right.get(0).get(i)+"." );
 				}
 			}
 		}
@@ -1001,4 +1001,17 @@ public class IdentifierAnalysis extends DepthFirstAdapter
 		}
 	}
 	
+	
+//***************************************************************************************************************************************************
+//SrcLoc-Getter	
+	
+	
+	public String getSrcLoc(Node node) 
+    {
+		String s = "(";
+		s+= "Line "+node.getStartPos().getLine();
+		s+= " Column "+node.getStartPos().getPos()+")";
+
+		return s;
+    }
 }
