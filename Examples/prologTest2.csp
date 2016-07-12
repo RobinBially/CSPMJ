@@ -1,0 +1,5 @@
+channel a
+R(b) = let	 
+         b = STOP
+       within a-> b
+Q = a-> a -> SKIP

@@ -25,7 +25,6 @@ public class PrologGenerator extends DepthFirstAdapter
 	private int leftFromPrefix;
 	
 	private int letWithinCount; //renumber let-within blocks
-	private int currentInWithin;
 	private int currentLetWithinNum; //Saves a reference to the current let-within block
 	private TreeMap<Integer,Integer> letWithinStruct;
 	private boolean printSrcLoc;
@@ -33,7 +32,6 @@ public class PrologGenerator extends DepthFirstAdapter
 	public PrologGenerator(final PrologTermOutput pto,HashMap<String,ArrayList<SymInfo>> symbols, boolean printSrcLoc) 
 	{
 		letWithinCount = 0;
-		currentInWithin = 0;
 		currentLetWithinNum = 0;
 		letWithinStruct = new TreeMap<Integer,Integer>();
 		letWithinArgs = new HashMap<Integer,HashMap<String,String>>();
@@ -1179,14 +1177,12 @@ public class PrologGenerator extends DepthFirstAdapter
                 e.apply(this);
             }
 			p.closeList();
-        }
-		currentLetWithinNum = letWithinStruct.get(currentLetWithinNum);
+        }		
         if(node.getProc9() != null)
         {
-			currentInWithin += 1;
             node.getProc9().apply(this);
-			currentInWithin -= 1;
         }
+		currentLetWithinNum = letWithinStruct.get(currentLetWithinNum);
 		p.closeTerm();
         outALetWithinExp(node);
     }
@@ -2166,187 +2162,114 @@ public class PrologGenerator extends DepthFirstAdapter
     {
         inAIdExp(node);
 		String str = node.getId().toString().replace(" ","");
-
         if(node.getId() != null)
         {
             node.getId().apply(this);
-        }
-		//System.out.println(currentParams);
-		
+        }		
         if(node.getTuple() != null)
         {
-			p.openTerm("agent_call");
-			printSrcLoc(node);
+			if(!isBuiltin(str))
+			{
+				p.openTerm("agent_call");
+				printSrcLoc(node);
+			}
 		}
-
-		
+						
+		int dimCounter = currentLetWithinNum;	
 		boolean found = false;
-		
-		if(currentInLambdaRight>0 && currentLambdaParams.containsKey(str))
+		while(!found && symbols.get(str) != null && !isBuiltin(str))
 		{
-			found = true;
-			p.printVariable("_"+currentLambdaParams.get(str));
-		}
-
-		if(!found) //in currentParams?
-		{
-			if(currentParams.containsKey(str))
+			//Search in symbol map	
+			for(int a = 0;a<symbols.get(str).size();a++)
 			{
-				found = true;
-				p.printVariable("_"+currentParams.get(str));
-			}
-		}
-		if(!found && (currentLetWithinNum > 0 || currentInWithin > 0))
-		{
-			
-			int letNumBefore = -1;
-			
-			if(currentInWithin>0)
-			{		
-				ArrayList<Integer> keys = new ArrayList<Integer>(letWithinStruct.keySet());
-				for(int i = keys.size()-1; i>=0;i--)
-				{	
-					int v = letWithinStruct.get(keys.get(i));
-					int w = currentLetWithinNum;
+				// System.out.print(symbols.get(str).get(a).getSymbolInfo() +"  "+str);
+				// System.out.print(" "+symbols.get(str).get(a).getLetWithinCount());
+				// System.out.println(" "+dimCounter);
 
-					if(v == w)
-					{
-						letNumBefore = keys.get(i);
-						break;
-					}
-
-				}//Last let-within block was letNumBefore
-				HashMap<String,String> tempMap = letWithinArgs.get(letNumBefore);
-				if(tempMap.containsKey(str))
+				//In Lambda?					
+				if(currentInLambdaRight>0 && (currentLambdaParams.get(str) != null))
 				{
+					p.printVariable("_"+currentLambdaParams.get(str));
 					found = true;
-					p.printVariable("_"+tempMap.get(str));
+					break;
 				}
+				//Current Function Parameters?
+				else if(currentParams.get(str) != null)
+				{
+					p.printVariable("_"+currentParams.get(str));
+					found = true;
+					break;
+				}
+				//In Identifier list of this dimension?
+				else if(symbols.get(str).get(a).getSymbolInfo().equals("Ident (Groundrep.)")
+				&& symbols.get(str).get(a).getLetWithinCount() == dimCounter)
+				{
+					if(a == 0)
+					{
+						p.openTerm("val_of");
+						p.printAtom(str);
+						printSrcLoc(node.getId());
+						p.closeTerm();
+					}
+					else
+					{
+						p.openTerm("val_of");
+						p.printAtom(str+(a+1));
+						printSrcLoc(node.getId());
+						p.closeTerm();
+					}
+					found = true;
+					break;						
+				}
+				//In functions channels or datatypes of this dimension?
+				else if((symbols.get(str).get(a).getSymbolInfo().equals("Function or Process") 					
+				|| symbols.get(str).get(a).getSymbolInfo().equals("Channel")					
+				|| symbols.get(str).get(a).getSymbolInfo().equals("Constructor of Datatype")				
+				|| symbols.get(str).get(a).getSymbolInfo().equals("Datatype")				
+				|| symbols.get(str).get(a).getSymbolInfo().equals("Nametype"))
+				&& symbols.get(str).get(a).getLetWithinCount() == dimCounter)
+				{					
+					if(a == 0)
+					{
+						p.printAtom(str);
+					}
+					else
+					{
+						p.printAtom(str+(a+1));
+					}
+					found = true;
+					break;
+				}																				
 			}
-			int dimCounter;
-			if(currentInWithin>0)
+			//In let-within-args?
+			if(!found
+			&& letWithinArgs.get(dimCounter) != null 
+			&& (letWithinArgs.get(dimCounter).get(str) != null))
 			{
-				dimCounter = letNumBefore;
+				p.printAtom("_"+letWithinArgs.get(dimCounter).get(str)); //key is var name and value string is enumerated key
+								//In let-within-args?
+				found = true;
+				break;
+			}
+			if(dimCounter == 0)
+			{
+				break;
 			}
 			else
 			{
-				dimCounter = currentLetWithinNum;	
-			}
-
-			while(dimCounter>0 && !found && (symbols.get(str) != null))
-			{									//(e.G STOP)
-				for(int a = 0;a<symbols.get(str).size();a++)
-				{
-					//In function or identifier list of this dimension?
-	
-					if(symbols.get(str).get(a).getSymbolInfo().equals("Ident (Groundrep.)")
-					&& symbols.get(str).get(a).getLetWithinCount() == dimCounter)
-					{
-						found = true;
-						if(a == 0)
-						{
-							p.openTerm("val_of");
-							p.printAtom(str);
-							printSrcLoc(node.getId());
-							p.closeTerm();
-						}
-						else
-						{
-							p.openTerm("val_of");
-							p.printAtom(str+(a+1));
-							printSrcLoc(node.getId());
-							p.closeTerm();
-						}
-						break; //symbol was found in current dimension						
-					}
-					else if((symbols.get(str).get(a).getSymbolInfo().equals("Function or Process") 					
-					|| symbols.get(str).get(a).getSymbolInfo().equals("Channel")					
-					|| symbols.get(str).get(a).getSymbolInfo().equals("Constructor of Datatype")				
-					|| symbols.get(str).get(a).getSymbolInfo().equals("Datatype")				
-					|| symbols.get(str).get(a).getSymbolInfo().equals("Nametype"))
-					&& symbols.get(str).get(a).getLetWithinCount() == dimCounter)
-					{					
-						found = true;
-						if(a == 0)
-						{
-							p.printAtom(str);
-						}
-						else
-						{
-							p.printAtom(str+(a+1));
-						}
-						break; //symbol was found in current dimension
-					}					
-				}
-				
-				//In let-within-args?
-				HashMap<String,String> tempMap = letWithinArgs.get(dimCounter);
-				if(tempMap.containsKey(str) && !found)
-				{
-					p.printAtom(tempMap.get(str)); //key is var name and value string is enumerated key
-					found = true;
-					break;
-				}															
 				dimCounter = letWithinStruct.get(dimCounter); //Not found, search in predecessor
-			}
+			}			
 		}
-		
+
 		if(node.getTuple() != null)
 		{
-			if(!isBuiltin(str) && !found)
-			{
-				p.printAtom(str);
-			}
 			p.openList();
-            node.getTuple().apply(this);
+			node.getTuple().apply(this);
 			p.closeList();
 			p.closeTerm();
 		}
-		else //no tuple!
-		{
-			if(!isBuiltin(str) && !found)
-			{
-				ArrayList<SymInfo> al = symbols.get(str);
-				for(int j = 0; j< al.size();j++)
-				{
-					if(al.get(j).getSymbolInfo().equals("Ident (Groundrep.)") 
-					&& (al.get(j).getLetWithinCount() == 0))
-					{
-						p.openTerm("val_of");
-						if(j>0)
-						{
-							p.printAtom(str+(j+1));
-						}
-						else
-						{
-							p.printAtom(str);
-						}
-						printSrcLoc(node.getId());
-						p.closeTerm();
-						break;
-					}
-					else if((al.get(j).getSymbolInfo().equals("Function or Process")
-					|| al.get(j).getSymbolInfo().equals("Channel")
-					|| al.get(j).getSymbolInfo().equals("Datatype")
-					|| al.get(j).getSymbolInfo().equals("Nametype")
-					|| al.get(j).getSymbolInfo().equals("Constructor of Datatype"))
-					&& (al.get(j).getLetWithinCount() == 0))
-					{
-						if(j>0)
-						{
-							p.printAtom(str+(j+1));
-						}
-						else
-						{
-							p.printAtom(str);
-						}
-						break;
-					}
-				}
-			
-
-			}
-		}
+		
+		
 		
         outAIdExp(node);
     }
