@@ -14,8 +14,9 @@
 :- dynamic assertLtl/4, assertCtl/4.
 'parserVersionNum'([0,5]).
 'parserVersionStr'('CSPMJ V0.5').
-'bindval'('P','skip'('src_span'(6,5,6,9,4,4)),'src_span'(6,1,6,9,8,8)).
-'bindval'('Q','[]'('val_of'('P','src_span'(12,5,12,6,1,1)),'val_of'('P','src_span'(14,1,14,2,1,1)),'src_span_operator'('no_loc_info_available','src_span'(12,6,12,13,7,7))),'src_span'(12,1,14,2,1,1)).
-'symbol'('P','P','src_span'(6,1,6,2,1,1),'Ident (Groundrep.)').
-'symbol'('Q','Q','src_span'(12,1,12,2,1,1),'Ident (Groundrep.)').
+'bindval'('f2','lambda'([_x,_y,_z],_x,_y,_z),'src_span'(3,1,3,21,20,20)).
+'symbol'('x','x','src_span'(3,8,3,9,1,1),'Ident (Prolog Variable)').
+'symbol'('y','y','src_span'(3,10,3,11,1,1),'Ident (Prolog Variable)').
+'symbol'('z','z','src_span'(3,12,3,13,1,1),'Ident (Prolog Variable)').
+'symbol'('f2','f2','src_span'(3,1,3,3,2,2),'Ident (Groundrep.)').
 

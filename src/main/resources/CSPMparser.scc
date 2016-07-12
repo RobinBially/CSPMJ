@@ -87,9 +87,9 @@ Tokens
 	mod_defs		= 'module';	
 	exports			= 'exports';
 	endmodule		= 'endmodule';
-	and 			= 'and';
-	or 				= 'or';
-	not 			= 'not';
+	and 			= white 'and' white;
+	or 				= white 'or' white;
+	not 			= white 'not' white;
 
 //---------------------------------------------------------------------------------------------------------------------------------------------------
 	comma 			= ',' white;

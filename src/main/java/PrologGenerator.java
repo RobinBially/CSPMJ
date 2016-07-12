@@ -1351,6 +1351,7 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseALinkedParRepExp(ALinkedParRepExp node)
     {
         inALinkedParRepExp(node);
+		p.openTerm("procRepLinkParallel");
         if(node.getLinkComp() != null)
         {
             node.getLinkComp().apply(this);
@@ -1363,6 +1364,8 @@ public class PrologGenerator extends DepthFirstAdapter
         {
             node.getProc9().apply(this);
         }
+		printSrcLoc(node.getStmts());
+		p.closeTerm();
         outALinkedParRepExp(node);
     }
 
@@ -1370,6 +1373,7 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseASyncParRepExp(ASyncParRepExp node)
     {
         inASyncParRepExp(node);
+		p.openTerm("procRepSyncParallel");
         if(node.getEvent() != null)
         {
             node.getEvent().apply(this);
@@ -1382,10 +1386,15 @@ public class PrologGenerator extends DepthFirstAdapter
         {
             node.getProc9().apply(this);
         }
+		printSrcLoc(node.getStmts());
+		p.closeTerm();
         outASyncParRepExp(node);
     }
-
-    @Override
+	
+//End of replicated operators
+//***************************************************************************************************************************************************
+  
+	@Override
     public void caseARenamingExp(ARenamingExp node)
     {
         inARenamingExp(node);
@@ -2171,7 +2180,8 @@ public class PrologGenerator extends DepthFirstAdapter
 		}
 
 		
-		boolean found = false;		
+		boolean found = false;
+		
 		if(currentInLambdaRight>0 && currentLambdaParams.containsKey(str))
 		{
 			found = true;
@@ -2188,10 +2198,11 @@ public class PrologGenerator extends DepthFirstAdapter
 		}
 		if(!found && (currentLetWithinNum > 0 || currentInWithin > 0))
 		{
-									
+			
+			int letNumBefore = -1;
+			
 			if(currentInWithin>0)
-			{
-				int letNumBefore = -1;
+			{		
 				ArrayList<Integer> keys = new ArrayList<Integer>(letWithinStruct.keySet());
 				for(int i = keys.size()-1; i>=0;i--)
 				{	
@@ -2212,18 +2223,49 @@ public class PrologGenerator extends DepthFirstAdapter
 					p.printVariable("_"+tempMap.get(str));
 				}
 			}
-			
-			int dimCounter = currentLetWithinNum;	
-			while(dimCounter>0 && !found)
-			{	
+			int dimCounter;
+			if(currentInWithin>0)
+			{
+				dimCounter = letNumBefore;
+			}
+			else
+			{
+				dimCounter = currentLetWithinNum;	
+			}
+
+			while(dimCounter>0 && !found && (symbols.get(str) != null))
+			{									//(e.G STOP)
 				for(int a = 0;a<symbols.get(str).size();a++)
 				{
 					//In function or identifier list of this dimension?
-					if((symbols.get(str).get(a).getSymbolInfo().equals("Function or Process") 
-					&& symbols.get(str).get(a).getLetWithinCount() == dimCounter)	
-					|| (symbols.get(str).get(a).getSymbolInfo().equals("Ident (Groundrep.)")
-					&& symbols.get(str).get(a).getLetWithinCount() == dimCounter))
+	
+					if(symbols.get(str).get(a).getSymbolInfo().equals("Ident (Groundrep.)")
+					&& symbols.get(str).get(a).getLetWithinCount() == dimCounter)
 					{
+						found = true;
+						if(a == 0)
+						{
+							p.openTerm("val_of");
+							p.printAtom(str);
+							printSrcLoc(node.getId());
+							p.closeTerm();
+						}
+						else
+						{
+							p.openTerm("val_of");
+							p.printAtom(str+(a+1));
+							printSrcLoc(node.getId());
+							p.closeTerm();
+						}
+						break; //symbol was found in current dimension						
+					}
+					else if((symbols.get(str).get(a).getSymbolInfo().equals("Function or Process") 					
+					|| symbols.get(str).get(a).getSymbolInfo().equals("Channel")					
+					|| symbols.get(str).get(a).getSymbolInfo().equals("Constructor of Datatype")				
+					|| symbols.get(str).get(a).getSymbolInfo().equals("Datatype")				
+					|| symbols.get(str).get(a).getSymbolInfo().equals("Nametype"))
+					&& symbols.get(str).get(a).getLetWithinCount() == dimCounter)
+					{					
 						found = true;
 						if(a == 0)
 						{
@@ -2248,7 +2290,7 @@ public class PrologGenerator extends DepthFirstAdapter
 				dimCounter = letWithinStruct.get(dimCounter); //Not found, search in predecessor
 			}
 		}
-							
+		
 		if(node.getTuple() != null)
 		{
 			if(!isBuiltin(str) && !found)
@@ -2265,27 +2307,44 @@ public class PrologGenerator extends DepthFirstAdapter
 			if(!isBuiltin(str) && !found)
 			{
 				ArrayList<SymInfo> al = symbols.get(str);
-				int i = 0;
 				for(int j = 0; j< al.size();j++)
 				{
 					if(al.get(j).getSymbolInfo().equals("Ident (Groundrep.)") 
-						&& (al.get(j).getLetWithinCount() == 0))
+					&& (al.get(j).getLetWithinCount() == 0))
 					{
-						i = j;
+						p.openTerm("val_of");
+						if(j>0)
+						{
+							p.printAtom(str+(j+1));
+						}
+						else
+						{
+							p.printAtom(str);
+						}
+						printSrcLoc(node.getId());
+						p.closeTerm();
+						break;
+					}
+					else if((al.get(j).getSymbolInfo().equals("Function or Process")
+					|| al.get(j).getSymbolInfo().equals("Channel")
+					|| al.get(j).getSymbolInfo().equals("Datatype")
+					|| al.get(j).getSymbolInfo().equals("Nametype")
+					|| al.get(j).getSymbolInfo().equals("Constructor of Datatype"))
+					&& (al.get(j).getLetWithinCount() == 0))
+					{
+						if(j>0)
+						{
+							p.printAtom(str+(j+1));
+						}
+						else
+						{
+							p.printAtom(str);
+						}
+						break;
 					}
 				}
 			
-				p.openTerm("val_of");
-				if(i>0)
-				{
-					p.printAtom(str+(i+1));
-				}
-				else
-				{
-					p.printAtom(str);
-				}
-				printSrcLoc(node.getId());
-				p.closeTerm();
+
 			}
 		}
 		

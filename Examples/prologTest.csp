@@ -64,10 +64,7 @@ l(x) =  let
 			b(u) = let
 					c = u
 				within 1
-		within x
-
-	
-	
+		within x	
 m = if true then 1 else 1
 n = [] true @ 1
 o = |~| 1:2 @ 1
@@ -75,5 +72,7 @@ p = ||| 1:2,true @ 2
 q = || 1 @ [true] 1
 r = ; 1 @ 2
 s = [|true|] 1 @ 2
+t = [1<->2] true @ true
+u = [+1+] true @ true
 	
 -- This is an End-Of-File-Comment.

@@ -14,8 +14,8 @@
 :- dynamic assertLtl/4, assertCtl/4.
 'parserVersionNum'([0,5]).
 'parserVersionStr'('CSPMJ V0.5').
-'bindval'('P','skip'('src_span'(6,5,6,9,4,4)),'src_span'(6,1,6,9,8,8)).
-'bindval'('Q','[]'('val_of'('P','src_span'(12,5,12,6,1,1)),'val_of'('P','src_span'(14,1,14,2,1,1)),'src_span_operator'('no_loc_info_available','src_span'(12,6,12,13,7,7))),'src_span'(12,1,14,2,1,1)).
-'symbol'('P','P','src_span'(6,1,6,2,1,1),'Ident (Groundrep.)').
-'symbol'('Q','Q','src_span'(12,1,12,2,1,1),'Ident (Groundrep.)').
+'bindval'('b','int'(2),'src_span'(1,1,1,5,4,4)).
+'bindval'('a','true','val_of'('b','src_span'(4,15,4,16,1,1)),'int'(1),'src_span'(2,1,4,19,18,18)).
+'symbol'('a','a','src_span'(2,1,2,2,1,1),'Ident (Groundrep.)').
+'symbol'('b','b','src_span'(1,1,1,2,1,1),'Ident (Groundrep.)').
 
