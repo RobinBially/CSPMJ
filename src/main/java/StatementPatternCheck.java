@@ -1341,9 +1341,20 @@ public class StatementPatternCheck extends DepthFirstAdapter
     public void caseATupleTuple(ATupleTuple node)
     {
         inATupleTuple(node);
-        if(node.getArguments() != null)
+        if(node.getParL() != null)
         {
-            node.getArguments().apply(this);
+            node.getParL().apply(this);
+        }
+        {
+            List<PExp> copy = new ArrayList<PExp>(node.getArgumentsList());
+            for(PExp e : copy)
+            {
+                e.apply(this);
+            }
+        }
+        if(node.getParR() != null)
+        {
+            node.getParR().apply(this);
         }
         outATupleTuple(node);
     }

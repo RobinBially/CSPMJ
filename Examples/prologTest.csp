@@ -74,5 +74,14 @@ r = ; 1 @ 2
 s = [|true|] 1 @ 2
 t = [1<->2] true @ true
 u = [+1+] true @ true
-	
+v = -(1^2)^2
+w = 0-1+2*3/4%-5
+x = #1
+y(_) = 1 
+z = true or false
+"stringPattern" = 1
+'c' = 1
+1  = 1
+(_,"tuplePattern") = 1
+1 = ((1)(1))(1)
 -- This is an End-Of-File-Comment.

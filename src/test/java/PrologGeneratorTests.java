@@ -3,7 +3,7 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 import org.junit.Ignore;
 
-//Notepad Regex for replacing src-locations:    'src_span'\(\d+,\d+,\d+,\d+,\d+,\d+\)
+//Notepad Regex for replacing src-locations:    'src_span'\(\d+,\d+,\d+,\d+,\d+,\d+\)  ->   'no_loc_info_available'
 
 public class PrologGeneratorTests 
 {
@@ -27,10 +27,9 @@ public class PrologGeneratorTests
 	{
 		check("b= 2 \n a = true \n       and     \n b==1", 
 		"'bindval'('b','int'(2),'no_loc_info_available')."
-		+"\n'bindval'('a','true','val_of'('b','no_loc_info_available'),'int'(1),'no_loc_info_available')."
+		+"\n'bindval'('a','bool_and'('true','=='('val_of'('b','no_loc_info_available'),'int'(1))),'no_loc_info_available')."
 		+"\n'symbol'('a','a','no_loc_info_available','Ident (Groundrep.)')."
-		+"\n'symbol'('b','b','no_loc_info_available','Ident (Groundrep.)').");
-		
+		+"\n'symbol'('b','b','no_loc_info_available','Ident (Groundrep.)').");	
 	}
 	
 	@Test

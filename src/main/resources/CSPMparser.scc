@@ -368,8 +368,8 @@ bool_exp2 {->exp} 	= 	 {and} bool_exp2 and bool_exp3						{-> New exp.and(bool_e
 bool_exp3 {->exp} 	= 	 {not} not bool_exp3 								{-> New exp.not(bool_exp3.exp)}  	
 						|{bool_exp4} bool_exp4 								{-> bool_exp4.exp}
 						;
-bool_exp4 {->exp}	= 	 {equal} bool_exp4 equal val_exp					{-> New exp.equal(bool_exp4.exp,val_exp.exp)} 
-						|{ordering_lge} bool_exp4 lge val_exp				{-> New exp.ordering_lge(bool_exp4.exp,val_exp.exp)} 
+bool_exp4 {->exp}	= 	 {equal} bool_exp4 equal val_exp					{-> New exp.equal(bool_exp4.exp,equal,val_exp.exp)} 
+						|{ordering_lge} bool_exp4 lge val_exp				{-> New exp.ordering_lge(bool_exp4.exp,lge,val_exp.exp)} 
 						|{ordering_less} bool_exp4 less val_exp 			{-> New exp.ordering_less(bool_exp4.exp,val_exp.exp)} 
 						|{ordering_greater} bool_exp4 greater val_exp 		{-> New exp.ordering_greater(bool_exp4.exp,val_exp.exp)} 
 						|{val_exp} val_exp 									{-> val_exp.exp}
@@ -378,23 +378,23 @@ val_exp {->exp}		= 	 {addition} val_exp plus val_exp1 					{-> New exp.addition(
 						|{subtraction} val_exp minus val_exp1				{-> New exp.subtraction(val_exp.exp,val_exp1.exp)}
 						|{val_exp1} val_exp1 								{-> val_exp1.exp}
 						;		 			  			
-val_exp1 {->exp}	= 	 {multiplication} val_exp1 mul_div_mod val_exp2 	{-> New exp.multiplication(val_exp1.exp,val_exp2.exp)}
+val_exp1 {->exp}	= 	 {multiplication} val_exp1 mul_div_mod val_exp2 	{-> New exp.multiplication(val_exp1.exp,mul_div_mod,val_exp2.exp)}
 						|{val_exp2} val_exp2 								{-> val_exp2.exp}
 						;		
-val_exp2 {->exp}	= 	 {un_minus} minus val_exp2						{-> New exp.un_minus(val_exp2.exp)} 
+val_exp2 {->exp}	= 	 {un_minus} minus val_exp2						{-> New exp.un_minus(minus, val_exp2.exp)} 
 						|{length} length 								{-> length.exp}
 						;				
-length {->exp}		= 	 {length} hash length 							{-> New exp.length(length.exp)}
+length {->exp}		= 	 {length} hash length 							{-> New exp.length(hash, length.exp)}
 						|{concat} concat 								{-> concat.exp}
-						;			
-concat {->exp}		=	{concat} concat_list2							{-> New exp.concat([concat_list2.exp])};
-concat_list2 {->exp+}=	 {list} concat_list2 cat atom					{-> [concat_list2.exp,atom.exp]}
-						|{end} atom										{-> [atom.exp]}
 						;
+concat 	{->exp}		= 	 concat_list2									{-> New exp.concat_start(concat_list2.exp)};
+concat_list2 {->exp}=	 {list} concat_list2 cat atom					{-> New exp.concat_more(concat_list2.exp,cat,atom.exp)}
+						|{end} atom										{-> New exp.concat_end(atom.exp)}
+						;						
 atom {->exp}		= 	 {sequence} sequence 							{-> sequence.exp}
 						|{set} set 										{-> set.exp}
 						|{map} map 										{-> map.exp}
-						|{tuple} [tuple]:tuple [lambda]:tuple? 			{-> New exp.tuple(tuple,lambda)}
+						|{tuple} tuple [lambda]:tuple? 					{-> New exp.tuple(tuple,lambda)}
 						|{string} string 								{-> New exp.string(string)}
 						|{char} char 									{-> New exp.char(char)}
 						|{wildcard} wildcard 							{-> New exp.wildcard(wildcard)}
@@ -407,14 +407,15 @@ atom {->exp}		= 	 {sequence} sequence 							{-> sequence.exp}
 						;
 //---------------------------------------------------------------------------------------------------------------------------------------------------
 /*(e1,e2,...,en) different types possible*/
-tuple 	 		=  {tuple} par_l arguments par_r							{-> New tuple.tuple(arguments)};
+tuple 	 		=  {tuple} par_l arguments_list par_r			{-> New tuple.tuple(par_l,[arguments_list.exp],par_r)};
+
 //---------------------------------------------------------------------------------------------------------------------------------------------------
 // e1,e2,...,en    all of type a! The first node seems to be pointless but it is not!
 
-arguments {->arguments}		=   arguments_list 								{-> New arguments.arguments([arguments_list.exp])}; 
-arguments_list {-> exp+}	=  {arg_start} proc1 comma arguments_list		{-> [proc1.exp, arguments_list.exp]}
-							  |{arg_end} proc1								{-> [proc1.exp]}
-							  ;
+arguments {-> arguments}	=   arguments_list 									{-> New arguments.arg_list([arguments_list.exp])}; 
+arguments_list {-> exp+}	=   {arg_start} proc1 comma arguments_list			{-> [proc1.exp, arguments_list.exp]}
+								|{arg_end} proc1								{-> [proc1.exp]}
+								;
 //---------------------------------------------------------------------------------------------------------------------------------------------------
 link_comp 			= lc_list add_stmts?											{-> New link_comp.link_comp([lc_list.exp],add_stmts.stmts)};
 
@@ -430,48 +431,48 @@ rc_list {-> exp+} 	=  {list}[levent]:event arrow_l [revent]:event comma rc_list 
 
 add_stmts {-> stmts}	= pipe stmts 												{-> stmts.stmts};
 //---------------------------------------------------------------------------------------------------------------------------------------------------
-sequence {->exp} =	 {empty_seq} seq_open seq_close									{-> New exp.empty_seq()}										
-					|{expl_seq} seq_open arguments seq_close						{-> New exp.expl_seq(arguments)}
+sequence {->exp} =	 {empty_seq} seq_open seq_close									{-> New exp.empty_seq(seq_open,seq_close)}										
+					|{expl_seq} seq_open arguments seq_close						{-> New exp.expl_seq(seq_open,arguments,seq_close)}
 					|{ranged} seq_open [lval]:val_exp dotdot 
-							   [rval]:val_exp seq_close								{-> New exp.ranged_seq(lval.exp,rval.exp)}
-					|{infinite} seq_open val_exp dotdot seq_close					{-> New exp.infinite_seq(val_exp.exp)}
-					|{compr} seq_open arguments pipe stmts seq_close 				{-> New exp.compr_seq(arguments,stmts)}
+							   [rval]:val_exp seq_close								{-> New exp.ranged_seq(seq_open,lval.exp,rval.exp,seq_close)}
+					|{infinite} seq_open val_exp dotdot seq_close					{-> New exp.infinite_seq(seq_open,val_exp.exp,seq_close)}
+					|{compr} seq_open arguments pipe stmts seq_close 				{-> New exp.compr_seq(seq_open,arguments,stmts,seq_close)}
 
 					|{ranged_compr} seq_open [lval]:val_exp dotdot 
-								 [rval]:val_exp pipe stmts seq_close 				{-> New exp.ranged_compr_seq(lval.exp,rval.exp,stmts)}
+								 [rval]:val_exp pipe stmts seq_close 				{-> New exp.ranged_compr_seq(seq_open,lval.exp,rval.exp,stmts,seq_close)}
 			
-					|{infinite_compr} seq_open val_exp dotdot pipe stmts seq_close	{-> New exp.infinite_compr_seq(val_exp.exp,stmts)}
+					|{infinite_compr} seq_open val_exp dotdot pipe stmts seq_close	{-> New exp.infinite_compr_seq(seq_open,val_exp.exp,stmts,seq_close)}
 					|{enum_seq} enum_seq											{-> enum_seq.exp}
 					|{enum_seq_comp} enum_seq_comp									{-> enum_seq_comp.exp}
 					;
 					  
 enum_seq {-> exp}		=  tria_l [lpipe]:pipe arguments 
-									  [rpipe]:pipe tria_r							{-> New exp.enumerated_seq(arguments)};	
+									  [rpipe]:pipe tria_r							{-> New exp.enumerated_seq(tria_l,arguments,tria_r)};	
 enum_seq_comp {-> exp}	=  tria_l [lpipe]:pipe arguments 
-								[mpipe]:pipe stmts [rpipe]:pipe tria_r 				{-> New exp.enumerated_compr_seq(arguments,stmts)};
+								[mpipe]:pipe stmts [rpipe]:pipe tria_r 				{-> New exp.enumerated_compr_seq(tria_l,arguments,stmts,tria_r)};
 				 
 //---------------------------------------------------------------------------------------------------------------------------------------------------				 
 /*Examples: {v,w,x,y,z}, {m..n}, {m..},{x*2..64|x<-{8,4}}*/
 
-set {-> exp} = 	 {empty_set} brace_l brace_r 											{-> New exp.empty_set()}
-				|{set} brace_l arguments brace_r										{-> New exp.set(arguments)}
+set {-> exp} = 	 {empty_set} brace_l brace_r 											{-> New exp.empty_set(brace_l,brace_r)}
+				|{set} brace_l arguments brace_r										{-> New exp.set(brace_l,arguments,brace_r)}
 				|{ranged} brace_l [lval]:val_exp dotdot 							
-										[rval]:val_exp brace_r							{-> New exp.ranged_set(lval.exp,rval.exp)}
-				|{infinite} brace_l val_exp dotdot brace_r								{-> New exp.infinite_set(val_exp.exp)}
-				|{compr} brace_l arguments pipe stmts brace_r							{-> New exp.compr_set(arguments,stmts)}
+										[rval]:val_exp brace_r							{-> New exp.ranged_set(brace_l,lval.exp,rval.exp,brace_r)}
+				|{infinite} brace_l val_exp dotdot brace_r								{-> New exp.infinite_set(brace_l,val_exp.exp,brace_r)}
+				|{compr} brace_l arguments pipe stmts brace_r							{-> New exp.compr_set(brace_l,arguments,stmts,brace_r)}
 				|{ranged_compr} brace_l [lval]:val_exp dotdot 
-									   [rval]:val_exp pipe stmts brace_r				{-> New exp.ranged_compr_set(lval.exp,rval.exp,stmts)}
-				|{infinite_comp} brace_l val_exp dotdot pipe stmts brace_r				{-> New exp.infinite_compr_set(val_exp.exp,stmts)}
+									   [rval]:val_exp pipe stmts brace_r				{-> New exp.ranged_compr_set(brace_l,lval.exp,rval.exp,stmts,brace_r)}
+				|{infinite_comp} brace_l val_exp dotdot pipe stmts brace_r				{-> New exp.infinite_compr_set(brace_l,val_exp.exp,stmts,brace_r)}
 				|{enum_set} enum_set													{-> enum_set.exp}
 				|{enum_set_comp} enum_set_comp											{-> enum_set_comp.exp}
 				;
 	
-enum_set {->exp}   	    =  brace_l [lpipe]:pipe arguments [rpipe]:pipe brace_r		{-> New exp.enumerated_set(arguments)};
+enum_set {->exp}   	    =  brace_l [lpipe]:pipe arguments [rpipe]:pipe brace_r		{-> New exp.enumerated_set(brace_l,arguments,brace_r)};
 enum_set_comp {->exp}	=  brace_l [lpipe]:pipe arguments [mpipe]:pipe stmts 		
-						  [rpipe]:pipe brace_r										{-> New exp.enumerated_compr_set(arguments,stmts)};
+						  [rpipe]:pipe brace_r										{-> New exp.enumerated_compr_set(brace_l,arguments,stmts,brace_r)};
 //---------------------------------------------------------------------------------------------------------------------------------------------------
 map {->exp}	 =	  {map} par_l [lpipe]:pipe [lbool_exp]:bool_exp imp_r 
-								   [rbool_exp]:bool_exp [rpipe]:pipe par_r			{-> New exp.map(lbool_exp.exp,rbool_exp.exp)}
+								   [rbool_exp]:bool_exp [rpipe]:pipe par_r			{-> New exp.map(par_l,lbool_exp.exp,rbool_exp.exp,par_r)}
 				|{emptymap} empty_map												{-> New exp.empty_map(empty_map)}
 				;
 //---------------------------------------------------------------------------------------------------------------------------------------------------		 	 
@@ -662,38 +663,40 @@ exp 			=  {function} id parameters [proc1]:exp
 				  |{or} [bool_exp]:exp [bool_exp2]:exp
 				  |{and} [bool_exp2]:exp [bool_exp3]:exp
 				  |{not} [bool_exp3]:exp
-				  |{equal} [bool_exp4]:exp [val_exp]:exp
-				  |{ordering_lge} [bool_exp4]:exp [val_exp]:exp
+				  |{equal} [bool_exp4]:exp equal [val_exp]:exp
+				  |{ordering_lge} [bool_exp4]:exp lge [val_exp]:exp
 				  |{ordering_less} [bool_exp4]:exp [val_exp]:exp
 				  |{ordering_greater} [bool_exp4]:exp [val_exp]:exp
 				  |{addition} [val_exp]:exp [val_exp1]:exp
 				  |{subtraction} [val_exp]:exp [val_exp1]:exp
-				  |{multiplication}	[val_exp1]:exp [val_exp2]:exp
-				  |{un_minus} [val_exp2]:exp 
-				  |{length} [length]:exp
-				  |{concat} [concat_list2]:exp+
+				  |{multiplication}	[val_exp1]:exp mul_div_mod [val_exp2]:exp
+				  |{un_minus} minus [val_exp2]:exp 
+				  |{length} hash [length]:exp
+				  |{concat_start} [concat_list]:exp
+				  |{concat_more} [concat_list]:exp cat [atom]:exp
+				  |{concat_end} [atom]:exp
 //Sequences			  				  				  				  
-				  |{empty_seq}
-				  |{expl_seq} arguments
-				  |{ranged_seq} [lval]:exp [rval]:exp
-				  |{infinite_seq} [val_exp]:exp
-				  |{compr_seq} arguments stmts
-				  |{ranged_compr_seq} [lval]:exp [rval]:exp stmts
-				  |{infinite_compr_seq}[val_exp]:exp stmts
-				  |{enumerated_seq} arguments
-				  |{enumerated_compr_seq} arguments stmts
+				  |{empty_seq} seq_open seq_close
+				  |{expl_seq} seq_open arguments seq_close
+				  |{ranged_seq} seq_open [lval]:exp [rval]:exp seq_close
+				  |{infinite_seq} seq_open [val_exp]:exp seq_close
+				  |{compr_seq} seq_open arguments stmts seq_close
+				  |{ranged_compr_seq} seq_open [lval]:exp [rval]:exp stmts seq_close
+				  |{infinite_compr_seq} seq_open [val_exp]:exp stmts seq_close
+				  |{enumerated_seq} tria_l arguments tria_r
+				  |{enumerated_compr_seq} tria_l arguments stmts tria_r
 //Sets				  
-				  |{empty_set}
-				  |{set} arguments
-				  |{ranged_set} [lval]:exp [rval]:exp
-				  |{infinite_set} [val_exp]:exp
-				  |{compr_set} arguments stmts
-				  |{ranged_compr_set} [lval]:exp [rval]:exp stmts
-				  |{infinite_compr_set}[val_exp]:exp stmts
-				  |{enumerated_set} arguments
-				  |{enumerated_compr_set} arguments stmts
+				  |{empty_set} brace_l brace_r
+				  |{set} brace_l arguments brace_r
+				  |{ranged_set} brace_l [lval]:exp [rval]:exp brace_r
+				  |{infinite_set} brace_l [val_exp]:exp brace_r
+				  |{compr_set} brace_l arguments stmts brace_r
+				  |{ranged_compr_set} brace_l [lval]:exp [rval]:exp stmts brace_r
+				  |{infinite_compr_set} brace_l[val_exp]:exp stmts brace_r
+				  |{enumerated_set} brace_l arguments brace_r
+				  |{enumerated_compr_set} brace_l arguments stmts brace_r
 //Maps
-				  |{map} [lbool]:exp [rbool]:exp
+				  |{map} par_l [lbool]:exp [rbool]:exp par_r
 				  |{empty_map} empty_map
 //Atoms
 				  |{tuple} tuple [lambda]:tuple?
@@ -708,8 +711,9 @@ exp 			=  {function} id parameters [proc1]:exp
 				  |{id} id tuple?
 				  ;
 				  
-tuple 			=  {tuple} arguments;
-arguments 		=  {arguments} [arguments_list]:exp+;
+tuple 			=  {tuple} par_l [arguments_list]:exp+ par_r;
+arguments 		=  {arg_list} [arguments_list]:exp+;
+					
 link_comp 		=  {link_comp}[lc_list]:exp+ stmts?;
 rename_comp 	=  {rename_comp}[rc_list]:exp+ stmts?;
 
