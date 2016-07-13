@@ -902,42 +902,12 @@ public class IdentifierAnalysis extends DepthFirstAdapter
 	
 	public void createbuiltIn()
 	{
-		builtIn.add("STOP");
-		builtIn.add("SKIP");
-		builtIn.add("CHAOS");
-		builtIn.add("DIV");
-		builtIn.add("WAIT");
-		builtIn.add("RUN");
-		builtIn.add("member");
-		builtIn.add("elem");
-		builtIn.add("empty");
-		builtIn.add("null");
-		builtIn.add("Bool");
-		builtIn.add("bool");
-		builtIn.add("diff");
-		builtIn.add("card");
-		builtIn.add("Events");
-		builtIn.add("head");
-		builtIn.add("tail");
-		builtIn.add("concat");
-		builtIn.add("union");
-		builtIn.add("Union");
-		builtIn.add("inter");
-		builtIn.add("Inter");
-		builtIn.add("set");
-		builtIn.add("Set");
-		builtIn.add("seq");
-		builtIn.add("Seq");	
-		builtIn.add("length");
-		builtIn.add("Proc");
-		builtIn.add("Char");
-		builtIn.add("Int");
-		builtIn.add("error");
-		builtIn.add("show");
-		builtIn.add("True");
-		builtIn.add("False");
-		builtIn.add("true");
-		builtIn.add("false");
+		String[] builtin = {"Bool","Char","Events","Int","Proc","False","True","card","diff","empty",
+		"inter","Inter","member","seq","Seq","Set","union","Union","concat","elem","head","length",
+		"null","set","tail","emptyMap","mapDelete","mapFromList","mapLookup","mapMember","mapToList",
+		"mapUpdate","mapUpdateMultiple","Map","Inter","member","seq","error","show","seq","CHAOS","DIV",
+		"RUN","WAIT","STOP","SKIP","extensions","productions"};
+		builtIn = new ArrayList<String>(Arrays.asList(builtin));
 	}
  
  

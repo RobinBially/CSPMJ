@@ -6,19 +6,174 @@ import org.junit.Ignore;
 //Notepad Regex for replacing src-locations:    'src_span'\(\d+,\d+,\d+,\d+,\d+,\d+\)  ->   'no_loc_info_available'
 
 public class PrologGeneratorTests 
-{
-	// @Test
-	// public void fail_test1() throws Exception 
-	// {
-		// checkParserError("P=");
-	// }
+{	
+	@Test
+	public void NonSpecialBuiltins() throws Exception
+	{
+		check(		"H = Events"
+				,
+					"'bindval'('H','Events','no_loc_info_available')."
+					+"\n'symbol'('Events','Events','no_loc_info_available','BuiltIn primitive')."
+					+"\n'symbol'('H','H','no_loc_info_available','Ident (Groundrep.)')."
+			 );
+	}
+	@Test
+	public void IfThenElse() throws Exception
+	{
+		check("m = if true then 1 else 1"
+		,
+			"'bindval'('m','ifte'('true','int'(1),'int'(1),'no_loc_info_available','no_loc_info_available','no_loc_info_available'),'no_loc_info_available')."
+			+"\n'symbol'('m','m','no_loc_info_available','Ident (Groundrep.)')."
+		);
+	}
+	@Test
+	public void ParamNumeration() throws Exception
+	{
+		check(
+				"B(x,y) = SKIP"
+				+"\nB(x,y) = 5"
+				+"\nF(x,y) = (1,2)"
+				+"\nG(a) = F(a)"
+				+"\ny(_) = 1"			
+				,
+				"'agent'('B'(_x,_y),'skip'('no_loc_info_available'),'no_loc_info_available')."
+				+"\n'agent'('B'(_x2,_y2),'int'(5),'no_loc_info_available')."
+				+"\n'agent'('F'(_x3,_y3),'tupleExp'(['int'(1),'int'(2)]),'no_loc_info_available')."
+				+"\n'agent'('G'(_a),'agent_call'('no_loc_info_available','F',[_a]),'no_loc_info_available')."
+				+"\n'agent'('y4'(_),'int'(1),'no_loc_info_available')."
+				+"\n'symbol'('a','a','no_loc_info_available','Ident (Prolog Variable)')."
+				+"\n'symbol'('B','B','no_loc_info_available','Function or Process')."
+				+"\n'symbol'('F','F','no_loc_info_available','Function or Process')."
+				+"\n'symbol'('G','G','no_loc_info_available','Function or Process')."
+				+"\n'symbol'('x','x','no_loc_info_available','Ident (Prolog Variable)')."
+				+"\n'symbol'('x2','x','no_loc_info_available','Ident (Prolog Variable)')."
+				+"\n'symbol'('x3','x','no_loc_info_available','Ident (Prolog Variable)')."
+				+"\n'symbol'('y','y','no_loc_info_available','Ident (Prolog Variable)')."
+				+"\n'symbol'('y2','y','no_loc_info_available','Ident (Prolog Variable)')."
+				+"\n'symbol'('y3','y','no_loc_info_available','Ident (Prolog Variable)')."
+				+"\n'symbol'('y4','y','no_loc_info_available','Function or Process')."
+				+"\n'symbol'('SKIP','SKIP','no_loc_info_available','BuiltIn primitive')."
+			);
+	}
 	
 	@Test
-	public void MultipleBuiltins() throws Exception 
+	public void Chars() throws Exception
 	{
-		check("P=STOP","'bindval'('P','STOP','no_loc_info_available')."
+		check(
+					"E = 'a'"
+					,
+					"'bindval'('E','char'('a'),'no_loc_info_available')."
+					+"\n'symbol'('E','E','no_loc_info_available','Ident (Groundrep.)')."
+					);
+	}
+	
+	@Test
+	public void Maps() throws Exception
+	{
+		check(
+					"C = (| |)\nD = (|1=>2|)"
+					,
+					"'bindval'('C','emptyMap','no_loc_info_available')."
+					+"\n'bindval'('D','mapExp'(['int'(1),'int'(2)]),'no_loc_info_available')."
+					+"\n'symbol'('C','C','no_loc_info_available','Ident (Groundrep.)')."
+					+"\n'symbol'('D','D','no_loc_info_available','Ident (Groundrep.)')."
+					);
+	}
+	
+	@Test
+	public void TypeDefs() throws Exception
+	{
+		check(	
+				"datatype dt = cn|cn2.Bool"
+				+"\nsubtype st = cn"
+				+"\nnametype nt = Bool.Int"
+				+"\nchannel c1,c2,c3: Bool.Int"
+				,
+				"'dataTypeDef'('dt',['constructor'('cn'),'constructorC'('cn2','dotTupleType'(['boolType']))])."
+				+"\n'subTypeDef'('st',['constructor'('cn')])."
+				+"\n'nameType'('nt','type'('dotTupleType'(['boolType','intType'])))."
+				+"\n'channel'('c1','type'('dotTupleType'(['boolType','intType'])))."
+				+"\n'channel'('c2','type'('dotTupleType'(['boolType','intType'])))."
+				+"\n'channel'('c3','type'('dotTupleType'(['boolType','intType'])))."
+				+"\n'symbol'('dt','dt','no_loc_info_available','Datatype')."
+				+"\n'symbol'('c3','c3','no_loc_info_available','Channel')."
+				+"\n'symbol'('st','st','no_loc_info_available','Datatype')."
+				+"\n'symbol'('Bool','Bool','no_loc_info_available','BuiltIn primitive')."
+				+"\n'symbol'('cn2','cn2','no_loc_info_available','Constructor of Datatype')."
+				+"\n'symbol'('nt','nt','no_loc_info_available','Nametype')."
+				+"\n'symbol'('cn','cn','no_loc_info_available','Constructor of Datatype')."
+				+"\n'symbol'('cn2','cn','no_loc_info_available','Constructor of Datatype')."
+				+"\n'symbol'('Int','Int','no_loc_info_available','BuiltIn primitive')."
+				+"\n'symbol'('c1','c1','no_loc_info_available','Channel')."
+				+"\n'symbol'('c2','c2','no_loc_info_available','Channel')."
+			);
+	}
+	
+	@Test
+	public void MultipleAgentDefs() throws Exception
+	{
+		check(
+				"a = 1"
+				+"\nA = 1"
+				+"\nI(a) = A"
+				+"\nI(a) = a"
+				+"\nI(A) = a"
+				+"\nI(A) = A"
+				,
+				"'bindval'('a','int'(1),'no_loc_info_available')."
+				+"\n'bindval'('A','int'(1),'no_loc_info_available')."
+				+"\n'agent'('I'(_a2),'val_of'('A','no_loc_info_available'),'no_loc_info_available')."
+				+"\n'agent'('I'(_a3),_a3,'no_loc_info_available')."
+				+"\n'agent'('I'(_A2),'val_of'('a','no_loc_info_available'),'no_loc_info_available')."
+				+"\n'agent'('I'(_A3),_A3,'no_loc_info_available')."
+				+"\n'symbol'('a','a','no_loc_info_available','Ident (Groundrep.)')."
+				+"\n'symbol'('a2','a','no_loc_info_available','Ident (Prolog Variable)')."
+				+"\n'symbol'('a3','a','no_loc_info_available','Ident (Prolog Variable)')."
+				+"\n'symbol'('A','A','no_loc_info_available','Ident (Groundrep.)')."
+				+"\n'symbol'('A2','A','no_loc_info_available','Ident (Prolog Variable)')."
+				+"\n'symbol'('A3','A','no_loc_info_available','Ident (Prolog Variable)')."
+				+"\n'symbol'('I','I','no_loc_info_available','Function or Process')."							
+			);
+	}
+	@Test
+	public void redefineBuiltins() throws Exception
+	{
+		check("STOP = 1\nSKIP = 1"
+		,
+			"'bindval'('STOP','int'(1),'no_loc_info_available').\n'bindval'('SKIP','int'(1),'no_loc_info_available')."
+			+"\n'symbol'('STOP','STOP','no_loc_info_available','Ident (Groundrep.)')."
+			+"\n'symbol'('SKIP','SKIP','no_loc_info_available','Ident (Groundrep.)')."
+		);
+	}
+	@Test
+	public void callSingleBuiltin() throws Exception
+	{
+		check("P=STOP",
+		
+				 "'bindval'('P','stop'('no_loc_info_available'),'no_loc_info_available')."
 				+"\n'symbol'('P','P','no_loc_info_available','Ident (Groundrep.)')."
 				+"\n'symbol'('STOP','STOP','no_loc_info_available','BuiltIn primitive').");
+	}
+	
+	@Test
+	public void callBuiltinsMultipleTimes() throws Exception 
+	{
+		check( 		"P = STOP"
+					+"\nQ = STOP"
+					+"\nV = SKIP"
+					+"\nW = SKIP"
+				,
+					"'bindval'('P','stop'('no_loc_info_available'),'no_loc_info_available')."
+					+"\n'bindval'('Q','stop'('no_loc_info_available'),'no_loc_info_available')."
+					+"\n'bindval'('V','skip'('no_loc_info_available'),'no_loc_info_available')."
+					+"\n'bindval'('W','skip'('no_loc_info_available'),'no_loc_info_available')."
+					+"\n'symbol'('P','P','no_loc_info_available','Ident (Groundrep.)')."
+					+"\n'symbol'('Q','Q','no_loc_info_available','Ident (Groundrep.)')."
+					+"\n'symbol'('STOP','STOP','no_loc_info_available','BuiltIn primitive')."
+					+"\n'symbol'('V','V','no_loc_info_available','Ident (Groundrep.)')."
+					+"\n'symbol'('W','W','no_loc_info_available','Ident (Groundrep.)')."
+					+"\n'symbol'('SKIP','SKIP','no_loc_info_available','BuiltIn primitive')."
+				);
 	}
 	
 	@Test
@@ -36,8 +191,8 @@ public class PrologGeneratorTests
 	{
 		check("channel a \n R(b) = let \n b = STOP \n within a-> b \n Q = a-> a -> SKIP",				
 		"'channel'('a','type'('dotUnitType'))."
-		+"\n'agent'('R'(_b),'let'(['bindval'('b2','STOP','no_loc_info_available')],'prefix'('no_loc_info_available',[],'a','val_of'('b2','no_loc_info_available'),'no_loc_info_available')),'no_loc_info_available')."
-		+"\n'bindval'('Q','prefix'('no_loc_info_available',[],'a','prefix'('no_loc_info_available',[],'a','SKIP','no_loc_info_available'),'no_loc_info_available'),'no_loc_info_available')."
+		+"\n'agent'('R'(_b),'let'(['bindval'('b2','stop'('no_loc_info_available'),'no_loc_info_available')],'prefix'('no_loc_info_available',[],'a','val_of'('b2','no_loc_info_available'),'no_loc_info_available')),'no_loc_info_available')."
+		+"\n'bindval'('Q','prefix'('no_loc_info_available',[],'a','prefix'('no_loc_info_available',[],'a','skip'('no_loc_info_available'),'no_loc_info_available'),'no_loc_info_available'),'no_loc_info_available')."
 		+"\n'symbol'('a','a','no_loc_info_available','Channel')."
 		+"\n'symbol'('Q','Q','no_loc_info_available','Ident (Groundrep.)')."
 		+"\n'symbol'('R','R','no_loc_info_available','Function or Process')."
@@ -180,6 +335,82 @@ public class PrologGeneratorTests
 		+"\n'symbol'('l','l','no_loc_info_available','Function or Process')."
 		);
 	}
+	
+	@Test
+	public void Lambda() throws Exception
+	{
+		check("h = \\a,b@3\ni(a) = \\b@a+b",
+				"'bindval'('h','lambda'([_a,_b],'int'(3)),'no_loc_info_available')."
+				+"\n'agent'('i'(_a2),'lambda'([_b2],'+'(_a2,_b2)),'no_loc_info_available')."
+				+"\n'symbol'('a','a','no_loc_info_available','Ident (Prolog Variable)')."
+				+"\n'symbol'('a2','a','no_loc_info_available','Ident (Prolog Variable)')."
+				+"\n'symbol'('b','b','no_loc_info_available','Ident (Prolog Variable)')."
+				+"\n'symbol'('b2','b','no_loc_info_available','Ident (Prolog Variable)')."
+				+"\n'symbol'('h','h','no_loc_info_available','Ident (Groundrep.)')."
+				+"\n'symbol'('i','i','no_loc_info_available','Function or Process')."			  
+			);
+	}
+	
+	@Test
+	public void InputOutput() throws Exception
+	{
+		check(  "Z = 1?1.2 -> 5"
+				+"\na(d) = 1?1.2:1.2 -> 5"
+				+"\na(d) = 1"
+				+"\nb = 1$1.2 -> 5"
+				+"\nc = 1$1.2:1.2 -> 5"
+				+"\nd = 1!1.2 -> 5"
+				+"\ne = 1?1@@2 -> 5"
+				+"\nf = 1?1^2 -> 5"
+				+"\ng = 1^2"
+				+"\nj(y) = 1?y -> y"
+				,
+				"'bindval'('Z','prefix'('no_loc_info_available',['in'('dotpat'(['int'(1),'int'(2)]))],'int'(1),'int'(5),'no_loc_info_available'),'no_loc_info_available')."
+				+"\n'agent'('a'(_d),'prefix'('no_loc_info_available',['inGuard'('dotpat'(['int'(1),'int'(2)]),'dotTuple'(['int'(1),'int'(2)]))],'int'(1),'int'(5),'no_loc_info_available'),'no_loc_info_available')."
+				+"\n'agent'('a'(_d2),'int'(1),'no_loc_info_available')."
+				+"\n'bindval'('b','prefix'('no_loc_info_available',['nondetIn'('dotpat'(['int'(1),'int'(2)]))],'int'(1),'int'(5),'no_loc_info_available'),'no_loc_info_available')."
+				+"\n'bindval'('c','prefix'('no_loc_info_available',['nondetInGuard'('dotpat'(['int'(1),'int'(2)]),'dotTuple'(['int'(1),'int'(2)]))],'int'(1),'int'(5),'no_loc_info_available'),'no_loc_info_available')."
+				+"\n'bindval'('d3','prefix'('no_loc_info_available',['out'('dotTuple'(['int'(1),'int'(2)]))],'int'(1),'int'(5),'no_loc_info_available'),'no_loc_info_available')."
+				+"\n'bindval'('e','prefix'('no_loc_info_available',['in'('alsoPattern'(['int'(1),'int'(2)]))],'int'(1),'int'(5),'no_loc_info_available'),'no_loc_info_available')."
+				+"\n'bindval'('f','prefix'('no_loc_info_available',['in'('appendPattern'(['int'(1),'int'(2)]))],'int'(1),'int'(5),'no_loc_info_available'),'no_loc_info_available')."
+				+"\n'bindval'('g','^'('int'(1),'int'(2)),'no_loc_info_available')."
+				+"\n'agent'('j'(_y),'prefix'('no_loc_info_available',['in'(_y2)],'int'(1),_y2,'no_loc_info_available'),'no_loc_info_available')."
+				+"\n'symbol'('a','a','no_loc_info_available','Function or Process')."
+				+"\n'symbol'('b','b','no_loc_info_available','Ident (Groundrep.)')."
+				+"\n'symbol'('c','c','no_loc_info_available','Ident (Groundrep.)')."
+				+"\n'symbol'('d','d','no_loc_info_available','Ident (Prolog Variable)')."
+				+"\n'symbol'('d2','d','no_loc_info_available','Ident (Prolog Variable)')."
+				+"\n'symbol'('d3','d','no_loc_info_available','Ident (Groundrep.)')."
+				+"\n'symbol'('e','e','no_loc_info_available','Ident (Groundrep.)')."
+				+"\n'symbol'('f','f','no_loc_info_available','Ident (Groundrep.)')."
+				+"\n'symbol'('g','g','no_loc_info_available','Ident (Groundrep.)')."
+				+"\n'symbol'('y','y','no_loc_info_available','Ident (Prolog Variable)')."
+				+"\n'symbol'('y2','y','no_loc_info_available','Ident (Prolog Variable)')."
+				+"\n'symbol'('Z','Z','no_loc_info_available','Ident (Groundrep.)')."
+				+"\n'symbol'('j','j','no_loc_info_available','Function or Process')."
+			);
+	}
+	
+	@Test
+	public void ExpressionOperators() throws Exception
+	{
+		check(
+				"v = -(1^2)^2"
+				+"\nw = 0-1+2*3/4%-5"
+				+"\nx = #1"
+				+"\nz = true or false and not true"
+		,
+			"'bindval'('v','negate'('^'('^'('int'(1),'int'(2)),'int'(2))),'no_loc_info_available')."
+			+"\n'bindval'('w','+'('-'('int'(0),'int'(1)),'%'('/'('*'('int'(2),'int'(3)),'int'(4)),'int'(-5))),'no_loc_info_available')."
+			+"\n'bindval'('x','#'('int'(1)),'no_loc_info_available')."
+			+"\n'bindval'('z','bool_or'('true','bool_and'('false','bool_not'('true'))),'no_loc_info_available')."
+			+"\n'symbol'('v','v','no_loc_info_available','Ident (Groundrep.)')."
+			+"\n'symbol'('w','w','no_loc_info_available','Ident (Groundrep.)')."
+			+"\n'symbol'('x','x','no_loc_info_available','Ident (Groundrep.)')."
+			+"\n'symbol'('z','z','no_loc_info_available','Ident (Groundrep.)')."
+		);
+	}
+	
 	private void check(final String input, final String expected) 
 	{
 		String actual;

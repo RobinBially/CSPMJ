@@ -14,31 +14,13 @@ Additional info:
 
 To execute the parser you can use the produced .jar-file as follows:
 
-java -jar build/libs/cspmj.jar -parse Examples/prologTest.csp
 
-java -jar cspmj.jar -parse Examples\some-file.csp
-java -jar cspmj.jar -parse -show Examples\some-file.csp   (-show shows edited Tokenstream)
+java -jar cspmj.jar -parse file-name.csp 
 
-SableCC:
-java -jar sablecc.jar some-file.scc
-_________________________________________________________________________________________
+or
 
-*********
-* CSPMF *
-*********
+java -jar cspmj.jar -parse file-name.csp --prologOut=output-file-name
 
-cspmf-windows.exe translate test2.csp --prologOut=test2.csp.pl
+or
 
-_________________________________________________________________________________________
-
-***********
-* GitHub  *
-***********
-
-git reset --hard <sha1-commit-id>
-git push -f
-git rm -r --cached .
-git add .
-git commit -m "fixed untracked files"
-git branch -d the_local_branch
-_________________________________________________________________________________________
+java -jar cspmj.jar -parseAll

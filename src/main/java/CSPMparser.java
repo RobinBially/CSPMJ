@@ -15,19 +15,23 @@ import CSPMparser.node.*;
 
 public class CSPMparser
 {
-	public String newstream;
-	public String currentFile;
-	public int workcount;
+	private String newstream;
+	private String currentFile;
+	private int exceptionCounter;
 	private ArrayList<CommentInfo> commentList;
 	private HashMap<Integer,Character> commentMap;
 
 	public CSPMparser()
 	{
+		exceptionCounter = 0;
 		commentMap = new HashMap<Integer,Character>();
 		commentList = new ArrayList<CommentInfo>();
 	}
 
-
+	public int getExceptionCounter()
+	{
+		return exceptionCounter;
+	}
 
 	public String getExtension(String filename)
 	{
@@ -63,21 +67,21 @@ public class CSPMparser
 
 	public int parseFilesInFolder(File folder, Boolean show)
 	{
-		int i = 0;
+		int fileCounter = 0;
 		for (File fileEntry : folder.listFiles()) 
 		{		
 			if (fileEntry.isDirectory())
 			{
-				i += parseFilesInFolder(fileEntry,show);
+				fileCounter += parseFilesInFolder(fileEntry,show);
 			} 
 			else if(getExtension(fileEntry.toString()).equals("csp"))
 			{
-				i++;
+				fileCounter++;
 				if(show)
 				System.out.println("\n\nParsing '"+fileEntry.getName()+"':");
 				else
 				System.out.println("\n\nParsing '"+fileEntry.getName()+"'...");
-				workcount = 0;
+
 				try 
 				{
 					newstream = getStringFromFile(fileEntry.toString());
@@ -85,33 +89,24 @@ public class CSPMparser
 					newstream = includeFile(newstream);
 					newstream = saveComments(newstream);
 					
-					workcount++; //now 1
-					
 					TriangleBruteForce tbf = new TriangleBruteForce(newstream);
 					newstream = tbf.findTriangles();
-					
-					workcount++; //now 2
 
 					StringReader sr = new StringReader(newstream);
 					BufferedReader br = new BufferedReader(sr); 
 					Lexer l = new LexHelper(new PushbackReader(br,100000));
 					Parser p = new Parser(l);
-					Start tree = p.parse();	
-					
-					workcount++; //now 3
+					Start tree = p.parse();						
 
 					StatementPatternCheck spc = new StatementPatternCheck();
 					tree.apply(spc);
 					
-					workcount++; //now 4
 					TreeLogicChecker tlc = new TreeLogicChecker();
 					tree.apply(tlc);
-
+					System.out.println("Checking unbound and renamed identifiers.");
 					IdentifierAnalysis ia = new IdentifierAnalysis();
 					tree.apply(ia);
-					System.out.println("No unbound Identifiers were found.");	
-					
-					workcount++; //now 5
+					System.out.println("No unbound identifiers were found.\nYour File has been parsed successfully.");	
 					
 					PrologTermOutput pto = new PrologTermOutput();
 					SymbolCollector sc = new SymbolCollector();
@@ -121,22 +116,22 @@ public class CSPMparser
 					PrologGenerator pout = new PrologGenerator(pto,symbols,true,commentList);
 					tree.apply(pout);
 
-					workcount++; //now 6
-					System.out.println("Generating Prolog-File...");
-					createPrologFile(pto,fileEntry.toString(),null);
+					System.out.println("Generating Prolog-File.");
+					createPrologFile(pto,fileEntry.toString(),null,"");
 					
-					//		Typechecker ts = new Typechecker();
-					//		tree.apply(ts);
+					//Typechecker ts = new Typechecker();
+					//tree.apply(ts);
 				} 	
 				catch (Exception e) 
 				{
+					exceptionCounter++;
 					System.out.println("An Exception was thrown!");
-					createPrologFile(null,fileEntry.toString(),e);
+					createPrologFile(null,fileEntry.toString(),e,"");
 				}
 			}
 			commentList.clear();
 		}
-		return i;
+		return fileCounter;
 	}
 
 	
@@ -191,48 +186,37 @@ public class CSPMparser
 	}
 
 
-	public void parseFile(String s, Boolean show)
+	public void parseFile(String inputFile, String outputFile)
 	{
-		System.out.println("Parsing '"+s+"'...");
-		workcount = 0;
+		System.out.println("Parsing '"+inputFile+"'...");
 		try 
 		{			
-			newstream = getStringFromFile(s);
+			newstream = getStringFromFile(inputFile);
 			newstream = saveComments(newstream);
 			newstream = includeFile(newstream);
 			newstream = saveComments(newstream);
-
-			workcount++; //now 1
 			
 			TriangleBruteForce tbf = new TriangleBruteForce(newstream);
 			newstream = tbf.findTriangles();
-			
-			workcount++; //now 2
 			
 			StringReader sr = new StringReader(newstream);
 			BufferedReader br = new BufferedReader(sr); 
 			Lexer l = new LexHelper(new PushbackReader(br,100000));
 			Parser p = new Parser(l);
 			Start tree = p.parse();	
-
-			workcount++; //now 3
 			
 			StatementPatternCheck spc = new StatementPatternCheck();
 			tree.apply(spc);
-			
-			workcount++; //now 4
-
-			
+	
 			TreeLogicChecker tlc = new TreeLogicChecker();
 			tree.apply(tlc);
-			System.out.println("\nYour CSPM-File has been successfully parsed.\n"
-			+"Checking Identifier occurrences...");
+			
+			System.out.println("Checking unbound and renamed identifiers.");
+
 			IdentifierAnalysis ia = new IdentifierAnalysis();
 			tree.apply(ia);
 			
-			System.out.println("No unbound Identifiers were found.");
-			
-			workcount++; //now 5
+			System.out.println("No unbound identifiers were found.\nYour File has been parsed successfully.");	
 			
 			PrologTermOutput pto = new PrologTermOutput();
 			SymbolCollector sc = new SymbolCollector();
@@ -241,25 +225,32 @@ public class CSPMparser
 			PrologGenerator pout = new PrologGenerator(pto,symbols,true,commentList);
 			tree.apply(pout);
 
-			workcount++; //now 6
-			System.out.println("Generating Prolog-File...");
-			createPrologFile(pto,s,null);
-			System.out.println("Your Prolog File has been generated successfully.");
+			System.out.println("Generating Prolog-File.");
+			createPrologFile(pto,inputFile,null,outputFile);
 
 
 		} 	
 		catch (Exception e) 
 		{
 			System.out.println("An Exception was thrown!");
-			createPrologFile(null,s,e);
+			createPrologFile(null,inputFile,e,outputFile);
 		}		
 	}
 
-	public void createPrologFile(PrologTermOutput pto,String filename, Exception e)
+	public void createPrologFile(PrologTermOutput pto,String filename, Exception e, String outputFile)
 	{
 		try
 		{
-			PrintWriter writer = new PrintWriter(filename+".pl", "UTF-8");
+			PrintWriter writer;
+			if(outputFile.equals(""))
+			{
+				writer = new PrintWriter(filename+".pl", "UTF-8");
+			}
+			else
+			{
+				String name = outputFile.substring(12,outputFile.length());
+				writer = new PrintWriter(name+".pl", "UTF-8");
+			}
 			if(e == null)
 			{
 				writer.println(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
@@ -487,60 +478,33 @@ public class CSPMparser
 	public static void main(String arguments[]) 
 	{		
 		CSPMparser cspm = new CSPMparser();
-		if(arguments.length == 3)
-		{
-			if((arguments[0].toString().equals("-parse") 
-						&& arguments[1].toString().equals("-show"))
-					||(arguments[1].toString().equals("-parse") 
-						&& arguments[0].toString().equals("-show")))
+		if(arguments.length == 3 && arguments[0].equals("-parse"))
+		{	if(arguments[2].startsWith("--prologOut="))
 			{
-				cspm.parseFile(arguments[2],true);
-			}
-		}
-		else if(arguments.length == 2)
-		{	
-			if(arguments[0].toString().equals("-parse") 
-					&& !(arguments[1].toString().equals("-show")) )
-			{
-				cspm.parseFile(arguments[1],false);
-			}
-			if((arguments[0].toString().equals("-parseAll") 
-						&& arguments[1].toString().equals("-show"))
-					||(arguments[1].toString().equals("-parseAll") 
-						&& arguments[0].toString().equals("-show")))
-			{
-				Boolean help = true;
-				File folder = new File(cspm.getPath());
-				int k = cspm.parseFilesInFolder(folder,true);
-				if(k == 1)
-				{
-					System.out.println("\nYour CSPM-File has been parsed successfully!");
-				}
-				else if(k==2)
-				{
-					System.out.println("\nBoth CSPM-Files have been parsed successfully!");
-				}
-				else
-				{
-					System.out.println("\n"+k+" CSPM-Files have been parsed successfully!");
-				}
-			}
-		}
-		else if((arguments.length == 1) && (arguments[0].toString().equals("-parseAll")))
-		{
-			File folder = new File(cspm.getPath());
-			int k = cspm.parseFilesInFolder(folder,false);
-			if(k == 1)
-			{
-				System.out.println("\nYour CSPM-File has been parsed successfully!");
-			}
-			else if(k==2)
-			{
-				System.out.println("\nBoth CSPM-Files have been parsed successfully!");
+				cspm.parseFile(arguments[1],arguments[2]);
 			}
 			else
 			{
-				System.out.println("\n"+k+" CSPM-Files have been parsed successfully!");
+				System.out.println("Incorrect input!");
+				System.exit(1);
+			}
+		}
+		else if(arguments.length == 2 && arguments[0].equals("-parse"))
+		{	
+				cspm.parseFile(arguments[1],"");
+		}
+		else if((arguments.length == 1) && (arguments[0].equals("-parseAll")))
+		{
+			File folder = new File(cspm.getPath());
+			int fileCounter = cspm.parseFilesInFolder(folder,false);
+
+			if(fileCounter-cspm.getExceptionCounter() == 0)
+			{
+				System.out.println("\nNo CSPM-File has been parsed successfully!");
+			}
+			else
+			{
+				System.out.println("\n"+(fileCounter-cspm.getExceptionCounter())+" of "+fileCounter+" CSPM-Files have been parsed successfully!");
 			}
 		}
 		else

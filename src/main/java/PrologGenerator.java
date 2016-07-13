@@ -360,6 +360,10 @@ public class PrologGenerator extends DepthFirstAdapter
 				printSrcLoc(node.getId());
 				p.closeTerm();
 			}
+			else if(symbols.get(str).get(i).getSymbolInfo().equals("BuiltIn primitive"))
+			{
+				printBuiltin(str,node.getId());
+			}
 			else
 			{
 				p.printAtom(str);
@@ -2538,8 +2542,7 @@ public class PrologGenerator extends DepthFirstAdapter
 				|| symbols.get(str).get(a).getSymbolInfo().equals("Channel")					
 				|| symbols.get(str).get(a).getSymbolInfo().equals("Constructor of Datatype")				
 				|| symbols.get(str).get(a).getSymbolInfo().equals("Datatype")				
-				|| symbols.get(str).get(a).getSymbolInfo().equals("Nametype")
-				|| symbols.get(str).get(a).getSymbolInfo().equals("BuiltIn primitive"))
+				|| symbols.get(str).get(a).getSymbolInfo().equals("Nametype"))
 				&& symbols.get(str).get(a).getLetWithinCount() == dimCounter)
 				{					
 					if(a == 0)
@@ -2552,7 +2555,12 @@ public class PrologGenerator extends DepthFirstAdapter
 					}
 					found = true;
 					break;
-				}																				
+				}
+				else if(symbols.get(str).get(a).getSymbolInfo().equals("BuiltIn primitive")
+						&& symbols.get(str).get(a).getLetWithinCount() == dimCounter)
+				{
+					printBuiltin(str,node.getId());
+				}
 			}
 			//In let-within-args?
 			if(!found
@@ -2709,57 +2717,13 @@ public class PrologGenerator extends DepthFirstAdapter
 	
     public boolean isBuiltin(String s)
 	{
-		ArrayList<String> builtin = new ArrayList<String>();
-		builtin.add("Bool");
-		builtin.add("Char");
-		builtin.add("Events");
-		builtin.add("Int");
-		builtin.add("Proc");
-		builtin.add("False");
-		builtin.add("True");
-		builtin.add("card");
-		builtin.add("diff");
-		builtin.add("empty");
-		builtin.add("inter");
-		builtin.add("Inter");
-		builtin.add("member");
-		builtin.add("seq");
-		builtin.add("Seq");
-		builtin.add("Set");
-		builtin.add("union");
-		builtin.add("Union");
-		builtin.add("concat");
-		builtin.add("elem");
-		builtin.add("head");
-		builtin.add("length");
-		builtin.add("null");
-		builtin.add("set");
-		builtin.add("tail");
-		builtin.add("emptyMap");
-		builtin.add("mapDelete");
-		builtin.add("mapFromList");
-		builtin.add("mapLookup");
-		builtin.add("mapMember");
-		builtin.add("mapToList");
-		builtin.add("mapUpdate");
-		builtin.add("mapUpdateMultiple");
-		builtin.add("Map");
-		builtin.add("Inter");
-		builtin.add("member");
-		builtin.add("seq");
-		builtin.add("error");
-		builtin.add("show");
-		builtin.add("seq");
-		builtin.add("CHAOS");
-		builtin.add("DIV");
-		builtin.add("RUN");
-		builtin.add("WAIT");
-		builtin.add("STOP");
-		builtin.add("SKIP");
-		builtin.add("extensions");
-		builtin.add("productions");
-	
-		if(builtin.contains(s))
+		String[] builtin = {"Bool","Char","Events","Int","Proc","False","True","card","diff","empty",
+		"inter","Inter","member","seq","Seq","Set","union","Union","concat","elem","head","length",
+		"null","set","tail","emptyMap","mapDelete","mapFromList","mapLookup","mapMember","mapToList",
+		"mapUpdate","mapUpdateMultiple","Map","Inter","member","seq","error","show","seq","CHAOS","DIV",
+		"RUN","WAIT","STOP","SKIP","extensions","productions"};
+		
+		if(Arrays.asList(builtin).contains(s))
 		{
 			return true;
 		}
@@ -2767,6 +2731,42 @@ public class PrologGenerator extends DepthFirstAdapter
 		{
 			return false;
 		}
+	}
+	
+	public void printBuiltin(String str, Node node)
+	{
+
+		if(str.equals("STOP"))
+		{
+			p.openTerm("stop");
+			printSrcLoc(node);
+			p.closeTerm();
+		}
+		else if(str.equals("SKIP"))
+		{
+			p.openTerm("skip");
+			printSrcLoc(node);
+			p.closeTerm();
+		}
+		else if(str.equals("Bool"))
+		{
+			p.printAtom("boolType");
+		}
+		else if(str.equals("Int"))
+		{
+			p.printAtom("intType");
+		}
+		else if(str.equals("CHAOS"))
+		{
+			p.openTerm("CHAOS");
+			printSrcLoc(node);
+			p.closeTerm();
+		}
+		else
+		{
+			p.printAtom(str);
+		}
+		
 	}
 
 	
