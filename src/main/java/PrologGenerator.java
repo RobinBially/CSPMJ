@@ -149,65 +149,7 @@ public class PrologGenerator extends DepthFirstAdapter
         }
         outAClauseTypes(node);
     }
-
 	
-//***************************************************************************************************************************************************
-//Comments
-    // @Override
-    // public void caseAMultilineCommentDef(AMultilineCommentDef node)
-    // {
-        // inAMultilineCommentDef(node);
-        // if(node.getMultilineComment() != null)
-        // {
-            // node.getMultilineComment().apply(this);
-			// p.openTerm("comment");
-			// p.openTerm("blockComment");
-			// String comment = node.getMultilineComment().getText();
-			// comment = comment.replaceAll("\n","\\\\n");
-			// comment = comment.replaceAll("\r","\\\\r");
-			// p.printAtom(comment);
-			// printSrcLoc(node.getMultilineComment());
-			// p.closeTerm();
-			// p.closeTerm();
-        // }
-        // outAMultilineCommentDef(node);
-    // }
-	
-    // @Override
-    // public void caseALineCommentDef(ALineCommentDef node)
-    // {
-        // inALineCommentDef(node);
-        // if(node.getLineComment() != null)
-        // {
-            // node.getLineComment().apply(this);
-			// p.openTerm("comment");
-			// p.openTerm("lineComment");
-			// p.printAtom(node.getLineComment().getText());
-			// printSrcLoc(node.getLineComment());
-			// p.closeTerm();
-			// p.closeTerm();
-        
-        // }
-        // outALineCommentDef(node);
-    // }
-	
-    // @Override
-    // public void caseAShortCommentSeperatorDef(AShortCommentSeperatorDef node)
-    // {
-        // inAShortCommentSeperatorDef(node);
-        // if(node.getLineComment() != null)
-        // {
-            // node.getLineComment().apply(this);
-			// p.fullstop();
-			// p.openTerm("comment");
-			// p.openTerm("lineComment");
-			// p.printAtom(node.getLineComment().getText());
-			// printSrcLoc(node.getLineComment());
-			// p.closeTerm();
-			// p.closeTerm();
-        // }
-        // outAShortCommentSeperatorDef(node);
-    // }	
 //***************************************************************************************************************************************************
 //Definitions
 
@@ -288,18 +230,8 @@ public class PrologGenerator extends DepthFirstAdapter
 				printSrcLoc(n);
 				p.printAtom(symbols.get(key).get(i).getSymbolInfo());
 				p.closeTerm();
-				
-				if((symbolCounter != symbols.keySet().size()) || (i<symbols.get(key).size()-1))
-				{
-					p.fullstop();
-				}
-				else
-				{
-					p.fullstopEnd();
-				}
-
+				p.fullstop();
 			}
-
 		}
 		
         outADefsStart(node);
@@ -413,17 +345,33 @@ public class PrologGenerator extends DepthFirstAdapter
         {
             node.getId().apply(this);
         }
-        if(node.getTuple() != null)
+        if(node.getLambda() != null)
         {
-            node.getTuple().apply(this);
-        }
-		else if(!isBuiltin(str))
-		{
-			p.openTerm("val_of");
-			p.printAtom(str);
+			p.openTerm("agent_call");
 			printSrcLoc(node.getId());
-			p.closeTerm();
+        }
+
+		for(int i = 0;i<symbols.get(str).size();i++)
+		{
+			if(symbols.get(str).get(i).getSymbolInfo().equals("Ident (Groundrep.)"))
+			{
+				p.openTerm("val_of");
+				p.printAtom(str);
+				printSrcLoc(node.getId());
+				p.closeTerm();
+			}
+			else
+			{
+				p.printAtom(str);
+			}
 		}
+		
+        if(node.getLambda() != null)
+        {
+            node.getLambda().apply(this);
+			p.closeTerm();
+        }
+		
         outAIdTypeExp(node);
     }
 	
@@ -784,9 +732,9 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseATruePattern(ATruePattern node)
     {
         inATruePattern(node);
-        if(node.getTrue2() != null)
+        if(node.getTrue() != null)
         {
-            node.getTrue2().apply(this);
+            node.getTrue().apply(this);
         }
         outATruePattern(node);
     }
@@ -795,9 +743,9 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseAFalsePattern(AFalsePattern node)
     {
         inAFalsePattern(node);
-        if(node.getFalse2() != null)
+        if(node.getFalse() != null)
         {
-            node.getFalse2().apply(this);
+            node.getFalse().apply(this);
         }
         outAFalsePattern(node);
     }	
@@ -2332,7 +2280,7 @@ public class PrologGenerator extends DepthFirstAdapter
         outAEmptyMapExp(node);
     }
 //***************************************************************************************************************************************************
-//Tuples
+//Tuples and Parenthesis
 
     @Override
     public void caseATupleExp(ATupleExp node)
@@ -2345,7 +2293,9 @@ public class PrologGenerator extends DepthFirstAdapter
 		}
         if(node.getTuple() != null)
         {
+			p.openTerm("tupleExp");
             node.getTuple().apply(this);
+			p.closeTerm();
         }
         if(node.getLambda() != null)
         {
@@ -2364,45 +2314,82 @@ public class PrologGenerator extends DepthFirstAdapter
         if(node.getParL() != null)
         {
             node.getParL().apply(this);
-        }	
+        }
 		if(patternRequired)
         {
-            List<PExp> copy = new ArrayList<PExp>(node.getArgumentsList());
-            for(PExp e : copy)
-            {
-                e.apply(this);
-            }
+
         }
 		else
 		{
-			List<PExp> copy = new ArrayList<PExp>(node.getArgumentsList());
-			if(copy.size()>1)
+			p.openList();
+			if(node.getProc1() != null)
 			{
-				p.openTerm("tupleExp");
-				p.openList();
-		        for(PExp e : copy)
+				node.getProc1().apply(this);
+			}
+			if(node.getComma() != null)
+			{
+				node.getComma().apply(this);
+			}
+			{
+				List<PExp> copy = new ArrayList<PExp>(node.getArgumentsList());
+				for(PExp e : copy)
 				{
 					e.apply(this);
 				}
-				p.closeList();
-				p.closeTerm();				
 			}
-			else
-			{
-		        for(PExp e : copy)
-				{
-					e.apply(this);
-				}				
-			}
-
-		}	
+			p.closeList();
+		}
         if(node.getParR() != null)
         {
             node.getParR().apply(this);
         }
         outATupleTuple(node);
     }
+
+    @Override
+    public void caseAParenthesisExp(AParenthesisExp node)
+    {
+        inAParenthesisExp(node);
+		if(node.getLambda() != null)
+		{
+			p.openTerm("agent_call");
+			printSrcLoc(node.getParL());		
+		}
+        if(node.getParL() != null)
+        {
+            node.getParL().apply(this);
+        }
+        if(node.getProc1() != null)
+        {
+            node.getProc1().apply(this);
+        }
+        if(node.getParR() != null)
+        {
+            node.getParR().apply(this);
+        }
+        if(node.getLambda() != null)
+        {
+            node.getLambda().apply(this);
+			p.closeTerm();
+        }
+        outAParenthesisExp(node);
+    }
 	
+    @Override
+    public void caseALambdaLambda(ALambdaLambda node)
+    {
+        inALambdaLambda(node);
+        {
+			p.openList();
+            List<PExp> copy = new ArrayList<PExp>(node.getArgumentsList());
+            for(PExp e : copy)
+            {
+                e.apply(this);
+            }
+			p.closeList();
+        }
+        outALambdaLambda(node);
+    }
 //***************************************************************************************************************************************************
 //Atoms       
  
@@ -2462,27 +2449,27 @@ public class PrologGenerator extends DepthFirstAdapter
     }
 
     @Override
-    public void caseATrue1Exp(ATrue1Exp node)
+    public void caseATrueExp(ATrueExp node)
     {
-        inATrue1Exp(node);
-        if(node.getTrue1() != null)
+        inATrueExp(node);
+        if(node.getTrue() != null)
         {
-            node.getTrue1().apply(this);
+            node.getTrue().apply(this);
 			p.printAtom("true");
         }
-        outATrue1Exp(node);
+        outATrueExp(node);
     }
 	
     @Override
-    public void caseAFalse1Exp(AFalse1Exp node)
+    public void caseAFalseExp(AFalseExp node)
     {
-        inAFalse1Exp(node);
-        if(node.getFalse1() != null)
+        inAFalseExp(node);
+        if(node.getFalse() != null)
         {
-            node.getFalse1().apply(this);
+            node.getFalse().apply(this);
 			p.printAtom("false");
         }
-        outAFalse1Exp(node);
+        outAFalseExp(node);
     }
 
 	@Override
@@ -2494,18 +2481,15 @@ public class PrologGenerator extends DepthFirstAdapter
         {
             node.getId().apply(this);
         }		
-        if(node.getTuple() != null)
+        if(node.getLambda() != null)
         {
-			if(!isBuiltin(str))
-			{
-				p.openTerm("agent_call");
-				printSrcLoc(node);
-			}
+			p.openTerm("agent_call");
+			printSrcLoc(node);		
 		}
 						
 		int dimCounter = currentLetWithinNum;	
 		boolean found = false;
-		while(!found && symbols.get(str) != null && !isBuiltin(str))
+		while(!found && symbols.get(str) != null)
 		{
 			//Search in symbol map	
 			for(int a = 0;a<symbols.get(str).size();a++)
@@ -2554,7 +2538,8 @@ public class PrologGenerator extends DepthFirstAdapter
 				|| symbols.get(str).get(a).getSymbolInfo().equals("Channel")					
 				|| symbols.get(str).get(a).getSymbolInfo().equals("Constructor of Datatype")				
 				|| symbols.get(str).get(a).getSymbolInfo().equals("Datatype")				
-				|| symbols.get(str).get(a).getSymbolInfo().equals("Nametype"))
+				|| symbols.get(str).get(a).getSymbolInfo().equals("Nametype")
+				|| symbols.get(str).get(a).getSymbolInfo().equals("BuiltIn primitive"))
 				&& symbols.get(str).get(a).getLetWithinCount() == dimCounter)
 				{					
 					if(a == 0)
@@ -2574,7 +2559,7 @@ public class PrologGenerator extends DepthFirstAdapter
 			&& letWithinArgs.get(dimCounter) != null 
 			&& (letWithinArgs.get(dimCounter).get(str) != null))
 			{
-				p.printAtom("_"+letWithinArgs.get(dimCounter).get(str)); //key is var name and value string is enumerated key
+				p.printVariable("_"+letWithinArgs.get(dimCounter).get(str)); //key is var name and value string is enumerated key
 								//In let-within-args?
 				found = true;
 				break;
@@ -2589,16 +2574,11 @@ public class PrologGenerator extends DepthFirstAdapter
 			}			
 		}
 
-		if(node.getTuple() != null)
-		{
-			p.openList();
-			node.getTuple().apply(this);
-			p.closeList();
+        if(node.getLambda() != null)
+        {
+            node.getLambda().apply(this);
 			p.closeTerm();
 		}
-		
-		
-		
         outAIdExp(node);
     }
 //***************************************************************************************************************************************************
@@ -2712,135 +2692,6 @@ public class PrologGenerator extends DepthFirstAdapter
         outARenameCompRenameComp(node);
     }
 
-
-//***************************************************************************************************************************************************
-//Builtins
-	
-    @Override
-    public void caseALtlBuiltin(ALtlBuiltin node)
-    {
-        inALtlBuiltin(node);
-        if(node.getLtl() != null)
-        {
-            p.printAtom("LTL");
-        }
-        outALtlBuiltin(node);
-    }
-
-    @Override
-    public void caseACtlBuiltin(ACtlBuiltin node)
-    {
-        inACtlBuiltin(node);
-        if(node.getCtl() != null)
-        {
-			p.printAtom("CTL");
-        }
-        outACtlBuiltin(node);
-    }
-
-	@Override
-	public void caseASkipBuiltin(final ASkipBuiltin node) 
-	{
-		p.openTerm("skip");
-		printSrcLoc(node);
-		p.closeTerm();
-	}
-	@Override
-	public void caseAStopBuiltin(final AStopBuiltin node) 
-	{
-		p.openTerm("stop");
-		printSrcLoc(node);
-		p.closeTerm();
-	}
-
-    @Override
-    public void caseAChaosBuiltin(AChaosBuiltin node)
-    {
-        inAChaosBuiltin(node);
-        if(node.getChaos() != null)
-        {
-			p.openTerm("builtin_call");
-			p.openTerm("CHAOS");
-			printSrcLoc(node.getChaos());
-			p.closeTerm();
-			p.closeTerm();		
-			//node.getChaos().apply(this);		
-        }
-        outAChaosBuiltin(node);
-    }
-
-    @Override
-    public void caseADivBuiltin(ADivBuiltin node)
-    {
-        inADivBuiltin(node);
-        if(node.getDiv() != null)
-        {
-            p.openTerm("div");
-			printSrcLoc(node);
-			p.closeTerm();
-        }
-        outADivBuiltin(node);
-    }
-
-    @Override
-    public void caseABoolConstBuiltin(ABoolConstBuiltin node)
-    {
-        inABoolConstBuiltin(node);
-        if(node.getBoolConst() != null)
-        {
-            p.printAtom("boolType");
-        }
-        outABoolConstBuiltin(node);
-    }
-
-    @Override
-    public void caseAEventsBuiltin(AEventsBuiltin node)
-    {
-        inAEventsBuiltin(node);
-        if(node.getEvents() != null)
-        {
-            p.openTerm("events");
-			printSrcLoc(node);
-			p.closeTerm();
-        }
-        outAEventsBuiltin(node);
-    }
-
-    @Override
-    public void caseAProcBuiltin(AProcBuiltin node)
-    {
-        inAProcBuiltin(node);
-        if(node.getProc() != null)
-        {
-            p.openTerm("proc");
-			printSrcLoc(node);
-			p.closeTerm();
-        }
-        outAProcBuiltin(node);
-    }
-
-    @Override
-    public void caseACharConstBuiltin(ACharConstBuiltin node)
-    {
-        inACharConstBuiltin(node);
-        if(node.getCharConst() != null)
-        {
-			p.printAtom("charType");
-        }
-        outACharConstBuiltin(node);
-    }
-
-    @Override
-    public void caseAIntConstBuiltin(AIntConstBuiltin node)
-    {
-        inAIntConstBuiltin(node);
-        if(node.getIntConst() != null)
-        {
-            p.printAtom("intType");
-        }
-        outAIntConstBuiltin(node);
-    }
-
 //***************************************************************************************************************************************************
 //Helpers	
 	public boolean isNumeric(String str)  
@@ -2855,24 +2706,59 @@ public class PrologGenerator extends DepthFirstAdapter
 	  }  
 	  return true;  
 	}
+	
     public boolean isBuiltin(String s)
 	{
 		ArrayList<String> builtin = new ArrayList<String>();
-
-		builtin.add("STOP");
-		builtin.add("SKIP");
+		builtin.add("Bool");
+		builtin.add("Char");
+		builtin.add("Events");
+		builtin.add("Int");
+		builtin.add("Proc");
+		builtin.add("False");
+		builtin.add("True");
+		builtin.add("card");
+		builtin.add("diff");
+		builtin.add("empty");
+		builtin.add("inter");
+		builtin.add("Inter");
+		builtin.add("member");
+		builtin.add("seq");
+		builtin.add("Seq");
+		builtin.add("Set");
+		builtin.add("union");
+		builtin.add("Union");
+		builtin.add("concat");
+		builtin.add("elem");
+		builtin.add("head");
+		builtin.add("length");
+		builtin.add("null");
+		builtin.add("set");
+		builtin.add("tail");
+		builtin.add("emptyMap");
+		builtin.add("mapDelete");
+		builtin.add("mapFromList");
+		builtin.add("mapLookup");
+		builtin.add("mapMember");
+		builtin.add("mapToList");
+		builtin.add("mapUpdate");
+		builtin.add("mapUpdateMultiple");
+		builtin.add("Map");
+		builtin.add("Inter");
+		builtin.add("member");
+		builtin.add("seq");
+		builtin.add("error");
+		builtin.add("show");
+		builtin.add("seq");
 		builtin.add("CHAOS");
 		builtin.add("DIV");
-		builtin.add("Events");
-		builtin.add("Proc");
-		builtin.add("Char"); 
-		builtin.add("Bool");
-		builtin.add("Int");
-		builtin.add("true");
-		builtin.add("false");
-		builtin.add("True");
-		builtin.add("False");	
-		
+		builtin.add("RUN");
+		builtin.add("WAIT");
+		builtin.add("STOP");
+		builtin.add("SKIP");
+		builtin.add("extensions");
+		builtin.add("productions");
+	
 		if(builtin.contains(s))
 		{
 			return true;
@@ -2882,6 +2768,7 @@ public class PrologGenerator extends DepthFirstAdapter
 			return false;
 		}
 	}
+
 	
     public void printSrcLoc(Node node) 
     {

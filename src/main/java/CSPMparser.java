@@ -172,6 +172,10 @@ public class CSPMparser
 			tree.apply(pout);
 			
 			ret = pto.getStringWriter().toString();
+			while(ret.endsWith("\n") || ret.endsWith("\r"))
+			{
+				ret = ret.substring(0,ret.length()-1);
+			}		
 			
 		} catch (ParserException e) {
 			e.printStackTrace();
@@ -276,12 +280,19 @@ public class CSPMparser
 				+"\n'parserVersionStr'('CSPMJ V0.5').");
 				File file = new File(filename+".pl");	
 				String str = pto.getStringWriter().toString();
-				writer.println(str);
+
+				while(str.endsWith("\n") || str.endsWith("\r"))
+				{
+					str = str.substring(0,str.length()-1);
+				}
+				writer.print(str);
+				
+				
 				writer.close();
 			}
 			else
 			{
-				writer.println(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
+				writer.print(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
 				+"\n:- dynamic module/4."
 				+"\n'parserVersionStr'('0.6.1.1')."
 				+"\n'parseResult'('parseError','"+e.getMessage()+"',0,0,0).");

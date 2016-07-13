@@ -42,21 +42,6 @@ Helpers
 Tokens
 
 //---------------------------------------------------------------------------------------------------------------------------------------------------
-//Builtin functions and constants
-	stop 			= 'STOP';
-	skip 			= 'SKIP';
-	chaos 			= 'CHAOS';
-	div				= 'DIV';
-	events 			= 'Events';
-	proc 			= 'Proc';
-	char_const		= 'Char'; 
-	bool_const		= 'Bool';
-	int_const 		= 'Int';
-	true1			= 'true';
-	false1			= 'false';
-	true2			= 'True';
-	false2			= 'False';
-//---------------------------------------------------------------------------------------------------------------------------------------------------
 //CSPM command words
 	ltl				= 'LTL';
 	ctl				= 'CTL';	
@@ -85,7 +70,9 @@ Tokens
 	endmodule		= 'endmodule';
 	and 			= white 'and' white;
 	or 				= white 'or' white;
-	not 			= white 'not' white;
+	not 			= white 'not' white;	
+	true			= 'true';
+	false			= 'false';
 
 //---------------------------------------------------------------------------------------------------------------------------------------------------
 	comma 			= ',' white;
@@ -173,7 +160,7 @@ Productions
 start {-> start}	=	nl* defs 											{-> New start.defs([defs.def])};
 
 defs {-> def*} 		= 	 {sinlge} [decl]:def nl*							{-> [decl.def]}
-						|{multiple} [first]:def nl [rest]:defs 		{-> [first.def,rest.def]}
+						|{multiple} [first]:def nl [rest]:defs 				{-> [first.def,rest.def]}
 						;
 
 def					=	 {expression} exp									{-> New def.expression(exp)}
@@ -203,11 +190,11 @@ typedef_list {->types+} =  {single} clause pipe typedef_list		{-> [clause.types,
 ntype {->types}			=  n_type id eq type_exp					{-> New types.ntype(id,type_exp)};	  
 //---------------------------------------------------------------------------------------------------------------------------------------------------
 /*Creation of Channels*/
-channel {-> def}		=  {channel} chan chan_list chan_type?			{-> New def.channel([chan_list.id],chan_type.type_exp)};
-chan_list {-> id+}		=  {list} [channel_name]:id comma chan_list 	{-> [channel_name.id,chan_list.id]}
-						  |{end} [channel_name]:id						{-> [channel_name.id]}
-						  ;
-chan_type {-> type_exp}	= ddot type_exp									{-> type_exp.type_exp};
+channel {-> def}			=  {channel} chan chan_list chan_type?			{-> New def.channel([chan_list.id],chan_type.type_exp)};
+chan_list {->id+} 			=  {list} [channel_name]:id comma chan_list 	{-> [channel_name.id,chan_list.id]}
+							  |{end} [channel_name]:id						{-> [channel_name.id]}
+							  ;
+chan_type {-> type_exp}		= ddot type_exp									{-> type_exp.type_exp};
 //---------------------------------------------------------------------------------------------------------------------------------------------------			
 type_exp 					=    type_exp0								{-> New type_exp.dotted([type_exp0.type_exp])};
 
@@ -218,30 +205,11 @@ type_exp1 {->type_exp}		= 	 {par} par_l type_exp_list par_r		{-> New type_exp.pa
 								|{set_type} type_exp2					{-> type_exp2.type_exp}
 								;
 type_exp2 {->type_exp} 		=  	 {set} set								{-> New type_exp.set(set.exp)}
-								|{set_name} id tuple?					{-> New type_exp.id(id,tuple)}
+								|{set_name} id lambda?					{-> New type_exp.id(id,lambda)}
 								;
 type_exp_list {->type_exp+}  = 	 {list} type_exp0 comma type_exp_list	{->[type_exp0.type_exp,type_exp_list.type_exp]}
 								|{end} type_exp0						{->[type_exp0.type_exp]}
 								;
-
-//---------------------------------------------------------------------------------------------------------------------------------------------------
-//Create a function or an identifier
-	 
-id  			=	 {identifier} identifier		{-> New id.identifier(identifier)}
-					|{builtin} builtin				{-> New id.builtin(builtin.builtin)}
-					;
-builtin 		= 	 {ltl} ltl 						{-> New builtin.ltl(ltl)}
-					|{ctl} ctl 				 		{-> New builtin.ctl(ctl)}
-					|{stop} stop 					{-> New builtin.stop(stop)}
-					|{skip} skip 					{-> New builtin.skip(skip)}
-					|{chaos} chaos 			 		{-> New builtin.chaos(chaos)}
-					|{div} div 				 		{-> New builtin.div(div)}
-					|{events} events 				{-> New builtin.events(events)} 
-					|{proc} proc 					{-> New builtin.proc(proc)}
-					|{bool_const} bool_const 		{-> New builtin.bool_const(bool_const)} 
-					|{char_const} char_const 		{-> New builtin.char_const(char_const)}
-					|{int_const} int_const 			{-> New builtin.int_const(int_const)}
-					;
 			
 //---------------------------------------------------------------------------------------------------------------------------------------------------
 parameters 	  =	{parameters} par_l pattern_list par_r 						{-> New parameters.parameters([pattern_list.pattern])};
@@ -268,8 +236,8 @@ pattern_atom {->pattern}  =  {set} set_pattern 						{-> set_pattern.pattern}
 							|{string} string						{-> New pattern.string(string)}
 							|{char} char							{-> New pattern.char(char)}
 							|{number} number						{-> New pattern.number(number)}
-							|{true} true2							{-> New pattern.true(true2)}
-							|{false} false2							{-> New pattern.false(false2)}
+							|{true} true							{-> New pattern.true(true)}
+							|{false} false							{-> New pattern.false(false)}
 							;
 				
 set_pattern	{->pattern}  	=    {empty} brace_l brace_r       				{-> New pattern.empty_set()}
@@ -391,23 +359,25 @@ concat 	{->exp}		= 	 concat_list2									{-> New exp.concat_start(concat_list2.
 concat_list2 {->exp}=	 {list} concat_list2 cat atom					{-> New exp.concat_more(concat_list2.exp,cat,atom.exp)}
 						|{end} atom										{-> New exp.concat_end(atom.exp)}
 						;						
-atom {->exp}		= 	 {sequence} sequence 							{-> sequence.exp}
-						|{set} set 										{-> set.exp}
-						|{map} map 										{-> map.exp}
-						|{tuple} tuple [lambda]:tuple? 					{-> New exp.tuple(tuple,lambda)}
-						|{string} string 								{-> New exp.string(string)}
-						|{char} char 									{-> New exp.char(char)}
-						|{wildcard} wildcard 							{-> New exp.wildcard(wildcard)}
-						|{num} number  									{-> New exp.number(number)}
-						|{true1} true1 									{-> New exp.true1(true1)}
-						|{false1} false1 								{-> New exp.false1(false1)}
-						|{true2} true2 									{-> New exp.true2(true2)}
-						|{false2} false2 								{-> New exp.false2(false2)}
-						|{id} id tuple?									{-> New exp.id(id,tuple)}
+atom {->exp}		= 	 {sequence} sequence 								{-> sequence.exp}
+						|{set} set 											{-> set.exp}
+						|{map} map 											{-> map.exp}
+						|{tuple} tuple lambda? 								{-> New exp.tuple(tuple,lambda)}
+						|{parenthesis} par_l proc1 par_r lambda?			{-> New exp.parenthesis(par_l,proc1.exp,par_r,lambda)}
+						|{string} string 									{-> New exp.string(string)}
+						|{char} char 										{-> New exp.char(char)}
+						|{wildcard} wildcard 								{-> New exp.wildcard(wildcard)}
+						|{num} number  										{-> New exp.number(number)}
+						|{true} true 										{-> New exp.true(true)}
+						|{false} false 										{-> New exp.false(false)}
+						|{id} id lambda?									{-> New exp.id(id,lambda)}
 						;
 //---------------------------------------------------------------------------------------------------------------------------------------------------
+id = identifier {-> New id.identifier(identifier)};
+//---------------------------------------------------------------------------------------------------------------------------------------------------
 /*(e1,e2,...,en) different types possible*/
-tuple 	 		=  {tuple} par_l arguments_list par_r			{-> New tuple.tuple(par_l,[arguments_list.exp],par_r)};
+tuple 	 		=  {tuple} par_l proc1 comma arguments_list par_r			{-> New tuple.tuple(par_l,proc1.exp,comma,[arguments_list.exp],par_r)};
+lambda 			=  {lambda} par_l arguments_list par_r						{-> New lambda.lambda([arguments_list.exp])};
 
 //---------------------------------------------------------------------------------------------------------------------------------------------------
 // e1,e2,...,en    all of type a! The first node seems to be pointless but it is not!
@@ -583,22 +553,7 @@ types  			=  {dtype} [typedef]:types
 type_exp 		=  {dotted}[type_exp0]:type_exp+
 				  |{par} [type_exp_list]:type_exp+
 				  |{set} [set]:exp
-				  |{id} id tuple?
-				  ;
-id 				=  {identifier} identifier
-				  |{builtin} builtin
-				  ;
-builtin			=  {ltl} ltl
-				  |{ctl} ctl
-				  |{stop} stop
-				  |{skip} skip
-				  |{chaos} chaos
-				  |{div} div
-				  |{bool_const} bool_const
-				  |{events} events
-				  |{proc} proc
-				  |{char_const} char_const
-				  |{int_const} int_const
+				  |{id} id lambda?
 				  ;
 				  
 parameters 		= {parameters} [pattern_list]:pattern+;
@@ -620,8 +575,8 @@ pattern 		=  {double} [double_list]:pattern+
 				  |{string} string
 				  |{char} char
 				  |{number} number
-				  |{true} true2
-				  |{false} false2
+				  |{true} true
+				  |{false} false
 				  ;
 exp 			=  {function} id parameters [proc1]:exp
 				  |{pattern} [pattern1]:pattern [proc1]:exp
@@ -699,19 +654,20 @@ exp 			=  {function} id parameters [proc1]:exp
 				  |{map} par_l [lbool]:exp [rbool]:exp par_r
 				  |{empty_map} empty_map
 //Atoms
-				  |{tuple} tuple [lambda]:tuple?
+				  |{tuple} tuple lambda?
+				  |{parenthesis} par_l [proc1]:exp par_r lambda?
 				  |{string} string
 				  |{char} char
 				  |{wildcard} wildcard
 				  |{number}	number
-				  |{true1} true1
-				  |{true2} true2
-				  |{false1} false1
-				  |{false2} false2
-				  |{id} id tuple?
+				  |{true} true
+				  |{false} false
+				  |{id} id lambda?
 				  ;
 				  
-tuple 			=  {tuple} par_l [arguments_list]:exp+ par_r;
+id				=  {identifier} identifier; 					  
+tuple 			=  {tuple} par_l [proc1]:exp comma [arguments_list]:exp+ par_r;
+lambda 			=  {lambda} [arguments_list]:exp+;
 arguments 		=  {arg_list} [arguments_list]:exp+;
 					
 link_comp 		=  {link_comp}[lc_list]:exp+ stmts?;

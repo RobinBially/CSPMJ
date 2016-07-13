@@ -10,7 +10,7 @@ import java.io.*;
 
 public class SymbolCollector extends DepthFirstAdapter
 {
-
+	private boolean patternRequired;
 	private int currentInParams;
 	private HashMap<String,ArrayList<SymInfo>> symbols; //Identifier,Counter
 	private int groundrep;
@@ -20,6 +20,7 @@ public class SymbolCollector extends DepthFirstAdapter
 				// counter ,predecessor
 	public SymbolCollector()
 	{
+		patternRequired = false;
 		letWithinCount = 0;
 		currentLetWithinNum = 0;
 		letWithinStruct = new HashMap<Integer,Integer>();
@@ -39,10 +40,32 @@ public class SymbolCollector extends DepthFirstAdapter
         {
             node.getId().apply(this);
 			String str = node.getId().toString().replace(" ","");
-			ArrayList<SymInfo> temp = new ArrayList<SymInfo>();
-			SymInfo si = new SymInfo(node.getId(),"Nametype",0);
-			temp.add(si);
-			symbols.put(str,temp);
+			if(symbols.containsKey(str) && isBuiltin(str))
+			{
+				for(int i = 0;i<symbols.get(str).size();i++)
+				{
+					if(symbols.get(str).get(i).getSymbolInfo().equals("BuiltIn primitive"))
+					{
+						SymInfo si = new SymInfo(node.getId(),"Nametype",0);
+						symbols.get(str).set(i,si);
+						break;
+					}
+				}
+			}
+			else if(symbols.containsKey(str))
+			{
+				ArrayList<SymInfo> temp = symbols.get(str);
+				SymInfo si = new SymInfo(node.getId(),"Nametype",0);
+				temp.add(si);
+				symbols.put(str,temp);
+			}
+			else
+			{
+				ArrayList<SymInfo> temp = new ArrayList<SymInfo>();
+				SymInfo si = new SymInfo(node.getId(),"Nametype",0);
+				temp.add(si);
+				symbols.put(str,temp);
+			}
         }
         if(node.getTypeExp() != null)
         {
@@ -60,10 +83,32 @@ public class SymbolCollector extends DepthFirstAdapter
         {
             node.getId().apply(this);
 			String str = node.getId().toString().replace(" ","");
-			ArrayList<SymInfo> temp = new ArrayList<SymInfo>();
-			SymInfo si = new SymInfo(node.getId(),"Datatype",0);
-			temp.add(si);
-			symbols.put(str,temp);
+			if(symbols.containsKey(str) && isBuiltin(str))
+			{
+				for(int i = 0;i<symbols.get(str).size();i++)
+				{
+					if(symbols.get(str).get(i).getSymbolInfo().equals("BuiltIn primitive"))
+					{
+						SymInfo si = new SymInfo(node.getId(),"Datatype",0);
+						symbols.get(str).set(i,si);
+						break;
+					}					
+				}
+			}
+			else if(symbols.containsKey(str))
+			{
+				ArrayList<SymInfo> temp = symbols.get(str);
+				SymInfo si = new SymInfo(node.getId(),"Datatype",0);
+				temp.add(si);
+				symbols.put(str,temp);
+			}
+			else
+			{
+				ArrayList<SymInfo> temp = new ArrayList<SymInfo>();
+				SymInfo si = new SymInfo(node.getId(),"Datatype",0);
+				temp.add(si);
+				symbols.put(str,temp);
+			}
         }
         {
             List<PTypes> copy = new ArrayList<PTypes>(node.getTypedefList());
@@ -83,10 +128,32 @@ public class SymbolCollector extends DepthFirstAdapter
         {
             node.getClauseName().apply(this);
 			String str = node.getClauseName().toString().replace(" ","");
-			ArrayList<SymInfo> temp = new ArrayList<SymInfo>();
-			SymInfo si = new SymInfo(node.getClauseName(),"Constructor of Datatype",0);
-			temp.add(si);
-			symbols.put(str,temp);
+			if(symbols.containsKey(str) && isBuiltin(str))
+			{
+				for(int i = 0;i<symbols.get(str).size();i++)
+				{
+					if(symbols.get(str).get(i).getSymbolInfo().equals("BuiltIn primitive"))
+					{
+						SymInfo si = new SymInfo(node.getClauseName(),"Constructor of Datatype",0);
+						symbols.get(str).set(i,si);
+						break;
+					}
+				}
+			}
+			else if(symbols.containsKey(str))
+			{
+				ArrayList<SymInfo> temp = symbols.get(str);
+				SymInfo si = new SymInfo(node.getClauseName(),"Constructor of Datatype",0);
+				temp.add(si);
+				symbols.put(str,temp);
+			}
+			else
+			{
+				ArrayList<SymInfo> temp = new ArrayList<SymInfo>();
+				SymInfo si = new SymInfo(node.getClauseName(),"Constructor of Datatype",0);
+				temp.add(si);
+				symbols.put(str,temp);
+			}
         }
         if(node.getDotted() != null)
         {
@@ -107,10 +174,32 @@ public class SymbolCollector extends DepthFirstAdapter
             {
                 e.apply(this);
 				String str = e.toString().replace(" ","");
-				ArrayList<SymInfo> temp = new ArrayList<SymInfo>();
-				SymInfo si = new SymInfo(e,"Channel",0);
-				temp.add(si);
-				symbols.put(str,temp);
+				if(symbols.containsKey(str) && isBuiltin(str))
+				{
+					for(int i = 0;i<symbols.get(str).size();i++)
+					{
+						if(symbols.get(str).get(i).getSymbolInfo().equals("BuiltIn primitive"))
+						{
+							SymInfo si = new SymInfo(e,"Channel",0);
+							symbols.get(str).set(i,si);
+							break;
+						}
+					}
+				}
+				else if(symbols.containsKey(str))
+				{
+					ArrayList<SymInfo> temp = symbols.get(str);
+					SymInfo si = new SymInfo(e,"Channel",0);
+					temp.add(si);
+					symbols.put(str,temp);
+				}
+				else
+				{
+					ArrayList<SymInfo> temp = new ArrayList<SymInfo>();
+					SymInfo si = new SymInfo(e,"Channel",0);
+					temp.add(si);
+					symbols.put(str,temp);
+				}
             }
         }
         if(node.getChanType() != null)
@@ -147,7 +236,19 @@ public class SymbolCollector extends DepthFirstAdapter
 		
 		if(groundrep>0)
 		{
-				if(symbols.containsKey(str))
+				if(symbols.containsKey(str) && isBuiltin(str))
+				{
+					for(int i = 0;i<symbols.get(str).size();i++)
+					{
+						if(symbols.get(str).get(i).getSymbolInfo().equals("BuiltIn primitive"))
+						{
+							SymInfo si = new SymInfo(node.getId(),"Ident (Groundrep.)",currentLetWithinNum);
+							symbols.get(str).set(i,si);
+							break;
+						}
+					}
+				}
+				else if(symbols.containsKey(str))
 				{
 					ArrayList<SymInfo> temp = symbols.get(str);
 					SymInfo si = new SymInfo(node.getId(),"Ident (Groundrep.)",currentLetWithinNum);
@@ -198,15 +299,15 @@ public class SymbolCollector extends DepthFirstAdapter
         if(node.getId() != null)
         {
             node.getId().apply(this);			
-			String id = node.getId().toString().replace(" ","");
+			String str = node.getId().toString().replace(" ","");
 			boolean found = false;
-			if(symbols.get(id) != null)
+			if(symbols.get(str) != null)
 			{
-				for(int k = 0;k<symbols.get(id).size();k++)
+				for(int k = 0;k<symbols.get(str).size();k++)
 				{
-					if(symbols.get(id).get(k).getSymbolInfo().equals("Function or Process"))
+					if(symbols.get(str).get(k).getSymbolInfo().equals("Function or Process"))
 					{
-						int v = symbols.get(id).get(k).getLetWithinCount();
+						int v = symbols.get(str).get(k).getLetWithinCount();
 						if(v == currentLetWithinNum)
 						{
 							found = true;
@@ -219,19 +320,33 @@ public class SymbolCollector extends DepthFirstAdapter
 			}
 			if(!found)
 			{
-				if(symbols.get(id) == null)
+				if(symbols.get(str) == null)
 				{
 					ArrayList<SymInfo> temp = new ArrayList<SymInfo>();
 					SymInfo si = new SymInfo(node.getId(),"Function or Process",currentLetWithinNum);
 					temp.add(si);
-					symbols.put(id,temp);
+					symbols.put(str,temp);
 				}
 				else
 				{
-					ArrayList<SymInfo> temp = symbols.get(id);
-					SymInfo si = new SymInfo(node.getId(),"Function or Process",currentLetWithinNum);
-					temp.add(si);
-					symbols.put(id,temp);
+
+					for(int i = 0;i<symbols.get(str).size();i++)
+					{
+						if(symbols.get(str).get(i).getSymbolInfo().equals("BuiltIn primitive"))
+						{
+							SymInfo si = new SymInfo(node.getId(),"Function or Process",currentLetWithinNum);
+							symbols.get(str).set(i,si);
+							found = true;
+							break;
+						}
+					}			
+					if(!found)
+					{
+						ArrayList<SymInfo> temp = symbols.get(str);
+						SymInfo si = new SymInfo(node.getId(),"Function or Process",currentLetWithinNum);
+						temp.add(si);
+						symbols.put(str,temp);
+					}
 				}
 			}
         }
@@ -329,18 +444,97 @@ public class SymbolCollector extends DepthFirstAdapter
     {
         inAIdExp(node);
 		String str = node.getId().toString().replace(" ","");
-
+		
         if(node.getId() != null)
         {
             node.getId().apply(this);
         }
-		//System.out.println(currentParams);
 		
-        if(node.getTuple() != null)
+		if(patternRequired)
+		{
+			
+		}
+		else if(isBuiltin(str))
+		{
+			if(symbols.get(str)!= null)
+			{
+				boolean found = false;
+				for(int i = 0;i<symbols.get(str).size();i++)
+				{
+					if(symbols.get(str).get(i).getSymbolInfo().equals("BuiltIn primitive"))
+					{
+						found = true;
+						break;
+					}
+				}
+				if(!found)
+				{
+					ArrayList<SymInfo> temp = symbols.get(str);
+					SymInfo si = new SymInfo(node.getId(),"BuiltIn primitive",0);
+					temp.add(si);
+					symbols.put(str,temp);
+				}
+			}
+			else
+			{
+				ArrayList<SymInfo> temp = new ArrayList<SymInfo>();
+				SymInfo si = new SymInfo(node.getId(),"BuiltIn primitive",0);
+				temp.add(si);
+				symbols.put(str,temp);
+			}
+		}	
+        if(node.getLambda() != null)
         {
-			node.getTuple().apply(this);
+            node.getLambda().apply(this);
         }
         outAIdExp(node);
+    }
+	
+    @Override
+    public void caseAIdTypeExp(AIdTypeExp node)
+    {
+        inAIdTypeExp(node);
+		String str = node.getId().toString().replace(" ","");
+        if(node.getId() != null)
+        {
+            node.getId().apply(this);
+        }
+		
+		if(isBuiltin(str))
+		{
+			if(symbols.get(str)!= null)
+			{
+				boolean found = false;
+				for(int i = 0;i<symbols.get(str).size();i++)
+				{
+					if(symbols.get(str).get(i).getSymbolInfo().equals("BuiltIn primitive"))
+					{
+						found = true;
+					}
+				}
+				if(!found)
+				{
+					ArrayList<SymInfo> temp = symbols.get(str);
+					SymInfo si = new SymInfo(node.getId(),"BuiltIn primitive",0);
+					temp.add(si);
+					symbols.put(str,temp);
+				}
+			}
+			else
+			{
+				ArrayList<SymInfo> temp = new ArrayList<SymInfo>();
+				SymInfo si = new SymInfo(node.getId(),"BuiltIn primitive",0);
+				temp.add(si);
+				symbols.put(str,temp);
+			}
+		}
+		
+		
+        if(node.getLambda() != null)
+        {
+            node.getLambda().apply(this);
+        }
+        outAIdTypeExp(node);
     }
 //***************************************************************************************************************************************************
 	public HashMap<String,ArrayList<SymInfo>> getSymbols()
@@ -348,27 +542,65 @@ public class SymbolCollector extends DepthFirstAdapter
 		return symbols;
 	}
 	
+    public boolean isBuiltin(String s)
+	{
+		ArrayList<String> builtin = new ArrayList<String>();
+		builtin.add("Bool");
+		builtin.add("Char");
+		builtin.add("Events");
+		builtin.add("Int");
+		builtin.add("Proc");
+		builtin.add("False");
+		builtin.add("True");
+		builtin.add("card");
+		builtin.add("diff");
+		builtin.add("empty");
+		builtin.add("inter");
+		builtin.add("Inter");
+		builtin.add("member");
+		builtin.add("seq");
+		builtin.add("Seq");
+		builtin.add("Set");
+		builtin.add("union");
+		builtin.add("Union");
+		builtin.add("concat");
+		builtin.add("elem");
+		builtin.add("head");
+		builtin.add("length");
+		builtin.add("null");
+		builtin.add("set");
+		builtin.add("tail");
+		builtin.add("emptyMap");
+		builtin.add("mapDelete");
+		builtin.add("mapFromList");
+		builtin.add("mapLookup");
+		builtin.add("mapMember");
+		builtin.add("mapToList");
+		builtin.add("mapUpdate");
+		builtin.add("mapUpdateMultiple");
+		builtin.add("Map");
+		builtin.add("Inter");
+		builtin.add("member");
+		builtin.add("seq");
+		builtin.add("error");
+		builtin.add("show");
+		builtin.add("seq");
+		builtin.add("CHAOS");
+		builtin.add("DIV");
+		builtin.add("RUN");
+		builtin.add("WAIT");
+		builtin.add("STOP");
+		builtin.add("SKIP");
+		builtin.add("extensions");
+		builtin.add("productions");
 	
-    // public ArrayList<Integer> getSrcLoc(Node node) 
-    // {
-		   // /* Data type of src_loc in cspmf 
-			// * src_loc 
-			// {
-			   // fixedStartLine   = getStartLine s
-			  // ,fixedStartCol    = getStartCol s
-			  // ,fixedEndLine     = getEndLine e
-			  // ,fixedEndCol      = getEndCol e
-			  // ,fixedLen         = getEndOffset e - getStartOffset s
-			  // ,fixedStartOffset = getStartOffset s
-			// }
-		  // */
-		// ArrayList<Integer> al
-		// p.printNumber(node.getStartPos().getLine());
-		// p.printNumber(node.getStartPos().getPos());
-		// p.printNumber(node.getEndPos().getLine());
-		// p.printNumber(node.getEndPos().getPos());
-		// p.printNumber(node.getEndPos().getPos()-node.getStartPos().getPos());
-		// p.printNumber(node.getEndPos().getPos()-node.getStartPos().getPos());
-		// p.closeTerm();
-    // }
+		if(builtin.contains(s))
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
 }

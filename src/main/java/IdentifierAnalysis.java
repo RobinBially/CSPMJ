@@ -229,9 +229,9 @@ public class IdentifierAnalysis extends DepthFirstAdapter
 				right.put(letWithinDepth,temp);
 			}
         }
-        if(node.getTuple() != null)
+        if(node.getLambda() != null)
         {
-            node.getTuple().apply(this);
+            node.getLambda().apply(this);
         }
         outAIdTypeExp(node);
     }
@@ -891,9 +891,9 @@ public class IdentifierAnalysis extends DepthFirstAdapter
 				right.put(letWithinDepth,temp);
 			}
         }
-        if(node.getTuple() != null)
+        if(node.getLambda() != null)
         {
-            node.getTuple().apply(this);
+            node.getLambda().apply(this);
         }
         outAIdExp(node);
     }

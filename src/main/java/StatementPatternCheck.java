@@ -1217,7 +1217,34 @@ public class StatementPatternCheck extends DepthFirstAdapter
 		}
         outATupleExp(node);
     }
-
+	
+    @Override
+    public void caseAParenthesisExp(AParenthesisExp node)
+    {
+        inAParenthesisExp(node);
+        if(node.getParL() != null)
+        {
+            node.getParL().apply(this);
+        }
+        if(node.getProc1() != null)
+        {
+            node.getProc1().apply(this);
+        }
+        if(node.getParR() != null)
+        {
+            node.getParR().apply(this);
+        }
+        if(node.getLambda() != null)
+        {
+            node.getLambda().apply(this);
+        }
+		if(patternRequired>0 && node.getLambda() != null)
+		{
+			throw new RuntimeException("Expecting Pattern (Parenthesis-Pattern does not allow lambda params).");
+		}
+        outAParenthesisExp(node);
+    }
+	
     @Override
     public void caseAStringExp(AStringExp node)
     {
@@ -1265,58 +1292,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         }
         outANumberExp(node);
     }
-
-    @Override
-    public void caseATrue1Exp(ATrue1Exp node)
-    {
-        inATrue1Exp(node);
-		if(patternRequired>0)
-		{
-			throw new RuntimeException("Expecting pattern (true is not allowed).");
-		}
-        if(node.getTrue1() != null)
-        {
-            node.getTrue1().apply(this);
-        }
-        outATrue1Exp(node);
-    }
-
-    @Override
-    public void caseATrue2Exp(ATrue2Exp node)
-    {
-        inATrue2Exp(node);
-        if(node.getTrue2() != null)
-        {
-            node.getTrue2().apply(this);
-        }
-        outATrue2Exp(node);
-    }
-
-    @Override
-    public void caseAFalse1Exp(AFalse1Exp node)
-    {
-        inAFalse1Exp(node);
-		if(patternRequired>0)
-		{
-			throw new RuntimeException("Expecting pattern (false is not allowed).");
-		}
-        if(node.getFalse1() != null)
-        {
-            node.getFalse1().apply(this);
-        }
-        outAFalse1Exp(node);
-    }
-
-    @Override
-    public void caseAFalse2Exp(AFalse2Exp node)
-    {
-        inAFalse2Exp(node);
-        if(node.getFalse2() != null)
-        {
-            node.getFalse2().apply(this);
-        }
-        outAFalse2Exp(node);
-    }
+    
 
     @Override
     public void caseAIdExp(AIdExp node)
@@ -1326,37 +1302,15 @@ public class StatementPatternCheck extends DepthFirstAdapter
         {
             node.getId().apply(this);
         }
-        if(node.getTuple() != null)
+        if(node.getLambda() != null)
         {
-            node.getTuple().apply(this);
+            node.getLambda().apply(this);
         }
-		if(patternRequired>0 && node.getTuple() != null)
+		if(patternRequired>0 && node.getLambda() != null)
 		{
 			throw new RuntimeException("Expecting Pattern (Var. Pattern does not allow parameters).");
 		}
         outAIdExp(node);
-    }
-
-    @Override
-    public void caseATupleTuple(ATupleTuple node)
-    {
-        inATupleTuple(node);
-        if(node.getParL() != null)
-        {
-            node.getParL().apply(this);
-        }
-        {
-            List<PExp> copy = new ArrayList<PExp>(node.getArgumentsList());
-            for(PExp e : copy)
-            {
-                e.apply(this);
-            }
-        }
-        if(node.getParR() != null)
-        {
-            node.getParR().apply(this);
-        }
-        outATupleTuple(node);
     }
 
     @Override
