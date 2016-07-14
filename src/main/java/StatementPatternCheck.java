@@ -588,10 +588,6 @@ public class StatementPatternCheck extends DepthFirstAdapter
 		{
 			throw new RuntimeException("Expecting pattern (Renaming not allowed).");
 		}
-        if(node.getProc10() != null)
-        {
-            node.getProc10().apply(this);
-        }
         if(node.getRenameComp() != null)
         {
             node.getRenameComp().apply(this);

@@ -228,7 +228,6 @@ public class SymbolCollector extends DepthFirstAdapter
 			inComprGenerator -= 1;
 		}
         {
-					System.out.println("TEEEEEEEEEEST");
             List<PExp> copy = new ArrayList<PExp>(node.getLcList());
             for(PExp e : copy)
             {

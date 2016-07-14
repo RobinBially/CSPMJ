@@ -300,7 +300,7 @@ proc9 {->exp}		= 	 {guard} dot_op guard proc9								{-> New exp.guard(dot_op.ex
 						|{replicated} rep 										{-> New exp.replicated(rep.exp)}
 						|{p10} proc10											{-> proc10.exp}
 						;				
-proc10 {->exp} 		=	 {renaming} proc10 dbracket_l rename_comp dbracket_r	{-> New exp.renaming(proc10.exp,dbracket_l,rename_comp)}
+proc10 {->exp} 		=	 {renaming} rename_comp 								{-> New exp.renaming(rename_comp)}
 						|{e_renaming} proc10 dbracket_l dbracket_r				{-> New exp.e_renaming(proc10.exp,dbracket_l)}
 						|{event} event 											{-> event.exp}
 						;
@@ -393,9 +393,9 @@ lc_list {-> exp+}	=  {list} [levent]:event d_arr [revent]:event comma lc_list		{
 					  |{end} [levent]:event d_arr [revent]:event					{-> [levent.exp,revent.exp]}
 					  ;
 		
-rename_comp			= rc_list  add_stmts? 											{-> New rename_comp.rename_comp([rc_list.exp],add_stmts.stmts)};
+rename_comp			= proc10 dbracket_l rc_list  add_stmts? dbracket_r 		{-> New rename_comp.rename_comp(proc10.exp,[rc_list.exp],add_stmts.stmts)};
 
-rc_list {-> exp+} 	=  {list}[levent]:event arrow_l [revent]:event comma rc_list 	{-> [levent.exp, revent.exp,rc_list.exp]}
+rc_list {-> exp+} 	=  {list} [levent]:event arrow_l [revent]:event comma rc_list 	{-> [levent.exp, revent.exp,rc_list.exp]}
 					  |{end} [levent]:event arrow_l [revent]:event					{-> [levent.exp, revent.exp]}
 					  ;
 
@@ -602,7 +602,7 @@ exp 			=  {function} id parameters [proc1]:exp
 				  |{linked_par_rep} link_comp stmts [proc9]:exp
 				  |{sync_par_rep} [event]:exp stmts [proc9]:exp
 //rep end				  
-				  |{renaming} [proc10]:exp dbracket_l rename_comp
+				  |{renaming} rename_comp
 				  |{e_renaming} [proc10]:exp dbracket_l
 				  |{event} [dpattern]:exp [f1_list]:pattern* [f2_list]:pattern*
 				  |{restriction} [dot_op]:exp
@@ -661,7 +661,7 @@ lambda 			=  {lambda} [arguments_list]:exp+;
 arguments 		=  {arg_list} [arguments_list]:exp+;
 					
 link_comp 		=  {link_comp}[lc_list]:exp+ stmts?;
-rename_comp 	=  {rename_comp}[rc_list]:exp+ stmts?;
+rename_comp 	=  {rename_comp} [proc10]:exp [rc_list]:exp+ stmts?;
 
 				  
 stmts 			=  {stmt_list}[stmts_list]:stmts+

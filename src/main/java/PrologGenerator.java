@@ -18,7 +18,11 @@ public class PrologGenerator extends DepthFirstAdapter
 	private int groundrep;
 	private HashMap<String,String> currentParams;
 	private HashMap<String,String> currentLambdaParams;
+	
 	private HashMap<Integer,HashMap<String,String>> letWithinArgs;
+	private HashMap<Integer,HashMap<String,String>> generatorArgs;
+	private int currentInPredicate;
+	
 	private int currentInLambdaLeft;
 	private int currentInLambdaRight;
 	private boolean currentInChannel;
@@ -35,10 +39,15 @@ public class PrologGenerator extends DepthFirstAdapter
 	
 	public PrologGenerator(final PrologTermOutput pto,HashMap<String,ArrayList<SymInfo>> symbols, boolean printSrcLoc, ArrayList<CommentInfo> commentList) 
 	{
+		currentInPredicate = 0;
+
 		structCount = 0;
 		currentStructNum = 0;
 		struct = new TreeMap<Integer,Integer>();
+		
 		letWithinArgs = new HashMap<Integer,HashMap<String,String>>();
+		generatorArgs = new HashMap<Integer,HashMap<String,String>>();
+		
 		expectingPattern = false;
 		currentInInput = false;
 		currentInNondetInput = false;
@@ -1399,10 +1408,6 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseARenamingExp(ARenamingExp node)
     {
         inARenamingExp(node);
-        if(node.getProc10() != null)
-        {
-            node.getProc10().apply(this);
-        }
         if(node.getRenameComp() != null)
         {
             node.getRenameComp().apply(this);
@@ -2107,20 +2112,42 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseARenameCompRenameComp(ARenameCompRenameComp node)
     {
         inARenameCompRenameComp(node);
+		if(node.getStmts() != null)
+		p.openTerm("procRenamingComp");
+		else
+		p.openTerm("procRenaming");
+	
+        if(node.getProc10() != null)
+        {
+            node.getProc10().apply(this);
+        }
+		
 		structCount++;
 		struct.put(structCount,currentStructNum);
 		currentStructNum = structCount;
         {
+			int count = 0;
             List<PExp> copy = new ArrayList<PExp>(node.getRcList());
             for(PExp e : copy)
             {
+				if(count == 0)
+				{
+					p.openTerm("rename");
+				}
                 e.apply(this);
+				if(count == 1)
+				{
+					p.closeTerm();
+				}
+				count += 1;
+				count %= 2;
             }
         }
         if(node.getStmts() != null)
         {
             node.getStmts().apply(this);
         }
+		p.closeTerm();
 		currentStructNum = struct.get(currentStructNum);
         outARenameCompRenameComp(node);
     }
@@ -2616,19 +2643,30 @@ public class PrologGenerator extends DepthFirstAdapter
             node.getId().apply(this);
         }
 		if(patternRequired)
-		{
-		
+		{	
 			for(int i = 0; i<symbols.get(str).size();i++)
 			{
 				if(node.getId() == symbols.get(str).get(i).getNode())
 				{
 					if(i == 0)
 					{
+						HashMap<String,String> map = new HashMap<String,String>();
+						if(generatorArgs.get(currentStructNum) != null)
+						map = generatorArgs.get(currentStructNum);
+						map.put(str,str);
+						generatorArgs.put(currentStructNum,map);
+						
 						p.printVariable("_"+str);
 						break;
 					}
 					else
 					{
+						HashMap<String,String> map = new HashMap<String,String>();
+						if(generatorArgs.get(currentStructNum) != null)
+						map = generatorArgs.get(currentStructNum);
+						map.put(str,str+(i+1));
+						generatorArgs.put(currentStructNum,map);
+						
 						p.printVariable("_"+str+(i+1));
 						break;
 					}
@@ -2647,17 +2685,24 @@ public class PrologGenerator extends DepthFirstAdapter
 			int dimCounter = currentStructNum;	
 			boolean found = false;
 			while(!found && symbols.get(str) != null)
-			{
-				//Search in symbol map	
+			{		
+		
+					if(currentInPredicate>0 
+					&& generatorArgs.get(dimCounter) != null
+					&& generatorArgs.get(dimCounter).get(str) != null)
+					{
+						p.printVariable("_"+generatorArgs.get(dimCounter).get(str));
+						found = true;
+						break;
+					}
+					
 				for(int a = 0;a<symbols.get(str).size();a++)
-				{
-					// System.out.print(symbols.get(str).get(a).getSymbolInfo() +"  "+str);
-					// System.out.print(" "+symbols.get(str).get(a).getStructCount());
-					// System.out.println(" "+dimCounter);
+				{	
 					//In Comprehension?
 					if(symbols.get(str).get(a).getStructCount() == dimCounter
 						&& symbols.get(str).get(a).isComprehensionArg())
 					{	
+					
 						if(a == 0)
 						p.printVariable("_"+str);
 						else
@@ -2666,8 +2711,17 @@ public class PrologGenerator extends DepthFirstAdapter
 						found = true;
 						break;
 					}
+					
+				}
+				
+				if(found)
+				break;
+					
+				//Search in symbol map	
+				for(int a = 0;a<symbols.get(str).size();a++)
+				{
 					//In Lambda?					
-					else if(currentInLambdaRight>0 && (currentLambdaParams.get(str) != null))
+					if(currentInLambdaRight>0 && (currentLambdaParams.get(str) != null))
 					{
 						p.printVariable("_"+currentLambdaParams.get(str));
 						found = true;
@@ -2679,7 +2733,7 @@ public class PrologGenerator extends DepthFirstAdapter
 						p.printVariable("_"+currentParams.get(str));
 						found = true;
 						break;
-					}
+					}		
 					//In Identifier list of this dimension?
 					else if(symbols.get(str).get(a).getSymbolInfo().equals("Ident (Groundrep.)")
 					&& symbols.get(str).get(a).getStructCount() == dimCounter)
@@ -2798,10 +2852,12 @@ public class PrologGenerator extends DepthFirstAdapter
     {
         inAPredicateStmts(node);
 		p.openTerm("comprehensionGuard");
+		currentInPredicate += 1;
         if(node.getBoolExp() != null)
         {
             node.getBoolExp().apply(this);
         }
+		currentInPredicate -= 1;
 		p.closeTerm();
         outAPredicateStmts(node);
     }
