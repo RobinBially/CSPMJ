@@ -981,40 +981,6 @@ public class StatementPatternCheck extends DepthFirstAdapter
     }
 
     @Override
-    public void caseAEnumeratedSeqExp(AEnumeratedSeqExp node)
-    {
-        inAEnumeratedSeqExp(node);
-		if(patternRequired>0)
-		{
-			throw new RuntimeException("Expecting pattern (Enumerated Seq. not allowed).");
-		}
-        if(node.getArguments() != null)
-        {
-            node.getArguments().apply(this);
-        }
-        outAEnumeratedSeqExp(node);
-    }
-
-    @Override
-    public void caseAEnumeratedComprSeqExp(AEnumeratedComprSeqExp node)
-    {
-        inAEnumeratedComprSeqExp(node);
-		if(patternRequired>0)
-		{
-			throw new RuntimeException("Expecting pattern (Enumerated Seq. Compr. not allowed).");
-		}
-        if(node.getArguments() != null)
-        {
-            node.getArguments().apply(this);
-        }
-        if(node.getStmts() != null)
-        {
-            node.getStmts().apply(this);
-        }
-        outAEnumeratedComprSeqExp(node);
-    }
-
-    @Override
     public void caseAEmptySetExp(AEmptySetExp node)
     {
         inAEmptySetExp(node);

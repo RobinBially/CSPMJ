@@ -16,6 +16,7 @@ import CSPMparser.node.*;
 
 public class IdentifierAnalysis extends DepthFirstAdapter
 {
+	private ArrayList<String> generatorSymbols = new ArrayList<String>();
 	private HashMap<Integer,ArrayList<String>> left = new HashMap<Integer,ArrayList<String>>();
 				//letWithinDepth,     id
 	private HashMap<Integer,ArrayList<String>> right = new HashMap<Integer,ArrayList<String>>();
@@ -384,69 +385,26 @@ public class IdentifierAnalysis extends DepthFirstAdapter
         outAVarPattern(node);
     }	
 
-//***************************************************************************************
-//Comprehensions
+//***************************************************************************************************************************************************
+//Sequence Comprehensions
+
     @Override
     public void caseAComprSeqExp(AComprSeqExp node)
     {
         inAComprSeqExp(node);
-		currentInComprArgs += 1;
-        if(node.getArguments() != null)
-        {
-            node.getArguments().apply(this);
-        }
-		currentInComprArgs -= 1;
-        if(node.getStmts() != null)
-        {
-            node.getStmts().apply(this);
-        }
 		
-		//Check pendingId		
-		if(!pendingId.isEmpty())
-		{
-			int i = 0;
-			if(right.get(letWithinDepth) == null)
-			{
-				right.put(letWithinDepth,new ArrayList<String>());
-			}	
-			while(i<pendingId.size())
-			{
-				if(!statementVar.contains(pendingId.get(i))
-					&& !currentParams.contains(pendingId.get(i)))
-				{
-					ArrayList<String> temp = right.get(letWithinDepth);
-					temp.add(pendingId.get(i));
-					right.put(letWithinDepth,temp);				
-					pendingId.remove(i);
-					i = 0;
-				}
-				else
-				{
-					pendingId.remove(i);
-					i++;
-				}
-			}
-		}	
-		statementVar = new ArrayList<String>();	
-		//end
-        outAComprSeqExp(node);
-    }
-	
-    @Override
-    public void caseAEnumeratedComprSeqExp(AEnumeratedComprSeqExp node)
-    {
-        inAEnumeratedComprSeqExp(node);
 		currentInComprArgs += 1;
         if(node.getArguments() != null)
         {
             node.getArguments().apply(this);
         }
 		currentInComprArgs -= 1;
+		
         if(node.getStmts() != null)
         {
             node.getStmts().apply(this);
         }
-		//Check pending Id
+		//Check pendingId		
 		if(!pendingId.isEmpty())
 		{
 			int i = 0;
@@ -471,12 +429,112 @@ public class IdentifierAnalysis extends DepthFirstAdapter
 					i++;
 				}
 			}
-		}
+		}	
 		statementVar = new ArrayList<String>();
 		//end
-        outAEnumeratedComprSeqExp(node);
+        outAComprSeqExp(node);
     }
 	
+	@Override
+    public void caseARangedComprSeqExp(ARangedComprSeqExp node)
+    {
+        inARangedComprSeqExp(node);
+		currentInComprArgs += 1;
+        if(node.getLval() != null)
+        {
+            node.getLval().apply(this);
+        }
+        if(node.getRval() != null)
+        {
+            node.getRval().apply(this);
+        }
+		currentInComprArgs -= 1;
+		
+        if(node.getStmts() != null)
+        {
+            node.getStmts().apply(this);
+        }
+		//Check pendingId		
+		if(!pendingId.isEmpty())
+		{
+			int i = 0;
+			if(right.get(letWithinDepth) == null)
+			{
+				right.put(letWithinDepth,new ArrayList<String>());
+			}	
+			while(i<pendingId.size())
+			{
+				if(!statementVar.contains(pendingId.get(i))
+					&& !currentParams.contains(pendingId.get(i)))
+				{
+					ArrayList<String> temp = right.get(letWithinDepth);
+					temp.add(pendingId.get(i));
+					right.put(letWithinDepth,temp);	
+					pendingId.remove(i);
+					i = 0;
+				}
+				else
+				{
+					pendingId.remove(i);
+					i++;
+				}
+			}
+		}	
+		statementVar = new ArrayList<String>();
+		//end
+        outARangedComprSeqExp(node);
+    }
+	
+    @Override
+    public void caseAInfiniteComprSeqExp(AInfiniteComprSeqExp node)
+    {
+        inAInfiniteComprSeqExp(node);
+		
+		currentInComprArgs += 1;
+        if(node.getValExp() != null)
+        {
+            node.getValExp().apply(this);
+        }
+		currentInComprArgs -= 1;
+		
+        if(node.getStmts() != null)
+        {
+            node.getStmts().apply(this);
+        }
+		//Check pendingId		
+		if(!pendingId.isEmpty())
+		{
+			int i = 0;
+			if(right.get(letWithinDepth) == null)
+			{
+				right.put(letWithinDepth,new ArrayList<String>());
+			}	
+			while(i<pendingId.size())
+			{
+				if(!statementVar.contains(pendingId.get(i))
+					&& !currentParams.contains(pendingId.get(i)))
+				{
+					ArrayList<String> temp = right.get(letWithinDepth);
+					temp.add(pendingId.get(i));
+					right.put(letWithinDepth,temp);	
+					pendingId.remove(i);
+					i = 0;
+				}
+				else
+				{
+					pendingId.remove(i);
+					i++;
+				}
+			}
+		}	
+		statementVar = new ArrayList<String>();
+		//end
+        outAInfiniteComprSeqExp(node);
+    }	
+	
+//***************************************************************************************************************************************************
+//Set Comprehensions
+
     @Override
     public void caseAComprSetExp(AComprSetExp node)
     {
@@ -520,6 +578,102 @@ public class IdentifierAnalysis extends DepthFirstAdapter
 		statementVar = new ArrayList<String>();
 		//end
         outAComprSetExp(node);
+    }
+	
+    @Override
+    public void caseARangedComprSetExp(ARangedComprSetExp node)
+    {
+        inARangedComprSetExp(node);
+		
+		currentInComprArgs += 1;
+        if(node.getLval() != null)
+        {
+            node.getLval().apply(this);
+        }
+        if(node.getRval() != null)
+        {
+            node.getRval().apply(this);
+        }
+		currentInComprArgs -=1;
+		
+        if(node.getStmts() != null)
+        {
+            node.getStmts().apply(this);
+        }
+		//Check pendingId		
+		if(!pendingId.isEmpty())
+		{
+			int i = 0;
+			if(right.get(letWithinDepth) == null)
+			{
+				right.put(letWithinDepth,new ArrayList<String>());
+			}	
+			while(i<pendingId.size())
+			{
+				if(!statementVar.contains(pendingId.get(i))
+					&& !currentParams.contains(pendingId.get(i)))
+				{
+					ArrayList<String> temp = right.get(letWithinDepth);
+					temp.add(pendingId.get(i));
+					right.put(letWithinDepth,temp);	
+					pendingId.remove(i);
+					i = 0;
+				}
+				else
+				{
+					pendingId.remove(i);
+					i++;
+				}
+			}
+		}	
+		statementVar = new ArrayList<String>();
+		//end
+        outARangedComprSetExp(node);
+    }
+	
+    @Override
+    public void caseAInfiniteComprSetExp(AInfiniteComprSetExp node)
+    {
+        inAInfiniteComprSetExp(node);
+		currentInComprArgs += 1;
+        if(node.getValExp() != null)
+        {
+            node.getValExp().apply(this);
+        }
+		currentInComprArgs -= 1;
+        if(node.getStmts() != null)
+        {
+            node.getStmts().apply(this);
+        }
+		//Check pendingId		
+		if(!pendingId.isEmpty())
+		{
+			int i = 0;
+			if(right.get(letWithinDepth) == null)
+			{
+				right.put(letWithinDepth,new ArrayList<String>());
+			}	
+			while(i<pendingId.size())
+			{
+				if(!statementVar.contains(pendingId.get(i))
+					&& !currentParams.contains(pendingId.get(i)))
+				{
+					ArrayList<String> temp = right.get(letWithinDepth);
+					temp.add(pendingId.get(i));
+					right.put(letWithinDepth,temp);	
+					pendingId.remove(i);
+					i = 0;
+				}
+				else
+				{
+					pendingId.remove(i);
+					i++;
+				}
+			}
+		}	
+		statementVar = new ArrayList<String>();
+		//end
+        outAInfiniteComprSetExp(node);
     }
 	
     @Override
@@ -567,6 +721,9 @@ public class IdentifierAnalysis extends DepthFirstAdapter
         outAEnumeratedComprSetExp(node);
     }	
 	
+//***************************************************************************************************************************************************
+//Linked and Renaming Comprehensions	
+
     @Override
     public void caseALinkCompLinkComp(ALinkCompLinkComp node)
     {
@@ -666,7 +823,7 @@ public class IdentifierAnalysis extends DepthFirstAdapter
     }
 	
 
-//***************************************************************************************
+//***************************************************************************************************************************************************
 //Generator Statements	
 
     @Override
@@ -678,6 +835,7 @@ public class IdentifierAnalysis extends DepthFirstAdapter
         {
             node.getDpattern().apply(this);
         }
+		generatorSymbols.clear();
 		currentInGenerator -= 1;
         if(node.getGeneratorOp() != null)
         {
@@ -855,6 +1013,15 @@ public class IdentifierAnalysis extends DepthFirstAdapter
             node.getId().apply(this);
 			
 			String str = node.getId().toString().replaceAll(" ","");
+			
+			if(currentInGenerator>0)
+			{
+				if(!generatorSymbols.contains(str))
+				generatorSymbols.add(str);
+				else 
+				throw new RuntimeException("Redefinition of Identifier "+str);
+			}
+			
 			if(left.get(letWithinDepth) == null)
 			{
 				left.put(letWithinDepth,new ArrayList<String>());

@@ -8,6 +8,57 @@ import org.junit.Ignore;
 public class PrologGeneratorTests 
 {	
 	@Test
+	public void ListComprehensions() throws Exception
+	{
+		check(
+					"y = 1"
+					+"\nA = <x|x<-1,x,y>"
+					+"\nB = <x..y|x<-1,x,y>"
+					+"\nC = <x..|x<-1,x,y>"
+				,	
+					"'bindval'('y','int'(1),'no_loc_info_available')."
+					+"\n'bindval'('A','listExp'('rangeEnum'([_x]),['comprehensionGenerator'(_x,'int'(1)),'comprehensionGuard'(_x),'comprehensionGuard'('val_of'('y','no_loc_info_available'))]),'no_loc_info_available')."
+					+"\n'bindval'('B','listExp'('rangeClosed'(_x2,'val_of'('y','no_loc_info_available')),['comprehensionGenerator'(_x2,'int'(1)),'comprehensionGuard'(_x2),'comprehensionGuard'('val_of'('y','no_loc_info_available'))]),'no_loc_info_available')."
+					+"\n'bindval'('C','listExp'('rangeOpen'(_x3),['comprehensionGenerator'(_x3,'int'(1)),'comprehensionGuard'(_x3),'comprehensionGuard'('val_of'('y','no_loc_info_available'))]),'no_loc_info_available')."
+					+"\n'symbol'('A','A','no_loc_info_available','Ident (Groundrep.)')."
+					+"\n'symbol'('B','B','no_loc_info_available','Ident (Groundrep.)')."
+					+"\n'symbol'('C','C','no_loc_info_available','Ident (Groundrep.)')."
+					+"\n'symbol'('x','x','no_loc_info_available','Ident (Prolog Variable)')."
+					+"\n'symbol'('x2','x','no_loc_info_available','Ident (Prolog Variable)')."
+					+"\n'symbol'('x3','x','no_loc_info_available','Ident (Prolog Variable)')."
+					+"\n'symbol'('y','y','no_loc_info_available','Ident (Groundrep.)')."
+			);		
+	}
+	
+	@Test
+	public void SetComprehensions() throws Exception
+	{
+		check(
+					"y = 1"
+					+"\nA = {x|x<-1,x,y}"
+					+"\nB = {x..y|x<-1,x,y}"
+					+"\nC = {x..|x<-1,x,y}"
+					+"\nD = {|x|x<-1,x,y|}"
+				,
+				
+					"'bindval'('y','int'(1),'no_loc_info_available')."
+					+"\n'bindval'('A','setExp'('rangeEnum'([_x]),['comprehensionGenerator'(_x,'int'(1)),'comprehensionGuard'(_x),'comprehensionGuard'('val_of'('y','no_loc_info_available'))]),'no_loc_info_available')."
+					+"\n'bindval'('B','setExp'('rangeClosed'(_x2,'val_of'('y','no_loc_info_available')),['comprehensionGenerator'(_x2,'int'(1)),'comprehensionGuard'(_x2),'comprehensionGuard'('val_of'('y','no_loc_info_available'))]),'no_loc_info_available')."
+					+"\n'bindval'('C','setExp'('rangeOpen'(_x3),['comprehensionGenerator'(_x3,'int'(1)),'comprehensionGuard'(_x3),'comprehensionGuard'('val_of'('y','no_loc_info_available'))]),'no_loc_info_available')."
+					+"\n'bindval'('D','closureComp'(['comprehensionGenerator'(_x4,'int'(1)),'comprehensionGuard'(_x4),'comprehensionGuard'('val_of'('y','no_loc_info_available'))],[_x4]),'no_loc_info_available')."
+					+"\n'symbol'('A','A','no_loc_info_available','Ident (Groundrep.)')."
+					+"\n'symbol'('B','B','no_loc_info_available','Ident (Groundrep.)')."
+					+"\n'symbol'('C','C','no_loc_info_available','Ident (Groundrep.)')."
+					+"\n'symbol'('D','D','no_loc_info_available','Ident (Groundrep.)')."
+					+"\n'symbol'('x','x','no_loc_info_available','Ident (Prolog Variable)')."
+					+"\n'symbol'('x2','x','no_loc_info_available','Ident (Prolog Variable)')."
+					+"\n'symbol'('x3','x','no_loc_info_available','Ident (Prolog Variable)')."
+					+"\n'symbol'('x4','x','no_loc_info_available','Ident (Prolog Variable)')."
+					+"\n'symbol'('y','y','no_loc_info_available','Ident (Groundrep.)')."
+			);		
+	}
+	
+	@Test
 	public void NonSpecialBuiltins() throws Exception
 	{
 		check(		"H = Events"

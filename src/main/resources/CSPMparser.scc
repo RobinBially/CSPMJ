@@ -353,11 +353,11 @@ val_exp2 {->exp}	= 	 {un_minus} minus val_exp2						{-> New exp.un_minus(minus, 
 						|{length} length 								{-> length.exp}
 						;				
 length {->exp}		= 	 {length} hash length 							{-> New exp.length(hash, length.exp)}
-						|{concat} concat 								{-> concat.exp}
+						|{concat} atom cat concat 						{-> New exp.concat(atom.exp,cat,[concat.exp])}
+						|{atom} atom									{-> atom.exp}
 						;
-concat 	{->exp}		= 	 concat_list2									{-> New exp.concat_start(concat_list2.exp)};
-concat_list2 {->exp}=	 {list} concat_list2 cat atom					{-> New exp.concat_more(concat_list2.exp,cat,atom.exp)}
-						|{end} atom										{-> New exp.concat_end(atom.exp)}
+concat 	{->exp+}	=	 {list} concat cat atom							{-> [concat.exp,atom.exp]}
+						|{end} atom										{-> [atom.exp]}
 						;						
 atom {->exp}		= 	 {sequence} sequence 								{-> sequence.exp}
 						|{set} set 											{-> set.exp}
@@ -412,14 +412,7 @@ sequence {->exp} =	 {empty_seq} seq_open seq_close									{-> New exp.empty_seq
 								 [rval]:val_exp pipe stmts seq_close 				{-> New exp.ranged_compr_seq(seq_open,lval.exp,rval.exp,stmts,seq_close)}
 			
 					|{infinite_compr} seq_open val_exp dotdot pipe stmts seq_close	{-> New exp.infinite_compr_seq(seq_open,val_exp.exp,stmts,seq_close)}
-					|{enum_seq} enum_seq											{-> enum_seq.exp}
-					|{enum_seq_comp} enum_seq_comp									{-> enum_seq_comp.exp}
 					;
-					  
-enum_seq {-> exp}		=  tria_l [lpipe]:pipe arguments 
-									  [rpipe]:pipe tria_r							{-> New exp.enumerated_seq(tria_l,arguments,tria_r)};	
-enum_seq_comp {-> exp}	=  tria_l [lpipe]:pipe arguments 
-								[mpipe]:pipe stmts [rpipe]:pipe tria_r 				{-> New exp.enumerated_compr_seq(tria_l,arguments,stmts,tria_r)};
 				 
 //---------------------------------------------------------------------------------------------------------------------------------------------------				 
 /*Examples: {v,w,x,y,z}, {m..n}, {m..},{x*2..64|x<-{8,4}}*/
@@ -627,9 +620,8 @@ exp 			=  {function} id parameters [proc1]:exp
 				  |{multiplication}	[val_exp1]:exp mul_div_mod [val_exp2]:exp
 				  |{un_minus} minus [val_exp2]:exp 
 				  |{length} hash [length]:exp
-				  |{concat_start} [concat_list]:exp
-				  |{concat_more} [concat_list]:exp cat [atom]:exp
-				  |{concat_end} [atom]:exp
+				  |{concat} [atom]:exp cat [concat]:exp+
+
 //Sequences			  				  				  				  
 				  |{empty_seq} seq_open seq_close
 				  |{expl_seq} seq_open arguments seq_close
@@ -638,8 +630,6 @@ exp 			=  {function} id parameters [proc1]:exp
 				  |{compr_seq} seq_open arguments stmts seq_close
 				  |{ranged_compr_seq} seq_open [lval]:exp [rval]:exp stmts seq_close
 				  |{infinite_compr_seq} seq_open [val_exp]:exp stmts seq_close
-				  |{enumerated_seq} tria_l arguments tria_r
-				  |{enumerated_compr_seq} tria_l arguments stmts tria_r
 //Sets				  
 				  |{empty_set} brace_l brace_r
 				  |{set} brace_l arguments brace_r

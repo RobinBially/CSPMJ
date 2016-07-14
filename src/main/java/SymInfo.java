@@ -8,14 +8,16 @@ public class SymInfo
 {
 	private Node node;
 	private String symbolInfo;
-	private int letWithinCount; //Reference to letWithin block
+	private int structCount; //Reference to struct
+	private boolean comprehensionArg;
 	
 	
-	public SymInfo(Node n, String st, int lwc)
+	public SymInfo(Node n, String st, int stc)
 	{
 		node = n;
 		symbolInfo = st;
-		letWithinCount = lwc;
+		structCount = stc;
+		comprehensionArg = false;
 	}
 	
 	public String getSymbolInfo()
@@ -38,9 +40,20 @@ public class SymInfo
 		node = n;
 	}
 	
-	public int getLetWithinCount()
+	public int getStructCount()
 	{
-		return letWithinCount;
+		return structCount;
 	}
+	
+	public void setComprehensionArg(boolean b)
+	{
+		comprehensionArg = b;
+	}
+	
+	public boolean isComprehensionArg()
+	{
+		return comprehensionArg;
+	}
+	
 	
 }

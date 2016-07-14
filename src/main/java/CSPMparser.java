@@ -142,6 +142,8 @@ public class CSPMparser
 		newstream = saveComments(s);
 		newstream = includeFile(newstream);
 		newstream = saveComments(newstream);
+		TriangleBruteForce tbf = new TriangleBruteForce(newstream);
+		newstream = tbf.findTriangles();
 		StringReader sr = new StringReader(newstream);
 		BufferedReader br = new BufferedReader(sr); 
 		Lexer l = new LexHelper(new PushbackReader(br,100000));

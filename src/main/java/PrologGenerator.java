@@ -23,9 +23,11 @@ public class PrologGenerator extends DepthFirstAdapter
 	private int currentInLambdaRight;
 	private boolean currentInChannel;
 	private int leftFromPrefix;
-	private int letWithinCount; //renumber let-within blocks
-	private int currentLetWithinNum; //Saves a reference to the current let-within block
-	private TreeMap<Integer,Integer> letWithinStruct;
+	
+	private int structCount; //renumber structs
+	private int currentStructNum; //Saves a reference to the current struct
+	private TreeMap<Integer,Integer> struct;
+	
 	private boolean printSrcLoc;
 	private boolean patternRequired;
 	
@@ -33,9 +35,9 @@ public class PrologGenerator extends DepthFirstAdapter
 	
 	public PrologGenerator(final PrologTermOutput pto,HashMap<String,ArrayList<SymInfo>> symbols, boolean printSrcLoc, ArrayList<CommentInfo> commentList) 
 	{
-		letWithinCount = 0;
-		currentLetWithinNum = 0;
-		letWithinStruct = new TreeMap<Integer,Integer>();
+		structCount = 0;
+		currentStructNum = 0;
+		struct = new TreeMap<Integer,Integer>();
 		letWithinArgs = new HashMap<Integer,HashMap<String,String>>();
 		expectingPattern = false;
 		currentInInput = false;
@@ -327,12 +329,10 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseASetTypeExp(ASetTypeExp node)
     {
         inASetTypeExp(node);
-		p.openTerm("setExp");
         if(node.getSet() != null)
         {
             node.getSet().apply(this);
         }
-		p.closeTerm();
         outASetTypeExp(node);
     }
 
@@ -407,7 +407,7 @@ public class PrologGenerator extends DepthFirstAdapter
 			for(int k = 0;k<symbols.get(str).size();k++)
 			{
 				if(symbols.get(str).get(k).getSymbolInfo().equals("Function or Process")
-					&& (symbols.get(str).get(k).getLetWithinCount() == currentLetWithinNum))
+					&& (symbols.get(str).get(k).getStructCount() == currentStructNum))
 				{	
 					if(k>0)
 					{
@@ -1168,11 +1168,11 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseALetWithinExp(ALetWithinExp node)
     {
         inALetWithinExp(node);
-		letWithinCount++;
-		letWithinStruct.put(letWithinCount,currentLetWithinNum);		
-		currentLetWithinNum = letWithinCount;
+		structCount++;
+		struct.put(structCount,currentStructNum);		
+		currentStructNum = structCount;
 
-		letWithinArgs.put(letWithinCount,new HashMap<String,String>(currentParams));		
+		letWithinArgs.put(structCount,new HashMap<String,String>(currentParams));		
         {
 			p.openTerm("let");
 			p.openList();
@@ -1187,7 +1187,7 @@ public class PrologGenerator extends DepthFirstAdapter
         {
             node.getProc9().apply(this);
         }
-		currentLetWithinNum = letWithinStruct.get(currentLetWithinNum);
+		currentStructNum = struct.get(currentStructNum);
 		p.closeTerm();
         outALetWithinExp(node);
     }
@@ -1558,7 +1558,11 @@ public class PrologGenerator extends DepthFirstAdapter
             List<PExp> copy = new ArrayList<PExp>(node.getDotOpList());
 			if(copy.size()>1)
 			{
+				if(patternRequired)
+				p.openTerm("dotpat");
+				else
 				p.openTerm("dotTuple");
+			
 				p.openList();
 			}
             for(PExp e : copy)
@@ -1796,64 +1800,41 @@ public class PrologGenerator extends DepthFirstAdapter
     }
 	
     @Override
-    public void caseAConcatStartExp(AConcatStartExp node)
+    public void caseAConcatExp(AConcatExp node)
     {
-        inAConcatStartExp(node);
+        inAConcatExp(node);
 		if(patternRequired)
-		{
+		{	
 			p.openTerm("appendPattern");
-			p.openList();
+			p.openList();		
 		}
-        if(node.getConcatList() != null)
-        {
-            node.getConcatList().apply(this);
-        }
-        outAConcatStartExp(node);
-    }
-
-    @Override
-    public void caseAConcatMoreExp(AConcatMoreExp node)
-    {
-        inAConcatMoreExp(node);
-		if(!patternRequired)
+		else
 		{
 			p.openTerm("^");
 		}
-        if(node.getConcatList() != null)
+        if(node.getAtom() != null)
         {
-            node.getConcatList().apply(this);
+            node.getAtom().apply(this);
         }
         if(node.getCat() != null)
         {
             node.getCat().apply(this);
         }
-        if(node.getAtom() != null)
         {
-            node.getAtom().apply(this);
-        }
-		if(!patternRequired)
-		{
-			p.closeTerm();
-		}
-        outAConcatMoreExp(node);
-    }
-
-    @Override
-    public void caseAConcatEndExp(AConcatEndExp node)
-    {
-        inAConcatEndExp(node);
-        if(node.getAtom() != null)
-        {
-            node.getAtom().apply(this);
+            List<PExp> copy = new ArrayList<PExp>(node.getConcat());
+            for(PExp e : copy)
+            {
+                e.apply(this);
+            }
         }
 		if(patternRequired)
 		{
-			p.closeList();	
-			p.closeTerm();			
+			p.closeList();		
 		}
+		p.closeTerm();
+        outAConcatExp(node);
+    }	
 
-        outAConcatEndExp(node);
-    }
 	
 //***************************************************************************************************************************************************
 //Sequencees
@@ -1862,6 +1843,9 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseAEmptySeqExp(AEmptySeqExp node)
     {
         inAEmptySeqExp(node);
+		p.openTerm("listExp");
+		p.openTerm("rangeEnum");
+		p.openList();
         if(node.getSeqOpen() != null)
         {
             node.getSeqOpen().apply(this);
@@ -1870,6 +1854,9 @@ public class PrologGenerator extends DepthFirstAdapter
         {
             node.getSeqClose().apply(this);
         }
+		p.closeList();
+		p.closeTerm();
+		p.closeTerm();
         outAEmptySeqExp(node);
     }
 
@@ -1877,6 +1864,9 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseAExplSeqExp(AExplSeqExp node)
     {
         inAExplSeqExp(node);
+		p.openTerm("listExp");
+		p.openTerm("rangeEnum");
+		p.openList();
         if(node.getSeqOpen() != null)
         {
             node.getSeqOpen().apply(this);
@@ -1889,6 +1879,9 @@ public class PrologGenerator extends DepthFirstAdapter
         {
             node.getSeqClose().apply(this);
         }
+		p.closeList();
+		p.closeTerm();
+		p.closeTerm();
         outAExplSeqExp(node);
     }
 
@@ -1896,6 +1889,8 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseARangedSeqExp(ARangedSeqExp node)
     {
         inARangedSeqExp(node);
+		p.openTerm("listExp");
+		p.openTerm("rangeClosed");
         if(node.getSeqOpen() != null)
         {
             node.getSeqOpen().apply(this);
@@ -1912,6 +1907,8 @@ public class PrologGenerator extends DepthFirstAdapter
         {
             node.getSeqClose().apply(this);
         }
+		p.closeTerm();
+		p.closeTerm();
         outARangedSeqExp(node);
     }
 
@@ -1919,6 +1916,8 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseAInfiniteSeqExp(AInfiniteSeqExp node)
     {
         inAInfiniteSeqExp(node);
+		p.openTerm("listExp");
+		p.openTerm("rangeOpen");
         if(node.getSeqOpen() != null)
         {
             node.getSeqOpen().apply(this);
@@ -1931,123 +1930,11 @@ public class PrologGenerator extends DepthFirstAdapter
         {
             node.getSeqClose().apply(this);
         }
+		p.closeTerm();
+		p.closeTerm();
         outAInfiniteSeqExp(node);
     }
 
-    @Override
-    public void caseAComprSeqExp(AComprSeqExp node)
-    {
-        inAComprSeqExp(node);
-        if(node.getSeqOpen() != null)
-        {
-            node.getSeqOpen().apply(this);
-        }
-        if(node.getArguments() != null)
-        {
-            node.getArguments().apply(this);
-        }
-        if(node.getStmts() != null)
-        {
-            node.getStmts().apply(this);
-        }
-        if(node.getSeqClose() != null)
-        {
-            node.getSeqClose().apply(this);
-        }
-        outAComprSeqExp(node);
-    }
-
-    @Override
-    public void caseARangedComprSeqExp(ARangedComprSeqExp node)
-    {
-        inARangedComprSeqExp(node);
-        if(node.getSeqOpen() != null)
-        {
-            node.getSeqOpen().apply(this);
-        }
-        if(node.getLval() != null)
-        {
-            node.getLval().apply(this);
-        }
-        if(node.getRval() != null)
-        {
-            node.getRval().apply(this);
-        }
-        if(node.getStmts() != null)
-        {
-            node.getStmts().apply(this);
-        }
-        if(node.getSeqClose() != null)
-        {
-            node.getSeqClose().apply(this);
-        }
-        outARangedComprSeqExp(node);
-    }
-
-    @Override
-    public void caseAInfiniteComprSeqExp(AInfiniteComprSeqExp node)
-    {
-        inAInfiniteComprSeqExp(node);
-        if(node.getSeqOpen() != null)
-        {
-            node.getSeqOpen().apply(this);
-        }
-        if(node.getValExp() != null)
-        {
-            node.getValExp().apply(this);
-        }
-        if(node.getStmts() != null)
-        {
-            node.getStmts().apply(this);
-        }
-        if(node.getSeqClose() != null)
-        {
-            node.getSeqClose().apply(this);
-        }
-        outAInfiniteComprSeqExp(node);
-    }
-
-    @Override
-    public void caseAEnumeratedSeqExp(AEnumeratedSeqExp node)
-    {
-        inAEnumeratedSeqExp(node);
-        if(node.getTriaL() != null)
-        {
-            node.getTriaL().apply(this);
-        }
-        if(node.getArguments() != null)
-        {
-            node.getArguments().apply(this);
-        }
-        if(node.getTriaR() != null)
-        {
-            node.getTriaR().apply(this);
-        }
-        outAEnumeratedSeqExp(node);
-    }
-
-    @Override
-    public void caseAEnumeratedComprSeqExp(AEnumeratedComprSeqExp node)
-    {
-        inAEnumeratedComprSeqExp(node);
-        if(node.getTriaL() != null)
-        {
-            node.getTriaL().apply(this);
-        }
-        if(node.getArguments() != null)
-        {
-            node.getArguments().apply(this);
-        }
-        if(node.getStmts() != null)
-        {
-            node.getStmts().apply(this);
-        }
-        if(node.getTriaR() != null)
-        {
-            node.getTriaR().apply(this);
-        }
-        outAEnumeratedComprSeqExp(node);
-    }
 //***************************************************************************************************************************************************
 //Sets
 
@@ -2055,6 +1942,9 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseAEmptySetExp(AEmptySetExp node)
     {
         inAEmptySetExp(node);
+		p.openTerm("setExp");
+		p.openTerm("rangeEnum");
+		p.openList();
         if(node.getBraceL() != null)
         {
             node.getBraceL().apply(this);
@@ -2063,6 +1953,9 @@ public class PrologGenerator extends DepthFirstAdapter
         {
             node.getBraceR().apply(this);
         }
+		p.closeList();
+		p.closeTerm();
+		p.closeTerm();
         outAEmptySetExp(node);
     }
 
@@ -2070,6 +1963,9 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseASetExp(ASetExp node)
     {
         inASetExp(node);
+		p.openTerm("setExp");
+		p.openTerm("rangeEnum");
+		p.openList();
         if(node.getBraceL() != null)
         {
             node.getBraceL().apply(this);
@@ -2082,6 +1978,9 @@ public class PrologGenerator extends DepthFirstAdapter
         {
             node.getBraceR().apply(this);
         }
+		p.closeList();
+		p.closeTerm();
+		p.closeTerm();
         outASetExp(node);
     }
 
@@ -2089,6 +1988,8 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseARangedSetExp(ARangedSetExp node)
     {
         inARangedSetExp(node);
+		p.openTerm("setExp");
+		p.openTerm("rangeClosed");
         if(node.getBraceL() != null)
         {
             node.getBraceL().apply(this);
@@ -2105,6 +2006,8 @@ public class PrologGenerator extends DepthFirstAdapter
         {
             node.getBraceR().apply(this);
         }
+		p.closeTerm();
+		p.closeTerm();
         outARangedSetExp(node);
     }
 
@@ -2112,6 +2015,8 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseAInfiniteSetExp(AInfiniteSetExp node)
     {
         inAInfiniteSetExp(node);
+		p.openTerm("setExp");
+		p.openTerm("rangeOpen");
         if(node.getBraceL() != null)
         {
             node.getBraceL().apply(this);
@@ -2124,13 +2029,17 @@ public class PrologGenerator extends DepthFirstAdapter
         {
             node.getBraceR().apply(this);
         }
+		p.closeTerm();
+		p.closeTerm();
         outAInfiniteSetExp(node);
     }
 
     @Override
-    public void caseAComprSetExp(AComprSetExp node)
+    public void caseAEnumeratedSetExp(AEnumeratedSetExp node)
     {
-        inAComprSetExp(node);
+        inAEnumeratedSetExp(node);
+		p.openTerm("closure");
+		p.openList();
         if(node.getBraceL() != null)
         {
             node.getBraceL().apply(this);
@@ -2139,6 +2048,214 @@ public class PrologGenerator extends DepthFirstAdapter
         {
             node.getArguments().apply(this);
         }
+        if(node.getBraceR() != null)
+        {
+            node.getBraceR().apply(this);
+        }
+		p.closeList();
+		p.closeTerm();
+        outAEnumeratedSetExp(node);
+    }
+
+
+//***************************************************************************************************************************************************
+//Comprehensions
+
+    @Override
+    public void caseALinkCompLinkComp(ALinkCompLinkComp node)
+    {
+        inALinkCompLinkComp(node);
+		structCount++;
+		struct.put(structCount,currentStructNum);
+		currentStructNum = structCount;
+
+        {
+			if(node.getStmts() == null)
+			{
+				p.openTerm("linkList");
+			}
+			else
+			{
+				p.openTerm("linkListComp");
+				node.getStmts().apply(this);
+			}
+			p.openList();
+            List<PExp> copy = new ArrayList<PExp>(node.getLcList());
+			int count = 0;
+            for(PExp e : copy)
+            {
+				if(count == 0)
+				{
+					p.openTerm("link");
+				}
+                e.apply(this);
+				if(count == 1)
+				{
+					p.closeTerm();
+				}
+				count += 1;
+				count %= 2;
+            }
+			p.closeList();
+			p.closeTerm();
+        }
+		currentStructNum = struct.get(currentStructNum);
+        outALinkCompLinkComp(node);
+    }
+
+    @Override
+    public void caseARenameCompRenameComp(ARenameCompRenameComp node)
+    {
+        inARenameCompRenameComp(node);
+		structCount++;
+		struct.put(structCount,currentStructNum);
+		currentStructNum = structCount;
+        {
+            List<PExp> copy = new ArrayList<PExp>(node.getRcList());
+            for(PExp e : copy)
+            {
+                e.apply(this);
+            }
+        }
+        if(node.getStmts() != null)
+        {
+            node.getStmts().apply(this);
+        }
+		currentStructNum = struct.get(currentStructNum);
+        outARenameCompRenameComp(node);
+    }
+	
+//Sequence Comprehensions
+
+    @Override
+    public void caseAComprSeqExp(AComprSeqExp node)
+    {
+        inAComprSeqExp(node);
+		
+		structCount++;
+		struct.put(structCount,currentStructNum);
+		currentStructNum = structCount;
+
+		p.openTerm("listExp");
+		p.openTerm("rangeEnum");
+		p.openList();		
+        if(node.getSeqOpen() != null)
+        {
+            node.getSeqOpen().apply(this);
+        }
+        if(node.getArguments() != null)
+        {
+            node.getArguments().apply(this);
+        }
+		p.closeList();
+		p.closeTerm();
+        if(node.getStmts() != null)
+        {
+            node.getStmts().apply(this);
+        }
+        if(node.getSeqClose() != null)
+        {
+            node.getSeqClose().apply(this);
+        }
+		p.closeTerm();
+		currentStructNum = struct.get(currentStructNum);
+        outAComprSeqExp(node);
+    }
+
+    @Override
+    public void caseARangedComprSeqExp(ARangedComprSeqExp node)
+    {
+        inARangedComprSeqExp(node);
+		
+		structCount++;
+		struct.put(structCount,currentStructNum);
+		currentStructNum = structCount;
+
+		p.openTerm("listExp");
+		p.openTerm("rangeClosed");		
+        if(node.getSeqOpen() != null)
+        {
+            node.getSeqOpen().apply(this);
+        }
+        if(node.getLval() != null)
+        {
+            node.getLval().apply(this);
+        }
+        if(node.getRval() != null)
+        {
+            node.getRval().apply(this);
+        }
+		p.closeTerm();
+        if(node.getStmts() != null)
+        {
+            node.getStmts().apply(this);
+        }
+        if(node.getSeqClose() != null)
+        {
+            node.getSeqClose().apply(this);
+        }
+		p.closeTerm();
+		currentStructNum = struct.get(currentStructNum);
+        outARangedComprSeqExp(node);
+    }
+
+    @Override
+    public void caseAInfiniteComprSeqExp(AInfiniteComprSeqExp node)
+    {
+        inAInfiniteComprSeqExp(node);
+		
+		structCount++;
+		struct.put(structCount,currentStructNum);
+		currentStructNum = structCount;
+
+		p.openTerm("listExp");
+		p.openTerm("rangeOpen");
+        if(node.getSeqOpen() != null)
+        {
+            node.getSeqOpen().apply(this);
+        }
+        if(node.getValExp() != null)
+        {
+            node.getValExp().apply(this);
+        }
+		p.closeTerm();
+        if(node.getStmts() != null)
+        {
+            node.getStmts().apply(this);
+        }
+        if(node.getSeqClose() != null)
+        {
+            node.getSeqClose().apply(this);
+        }
+		p.closeTerm();
+		currentStructNum = struct.get(currentStructNum);
+        outAInfiniteComprSeqExp(node);
+    }
+	
+//Set Comprehensions
+
+    @Override
+    public void caseAComprSetExp(AComprSetExp node)
+    {
+        inAComprSetExp(node);
+		
+		structCount++;
+		struct.put(structCount,currentStructNum);
+		currentStructNum = structCount;
+		
+		p.openTerm("setExp");
+		p.openTerm("rangeEnum");
+		p.openList();
+        if(node.getBraceL() != null)
+        {
+            node.getBraceL().apply(this);
+        }
+        if(node.getArguments() != null)
+        {
+            node.getArguments().apply(this);
+        }
+		p.closeList();
+		p.closeTerm();
         if(node.getStmts() != null)
         {
             node.getStmts().apply(this);
@@ -2147,6 +2264,8 @@ public class PrologGenerator extends DepthFirstAdapter
         {
             node.getBraceR().apply(this);
         }
+		p.closeTerm();
+		currentStructNum = struct.get(currentStructNum);
         outAComprSetExp(node);
     }
 
@@ -2154,6 +2273,14 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseARangedComprSetExp(ARangedComprSetExp node)
     {
         inARangedComprSetExp(node);
+		
+		structCount++;
+		struct.put(structCount,currentStructNum);
+		currentStructNum = structCount;
+
+		p.openTerm("setExp");
+		p.openTerm("rangeClosed");
+
         if(node.getBraceL() != null)
         {
             node.getBraceL().apply(this);
@@ -2166,6 +2293,7 @@ public class PrologGenerator extends DepthFirstAdapter
         {
             node.getRval().apply(this);
         }
+		p.closeTerm();
         if(node.getStmts() != null)
         {
             node.getStmts().apply(this);
@@ -2174,6 +2302,8 @@ public class PrologGenerator extends DepthFirstAdapter
         {
             node.getBraceR().apply(this);
         }
+		p.closeTerm();
+		currentStructNum = struct.get(currentStructNum);
         outARangedComprSetExp(node);
     }
 
@@ -2181,6 +2311,13 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseAInfiniteComprSetExp(AInfiniteComprSetExp node)
     {
         inAInfiniteComprSetExp(node);
+		
+		structCount++;
+		struct.put(structCount,currentStructNum);
+		currentStructNum = structCount;
+
+		p.openTerm("setExp");
+		p.openTerm("rangeOpen");
         if(node.getBraceL() != null)
         {
             node.getBraceL().apply(this);
@@ -2189,6 +2326,7 @@ public class PrologGenerator extends DepthFirstAdapter
         {
             node.getValExp().apply(this);
         }
+		p.closeTerm();
         if(node.getStmts() != null)
         {
             node.getStmts().apply(this);
@@ -2197,51 +2335,43 @@ public class PrologGenerator extends DepthFirstAdapter
         {
             node.getBraceR().apply(this);
         }
+		p.closeTerm();
+		currentStructNum = struct.get(currentStructNum);
         outAInfiniteComprSetExp(node);
     }
-
-    @Override
-    public void caseAEnumeratedSetExp(AEnumeratedSetExp node)
-    {
-        inAEnumeratedSetExp(node);
-        if(node.getBraceL() != null)
-        {
-            node.getBraceL().apply(this);
-        }
-        if(node.getArguments() != null)
-        {
-            node.getArguments().apply(this);
-        }
-        if(node.getBraceR() != null)
-        {
-            node.getBraceR().apply(this);
-        }
-        outAEnumeratedSetExp(node);
-    }
-
-    @Override
+	
+	@Override
     public void caseAEnumeratedComprSetExp(AEnumeratedComprSetExp node)
     {
         inAEnumeratedComprSetExp(node);
+		
+		structCount++;
+		struct.put(structCount,currentStructNum);
+		currentStructNum = structCount;
+		
+		p.openTerm("closureComp");
         if(node.getBraceL() != null)
         {
             node.getBraceL().apply(this);
-        }
-        if(node.getArguments() != null)
-        {
-            node.getArguments().apply(this);
         }
         if(node.getStmts() != null)
         {
             node.getStmts().apply(this);
         }
+		p.openList();
+        if(node.getArguments() != null)
+        {
+            node.getArguments().apply(this);
+        }
+		p.closeList();
         if(node.getBraceR() != null)
         {
             node.getBraceR().apply(this);
         }
+		p.closeTerm();
+		currentStructNum = struct.get(currentStructNum);
         outAEnumeratedComprSetExp(node);
     }
-
 //***************************************************************************************************************************************************
 //Maps
 
@@ -2484,108 +2614,140 @@ public class PrologGenerator extends DepthFirstAdapter
         if(node.getId() != null)
         {
             node.getId().apply(this);
-        }		
-        if(node.getLambda() != null)
-        {
-			p.openTerm("agent_call");
-			printSrcLoc(node);		
-		}
-						
-		int dimCounter = currentLetWithinNum;	
-		boolean found = false;
-		while(!found && symbols.get(str) != null)
+        }
+		if(patternRequired)
 		{
-			//Search in symbol map	
-			for(int a = 0;a<symbols.get(str).size();a++)
+		
+			for(int i = 0; i<symbols.get(str).size();i++)
 			{
-				// System.out.print(symbols.get(str).get(a).getSymbolInfo() +"  "+str);
-				// System.out.print(" "+symbols.get(str).get(a).getLetWithinCount());
-				// System.out.println(" "+dimCounter);
-
-				//In Lambda?					
-				if(currentInLambdaRight>0 && (currentLambdaParams.get(str) != null))
+				if(node.getId() == symbols.get(str).get(i).getNode())
 				{
-					p.printVariable("_"+currentLambdaParams.get(str));
-					found = true;
-					break;
-				}
-				//Current Function Parameters?
-				else if(currentParams.get(str) != null)
-				{
-					p.printVariable("_"+currentParams.get(str));
-					found = true;
-					break;
-				}
-				//In Identifier list of this dimension?
-				else if(symbols.get(str).get(a).getSymbolInfo().equals("Ident (Groundrep.)")
-				&& symbols.get(str).get(a).getLetWithinCount() == dimCounter)
-				{
-					if(a == 0)
+					if(i == 0)
 					{
-						p.openTerm("val_of");
-						p.printAtom(str);
-						printSrcLoc(node.getId());
-						p.closeTerm();
+						p.printVariable("_"+str);
+						break;
 					}
 					else
 					{
-						p.openTerm("val_of");
-						p.printAtom(str+(a+1));
-						printSrcLoc(node.getId());
-						p.closeTerm();
+						p.printVariable("_"+str+(i+1));
+						break;
 					}
-					found = true;
-					break;						
-				}
-				//In functions channels or datatypes of this dimension?
-				else if((symbols.get(str).get(a).getSymbolInfo().equals("Function or Process") 					
-				|| symbols.get(str).get(a).getSymbolInfo().equals("Channel")					
-				|| symbols.get(str).get(a).getSymbolInfo().equals("Constructor of Datatype")				
-				|| symbols.get(str).get(a).getSymbolInfo().equals("Datatype")				
-				|| symbols.get(str).get(a).getSymbolInfo().equals("Nametype"))
-				&& symbols.get(str).get(a).getLetWithinCount() == dimCounter)
-				{					
-					if(a == 0)
-					{
-						p.printAtom(str);
-					}
-					else
-					{
-						p.printAtom(str+(a+1));
-					}
-					found = true;
-					break;
-				}
-				else if(symbols.get(str).get(a).getSymbolInfo().equals("BuiltIn primitive")
-						&& symbols.get(str).get(a).getLetWithinCount() == dimCounter)
-				{
-					printBuiltin(str,node.getId());
 				}
 			}
-			//In let-within-args?
-			if(!found
-			&& letWithinArgs.get(dimCounter) != null 
-			&& (letWithinArgs.get(dimCounter).get(str) != null))
-			{
-				p.printVariable("_"+letWithinArgs.get(dimCounter).get(str)); //key is var name and value string is enumerated key
-								//In let-within-args?
-				found = true;
-				break;
-			}
-			if(dimCounter == 0)
-			{
-				break;
-			}
-			else
-			{
-				dimCounter = letWithinStruct.get(dimCounter); //Not found, search in predecessor
-			}			
+			
 		}
+		else
+		{
+			if(node.getLambda() != null)
+			{
+				p.openTerm("agent_call");
+				printSrcLoc(node);		
+			}
+							
+			int dimCounter = currentStructNum;	
+			boolean found = false;
+			while(!found && symbols.get(str) != null)
+			{
+				//Search in symbol map	
+				for(int a = 0;a<symbols.get(str).size();a++)
+				{
+					// System.out.print(symbols.get(str).get(a).getSymbolInfo() +"  "+str);
+					// System.out.print(" "+symbols.get(str).get(a).getStructCount());
+					// System.out.println(" "+dimCounter);
+					//In Comprehension?
+					if(symbols.get(str).get(a).getStructCount() == dimCounter
+						&& symbols.get(str).get(a).isComprehensionArg())
+					{	
+						if(a == 0)
+						p.printVariable("_"+str);
+						else
+						p.printVariable("_"+str+(a+1));
+						
+						found = true;
+						break;
+					}
+					//In Lambda?					
+					else if(currentInLambdaRight>0 && (currentLambdaParams.get(str) != null))
+					{
+						p.printVariable("_"+currentLambdaParams.get(str));
+						found = true;
+						break;
+					}
+					//Current Function Parameters?
+					else if(currentParams.get(str) != null)
+					{
+						p.printVariable("_"+currentParams.get(str));
+						found = true;
+						break;
+					}
+					//In Identifier list of this dimension?
+					else if(symbols.get(str).get(a).getSymbolInfo().equals("Ident (Groundrep.)")
+					&& symbols.get(str).get(a).getStructCount() == dimCounter)
+					{
+						if(a == 0)
+						{
+							p.openTerm("val_of");
+							p.printAtom(str);
+							printSrcLoc(node.getId());
+							p.closeTerm();
+						}
+						else
+						{
+							p.openTerm("val_of");
+							p.printAtom(str+(a+1));
+							printSrcLoc(node.getId());
+							p.closeTerm();
+						}
+						found = true;
+						break;						
+					}
+					//In functions channels or datatypes of this dimension?
+					else if((symbols.get(str).get(a).getSymbolInfo().equals("Function or Process") 					
+					|| symbols.get(str).get(a).getSymbolInfo().equals("Channel")					
+					|| symbols.get(str).get(a).getSymbolInfo().equals("Constructor of Datatype")				
+					|| symbols.get(str).get(a).getSymbolInfo().equals("Datatype")				
+					|| symbols.get(str).get(a).getSymbolInfo().equals("Nametype"))
+					&& symbols.get(str).get(a).getStructCount() == dimCounter)
+					{					
+						if(a == 0)
+							p.printAtom(str);
+						else
+							p.printAtom(str+(a+1));
+						
+						found = true;
+						break;
+					}
+					else if(symbols.get(str).get(a).getSymbolInfo().equals("BuiltIn primitive")
+							&& symbols.get(str).get(a).getStructCount() == dimCounter)
+					{
+						printBuiltin(str,node.getId());
+					}
+				}
+				//In let-within-args?
+				if(!found
+				&& letWithinArgs.get(dimCounter) != null 
+				&& (letWithinArgs.get(dimCounter).get(str) != null))
+				{
+					p.printVariable("_"+letWithinArgs.get(dimCounter).get(str)); //key is var name and value string is enumerated key
+									//In let-within-args?
+					found = true;
+					break;
+				}
+				if(dimCounter == 0)
+				{
+					break;
+				}
+				else
+				{
+					dimCounter = struct.get(dimCounter); //Not found, search in predecessor
+				}			
+			}
 
-        if(node.getLambda() != null)
-        {
-            node.getLambda().apply(this);
-			p.closeTerm();
+			if(node.getLambda() != null)
+			{
+				node.getLambda().apply(this);
+				p.closeTerm();
+			}
 		}
         outAIdExp(node);
     }
@@ -2613,10 +2775,12 @@ public class PrologGenerator extends DepthFirstAdapter
     {
         inAGeneratorStmts(node);
 		p.openTerm("comprehensionGenerator");
+		patternRequired = true;
         if(node.getDpattern() != null)
         {
             node.getDpattern().apply(this);
         }
+		patternRequired = false;
         if(node.getGeneratorOp() != null)
         {
             node.getGeneratorOp().apply(this);
@@ -2640,64 +2804,6 @@ public class PrologGenerator extends DepthFirstAdapter
         }
 		p.closeTerm();
         outAPredicateStmts(node);
-    }
-
-//***************************************************************************************************************************************************
-//Linked & Renamed + Comprehensions
-
-    @Override
-    public void caseALinkCompLinkComp(ALinkCompLinkComp node)
-    {
-        inALinkCompLinkComp(node);
-        {
-			if(node.getStmts() == null)
-			{
-				p.openTerm("linkList");
-			}
-			else
-			{
-				p.openTerm("linkListComp");
-				node.getStmts().apply(this);
-			}
-			p.openList();
-            List<PExp> copy = new ArrayList<PExp>(node.getLcList());
-			int count = 0;
-            for(PExp e : copy)
-            {
-				if(count == 0)
-				{
-					p.openTerm("link");
-				}
-                e.apply(this);
-				if(count == 1)
-				{
-					p.closeTerm();
-				}
-				count += 1;
-				count %= 2;
-            }
-			p.closeList();
-			p.closeTerm();
-        }
-        outALinkCompLinkComp(node);
-    }
-
-    @Override
-    public void caseARenameCompRenameComp(ARenameCompRenameComp node)
-    {
-        inARenameCompRenameComp(node);
-        {
-            List<PExp> copy = new ArrayList<PExp>(node.getRcList());
-            for(PExp e : copy)
-            {
-                e.apply(this);
-            }
-        }
-        if(node.getStmts() != null)
-        {
-            node.getStmts().apply(this);
-        }
-        outARenameCompRenameComp(node);
     }
 
 //***************************************************************************************************************************************************
@@ -2783,7 +2889,8 @@ public class PrologGenerator extends DepthFirstAdapter
 			  ,fixedStartOffset = getStartOffset s
 			}
 		  */
-    	if (this.printSrcLoc) {
+    	if (this.printSrcLoc) 
+		{
     		p.openTerm("src_span");
     		// src_loc(startline,startcolumn,endline,endcolumn,offset???,length)
     		p.printNumber(node.getStartPos().getLine());
@@ -2794,7 +2901,9 @@ public class PrologGenerator extends DepthFirstAdapter
     		p.printNumber(node.getEndPos().getPos()-node.getStartPos().getPos());
     		p.printNumber(node.getEndPos().getPos()-node.getStartPos().getPos());
     		p.closeTerm();
-    	} else {
+    	} 
+		else 
+		{
     		p.printAtom("no_loc_info_available");
     	}
     }

@@ -9,21 +9,23 @@ import java.io.*;
 
 
 public class SymbolCollector extends DepthFirstAdapter
-{
+{	
 	private boolean patternRequired;
 	private int currentInParams;
 	private HashMap<String,ArrayList<SymInfo>> symbols; //Identifier,Counter
 	private int groundrep;
-	private int letWithinCount; //renumber let-within blocks
-	private int currentLetWithinNum; //Saves a reference to the current let-within block
-	private HashMap<Integer,Integer> letWithinStruct;
+	private int inComprGenerator;
+	private int structCount; //renumber stucts
+	private int currentStructNum; //Saves a reference to the current struct
+	private HashMap<Integer,Integer> struct;
 				// counter ,predecessor
 	public SymbolCollector()
 	{
 		patternRequired = false;
-		letWithinCount = 0;
-		currentLetWithinNum = 0;
-		letWithinStruct = new HashMap<Integer,Integer>();
+		inComprGenerator = 0;
+		structCount = 0;
+		currentStructNum = 0;
+		struct = new HashMap<Integer,Integer>();		
 		currentInParams = 0;
 		groundrep = 0;
 		symbols = new HashMap<String,ArrayList<SymInfo>>();
@@ -209,6 +211,220 @@ public class SymbolCollector extends DepthFirstAdapter
         outAChannelDef(node);
     }
 //***************************************************************************************************************************************************
+//Comprehensions
+
+    @Override
+    public void caseALinkCompLinkComp(ALinkCompLinkComp node)
+    {
+        inALinkCompLinkComp(node);
+		structCount++;
+		struct.put(structCount,currentStructNum);
+		currentStructNum = structCount;
+
+		if(node.getStmts() != null)
+		{
+			inComprGenerator += 1;
+			node.getStmts().apply(this);
+			inComprGenerator -= 1;
+		}
+        {
+					System.out.println("TEEEEEEEEEEST");
+            List<PExp> copy = new ArrayList<PExp>(node.getLcList());
+            for(PExp e : copy)
+            {
+                e.apply(this);
+            }
+        }
+		currentStructNum = struct.get(currentStructNum);
+        outALinkCompLinkComp(node);
+    }
+
+    @Override
+    public void caseARenameCompRenameComp(ARenameCompRenameComp node)
+    {
+		inARenameCompRenameComp(node);
+		structCount++;
+		struct.put(structCount,currentStructNum);
+		currentStructNum = structCount;
+
+		if(node.getStmts() != null)
+        {
+			inComprGenerator += 1;
+            node.getStmts().apply(this);
+			inComprGenerator -= 1;
+        }
+        {
+            List<PExp> copy = new ArrayList<PExp>(node.getRcList());
+            for(PExp e : copy)
+            {
+                e.apply(this);
+            }
+        }
+		currentStructNum = struct.get(currentStructNum);
+        outARenameCompRenameComp(node);
+    }
+    @Override
+    public void caseAComprSeqExp(AComprSeqExp node)
+    {
+        inAComprSeqExp(node);
+		structCount++;
+		struct.put(structCount,currentStructNum);
+		currentStructNum = structCount;
+
+        if(node.getStmts() != null)
+        {
+			inComprGenerator += 1;
+            node.getStmts().apply(this);
+			inComprGenerator -= 1;
+        }
+        if(node.getArguments() != null)
+        {
+            node.getArguments().apply(this);
+        }
+		currentStructNum = struct.get(currentStructNum);
+        outAComprSeqExp(node);
+    }
+
+    @Override
+    public void caseARangedComprSeqExp(ARangedComprSeqExp node)
+    {
+        inARangedComprSeqExp(node);
+		structCount++;
+		struct.put(structCount,currentStructNum);
+		currentStructNum = structCount;
+
+        if(node.getStmts() != null)
+        {
+			inComprGenerator += 1;
+            node.getStmts().apply(this);
+			inComprGenerator -= 1;
+        }
+        if(node.getLval() != null)
+        {
+            node.getLval().apply(this);
+        }
+        if(node.getRval() != null)
+        {
+            node.getRval().apply(this);
+        }
+		currentStructNum = struct.get(currentStructNum);
+        outARangedComprSeqExp(node);
+    }
+
+    @Override
+    public void caseAInfiniteComprSeqExp(AInfiniteComprSeqExp node)
+    {
+        inAInfiniteComprSeqExp(node);
+		structCount++;
+		struct.put(structCount,currentStructNum);
+		currentStructNum = structCount;
+
+        if(node.getStmts() != null)
+        {
+			inComprGenerator += 1;
+            node.getStmts().apply(this);
+			inComprGenerator -= 1;
+        }
+        if(node.getValExp() != null)
+        {
+            node.getValExp().apply(this);
+        }
+		currentStructNum = struct.get(currentStructNum);
+        outAInfiniteComprSeqExp(node);
+    }
+
+    @Override
+    public void caseAComprSetExp(AComprSetExp node)
+    {
+        inAComprSetExp(node);
+		structCount++;
+		struct.put(structCount,currentStructNum);
+		currentStructNum = structCount;
+
+        if(node.getStmts() != null)
+        {
+			inComprGenerator += 1;
+            node.getStmts().apply(this);
+			inComprGenerator -= 1;
+        }
+        if(node.getArguments() != null)
+        {
+            node.getArguments().apply(this);
+        }
+		currentStructNum = struct.get(currentStructNum);
+        outAComprSetExp(node);
+    }
+
+    @Override
+    public void caseARangedComprSetExp(ARangedComprSetExp node)
+    {
+        inARangedComprSetExp(node);
+		structCount++;
+		struct.put(structCount,currentStructNum);
+		currentStructNum = structCount;
+
+        if(node.getStmts() != null)
+        {
+			inComprGenerator += 1;
+            node.getStmts().apply(this);
+			inComprGenerator -= 1;
+        }
+        if(node.getLval() != null)
+        {
+            node.getLval().apply(this);
+        }
+        if(node.getRval() != null)
+        {
+            node.getRval().apply(this);
+        }
+		currentStructNum = struct.get(currentStructNum);
+        outARangedComprSetExp(node);
+    }
+
+    @Override
+    public void caseAInfiniteComprSetExp(AInfiniteComprSetExp node)
+    {
+        inAInfiniteComprSetExp(node);
+		structCount++;
+		struct.put(structCount,currentStructNum);
+		currentStructNum = structCount;
+
+        if(node.getStmts() != null)
+        {
+			inComprGenerator += 1;
+            node.getStmts().apply(this);
+			inComprGenerator -= 1;
+        }
+        if(node.getValExp() != null)
+        {
+            node.getValExp().apply(this);
+        }
+		currentStructNum = struct.get(currentStructNum);
+        outAInfiniteComprSetExp(node);
+    }
+	
+	@Override
+    public void caseAEnumeratedComprSetExp(AEnumeratedComprSetExp node)
+    {
+        inAEnumeratedComprSetExp(node);
+		structCount++;
+		struct.put(structCount,currentStructNum);
+		currentStructNum = structCount;
+
+        if(node.getStmts() != null)
+        {
+			inComprGenerator += 1;
+            node.getStmts().apply(this);
+			inComprGenerator -= 1;
+        }
+        if(node.getArguments() != null)
+        {
+            node.getArguments().apply(this);
+        }
+		currentStructNum = struct.get(currentStructNum);
+        outAEnumeratedComprSetExp(node);
+    }
+//***************************************************************************************************************************************************
 //Patterns	
 	
     @Override
@@ -242,7 +458,7 @@ public class SymbolCollector extends DepthFirstAdapter
 					{
 						if(symbols.get(str).get(i).getSymbolInfo().equals("BuiltIn primitive"))
 						{
-							SymInfo si = new SymInfo(node.getId(),"Ident (Groundrep.)",currentLetWithinNum);
+							SymInfo si = new SymInfo(node.getId(),"Ident (Groundrep.)",currentStructNum);
 							symbols.get(str).set(i,si);
 							break;
 						}
@@ -251,14 +467,14 @@ public class SymbolCollector extends DepthFirstAdapter
 				else if(symbols.containsKey(str))
 				{
 					ArrayList<SymInfo> temp = symbols.get(str);
-					SymInfo si = new SymInfo(node.getId(),"Ident (Groundrep.)",currentLetWithinNum);
+					SymInfo si = new SymInfo(node.getId(),"Ident (Groundrep.)",currentStructNum);
 					temp.add(si);
 					symbols.put(str,temp);
 				}
 				else
 				{
 					ArrayList<SymInfo> temp = new ArrayList<SymInfo>();
-					SymInfo si = new SymInfo(node.getId(),"Ident (Groundrep.)",currentLetWithinNum);
+					SymInfo si = new SymInfo(node.getId(),"Ident (Groundrep.)",currentStructNum);
 					temp.add(si);
 					symbols.put(str,temp);
 				}
@@ -270,14 +486,14 @@ public class SymbolCollector extends DepthFirstAdapter
 			if(symbols.containsKey(str))
 			{
 				ArrayList<SymInfo> temp = symbols.get(str);
-				SymInfo si = new SymInfo(node.getId(),"Ident (Prolog Variable)",currentLetWithinNum);
+				SymInfo si = new SymInfo(node.getId(),"Ident (Prolog Variable)",currentStructNum);
 				temp.add(si);
 				symbols.put(str,temp);
 			}
 			else
 			{
 				ArrayList<SymInfo> temp = new ArrayList<SymInfo>();
-				SymInfo si = new SymInfo(node.getId(),"Ident (Prolog Variable)",currentLetWithinNum);
+				SymInfo si = new SymInfo(node.getId(),"Ident (Prolog Variable)",currentStructNum);
 				temp.add(si);
 				symbols.put(str,temp);
 			}
@@ -307,8 +523,8 @@ public class SymbolCollector extends DepthFirstAdapter
 				{
 					if(symbols.get(str).get(k).getSymbolInfo().equals("Function or Process"))
 					{
-						int v = symbols.get(str).get(k).getLetWithinCount();
-						if(v == currentLetWithinNum)
+						int v = symbols.get(str).get(k).getStructCount();
+						if(v == currentStructNum)
 						{
 							found = true;
 							//keep in symbols, do not replace !!!
@@ -323,7 +539,7 @@ public class SymbolCollector extends DepthFirstAdapter
 				if(symbols.get(str) == null)
 				{
 					ArrayList<SymInfo> temp = new ArrayList<SymInfo>();
-					SymInfo si = new SymInfo(node.getId(),"Function or Process",currentLetWithinNum);
+					SymInfo si = new SymInfo(node.getId(),"Function or Process",currentStructNum);
 					temp.add(si);
 					symbols.put(str,temp);
 				}
@@ -334,7 +550,7 @@ public class SymbolCollector extends DepthFirstAdapter
 					{
 						if(symbols.get(str).get(i).getSymbolInfo().equals("BuiltIn primitive"))
 						{
-							SymInfo si = new SymInfo(node.getId(),"Function or Process",currentLetWithinNum);
+							SymInfo si = new SymInfo(node.getId(),"Function or Process",currentStructNum);
 							symbols.get(str).set(i,si);
 							found = true;
 							break;
@@ -343,7 +559,7 @@ public class SymbolCollector extends DepthFirstAdapter
 					if(!found)
 					{
 						ArrayList<SymInfo> temp = symbols.get(str);
-						SymInfo si = new SymInfo(node.getId(),"Function or Process",currentLetWithinNum);
+						SymInfo si = new SymInfo(node.getId(),"Function or Process",currentStructNum);
 						temp.add(si);
 						symbols.put(str,temp);
 					}
@@ -387,9 +603,9 @@ public class SymbolCollector extends DepthFirstAdapter
     public void caseALetWithinExp(ALetWithinExp node)
     {
         inALetWithinExp(node);
-		letWithinCount++;
-		letWithinStruct.put(letWithinCount,currentLetWithinNum);
-		currentLetWithinNum = letWithinCount;
+		structCount++;
+		struct.put(structCount,currentStructNum);
+		currentStructNum = structCount;
         {
             List<PDef> copy = new ArrayList<PDef>(node.getDefs());
             for(PDef e : copy)
@@ -397,7 +613,7 @@ public class SymbolCollector extends DepthFirstAdapter
                 e.apply(this);
             }
         }
-		currentLetWithinNum = letWithinStruct.get(currentLetWithinNum);
+		currentStructNum = struct.get(currentStructNum);
         if(node.getProc9() != null)
         {
             node.getProc9().apply(this);
@@ -452,6 +668,28 @@ public class SymbolCollector extends DepthFirstAdapter
 		
 		if(patternRequired)
 		{
+			if(symbols.get(str) != null)
+			{
+				ArrayList<SymInfo> temp = symbols.get(str);
+				SymInfo si = new SymInfo(node.getId(),"Ident (Prolog Variable)",currentStructNum);
+				if(inComprGenerator>0)
+				{
+					si.setComprehensionArg(true);
+				}
+				temp.add(si);
+				symbols.put(str,temp);
+			}
+			else
+			{
+				ArrayList<SymInfo> temp = new ArrayList<SymInfo>();
+				SymInfo si = new SymInfo(node.getId(),"Ident (Prolog Variable)",currentStructNum);
+				if(inComprGenerator>0)
+				{
+					si.setComprehensionArg(true);
+				}
+				temp.add(si);
+				symbols.put(str,temp);
+			}
 			
 		}
 		else if(isBuiltin(str))
@@ -536,6 +774,31 @@ public class SymbolCollector extends DepthFirstAdapter
         }
         outAIdTypeExp(node);
     }
+	
+//***************************************************************************************************************************************************
+//Statements
+
+    @Override
+    public void caseAGeneratorStmts(AGeneratorStmts node)
+    {
+        inAGeneratorStmts(node);
+		patternRequired = true;
+        if(node.getDpattern() != null)
+        {
+            node.getDpattern().apply(this);
+        }
+		patternRequired = false;
+        if(node.getGeneratorOp() != null)
+        {
+            node.getGeneratorOp().apply(this);
+        }
+        if(node.getProc1() != null)
+        {
+            node.getProc1().apply(this);
+        }
+        outAGeneratorStmts(node);
+    }
+	
 //***************************************************************************************************************************************************
 	public HashMap<String,ArrayList<SymInfo>> getSymbols()
 	{
