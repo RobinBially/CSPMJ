@@ -12,24 +12,25 @@ public class SymbolCollector extends DepthFirstAdapter
 {	
 	private boolean patternRequired;
 	private int currentInParams;
-	private HashMap<String,ArrayList<SymInfo>> symbols; //Identifier,Counter
+
 	private int groundrep;
-	private int inComprGenerator;
-	private int structCount; //renumber stucts
-	private int currentStructNum; //Saves a reference to the current struct
-	private HashMap<Integer,Integer> struct;
-				// counter ,predecessor
+	private int inComprGenerator;			
+	
+	private BlockTree tree;
+	
+	ArrayList<SymInfo> symbols;
+
 	public SymbolCollector()
 	{
+			
 		patternRequired = false;
 		inComprGenerator = 0;
-		structCount = 0;
-		currentStructNum = 0;
-		struct = new HashMap<Integer,Integer>();		
 		currentInParams = 0;
 		groundrep = 0;
-		symbols = new HashMap<String,ArrayList<SymInfo>>();
-		//currentParams = new ArrayList<String>();
+		
+		tree = new BlockTree();
+		symbols = new ArrayList<SymInfo>();
+
 	}
 //***************************************************************************************************************************************************
 //Datatype, Subtype, Nametype
@@ -42,32 +43,7 @@ public class SymbolCollector extends DepthFirstAdapter
         {
             node.getId().apply(this);
 			String str = node.getId().toString().replace(" ","");
-			if(symbols.containsKey(str) && isBuiltin(str))
-			{
-				for(int i = 0;i<symbols.get(str).size();i++)
-				{
-					if(symbols.get(str).get(i).getSymbolInfo().equals("BuiltIn primitive"))
-					{
-						SymInfo si = new SymInfo(node.getId(),"Nametype",0);
-						symbols.get(str).set(i,si);
-						break;
-					}
-				}
-			}
-			else if(symbols.containsKey(str))
-			{
-				ArrayList<SymInfo> temp = symbols.get(str);
-				SymInfo si = new SymInfo(node.getId(),"Nametype",0);
-				temp.add(si);
-				symbols.put(str,temp);
-			}
-			else
-			{
-				ArrayList<SymInfo> temp = new ArrayList<SymInfo>();
-				SymInfo si = new SymInfo(node.getId(),"Nametype",0);
-				temp.add(si);
-				symbols.put(str,temp);
-			}
+			addSymbol(str, "Nametype", node.getId());
         }
         if(node.getTypeExp() != null)
         {
@@ -85,32 +61,7 @@ public class SymbolCollector extends DepthFirstAdapter
         {
             node.getId().apply(this);
 			String str = node.getId().toString().replace(" ","");
-			if(symbols.containsKey(str) && isBuiltin(str))
-			{
-				for(int i = 0;i<symbols.get(str).size();i++)
-				{
-					if(symbols.get(str).get(i).getSymbolInfo().equals("BuiltIn primitive"))
-					{
-						SymInfo si = new SymInfo(node.getId(),"Datatype",0);
-						symbols.get(str).set(i,si);
-						break;
-					}					
-				}
-			}
-			else if(symbols.containsKey(str))
-			{
-				ArrayList<SymInfo> temp = symbols.get(str);
-				SymInfo si = new SymInfo(node.getId(),"Datatype",0);
-				temp.add(si);
-				symbols.put(str,temp);
-			}
-			else
-			{
-				ArrayList<SymInfo> temp = new ArrayList<SymInfo>();
-				SymInfo si = new SymInfo(node.getId(),"Datatype",0);
-				temp.add(si);
-				symbols.put(str,temp);
-			}
+			addSymbol(str, "Datatype", node.getId());
         }
         {
             List<PTypes> copy = new ArrayList<PTypes>(node.getTypedefList());
@@ -130,32 +81,7 @@ public class SymbolCollector extends DepthFirstAdapter
         {
             node.getClauseName().apply(this);
 			String str = node.getClauseName().toString().replace(" ","");
-			if(symbols.containsKey(str) && isBuiltin(str))
-			{
-				for(int i = 0;i<symbols.get(str).size();i++)
-				{
-					if(symbols.get(str).get(i).getSymbolInfo().equals("BuiltIn primitive"))
-					{
-						SymInfo si = new SymInfo(node.getClauseName(),"Constructor of Datatype",0);
-						symbols.get(str).set(i,si);
-						break;
-					}
-				}
-			}
-			else if(symbols.containsKey(str))
-			{
-				ArrayList<SymInfo> temp = symbols.get(str);
-				SymInfo si = new SymInfo(node.getClauseName(),"Constructor of Datatype",0);
-				temp.add(si);
-				symbols.put(str,temp);
-			}
-			else
-			{
-				ArrayList<SymInfo> temp = new ArrayList<SymInfo>();
-				SymInfo si = new SymInfo(node.getClauseName(),"Constructor of Datatype",0);
-				temp.add(si);
-				symbols.put(str,temp);
-			}
+			addSymbol(str, "Constructor of Datatype", node.getClauseName());
         }
         if(node.getDotted() != null)
         {
@@ -176,32 +102,7 @@ public class SymbolCollector extends DepthFirstAdapter
             {
                 e.apply(this);
 				String str = e.toString().replace(" ","");
-				if(symbols.containsKey(str) && isBuiltin(str))
-				{
-					for(int i = 0;i<symbols.get(str).size();i++)
-					{
-						if(symbols.get(str).get(i).getSymbolInfo().equals("BuiltIn primitive"))
-						{
-							SymInfo si = new SymInfo(e,"Channel",0);
-							symbols.get(str).set(i,si);
-							break;
-						}
-					}
-				}
-				else if(symbols.containsKey(str))
-				{
-					ArrayList<SymInfo> temp = symbols.get(str);
-					SymInfo si = new SymInfo(e,"Channel",0);
-					temp.add(si);
-					symbols.put(str,temp);
-				}
-				else
-				{
-					ArrayList<SymInfo> temp = new ArrayList<SymInfo>();
-					SymInfo si = new SymInfo(e,"Channel",0);
-					temp.add(si);
-					symbols.put(str,temp);
-				}
+				addSymbol(str, "Channel", e);
             }
         }
         if(node.getChanType() != null)
@@ -217,9 +118,7 @@ public class SymbolCollector extends DepthFirstAdapter
     public void caseALinkCompLinkComp(ALinkCompLinkComp node)
     {
         inALinkCompLinkComp(node);
-		structCount++;
-		struct.put(structCount,currentStructNum);
-		currentStructNum = structCount;
+		tree.newLeaf();
 
 		if(node.getStmts() != null)
 		{
@@ -234,7 +133,7 @@ public class SymbolCollector extends DepthFirstAdapter
                 e.apply(this);
             }
         }
-		currentStructNum = struct.get(currentStructNum);
+		tree.returnToParent();
         outALinkCompLinkComp(node);
     }
 
@@ -242,9 +141,7 @@ public class SymbolCollector extends DepthFirstAdapter
     public void caseARenameCompRenameComp(ARenameCompRenameComp node)
     {
 		inARenameCompRenameComp(node);
-		structCount++;
-		struct.put(structCount,currentStructNum);
-		currentStructNum = structCount;
+		tree.newLeaf();
 
 		if(node.getStmts() != null)
         {
@@ -259,16 +156,14 @@ public class SymbolCollector extends DepthFirstAdapter
                 e.apply(this);
             }
         }
-		currentStructNum = struct.get(currentStructNum);
+		tree.returnToParent();
         outARenameCompRenameComp(node);
     }
     @Override
     public void caseAComprSeqExp(AComprSeqExp node)
     {
         inAComprSeqExp(node);
-		structCount++;
-		struct.put(structCount,currentStructNum);
-		currentStructNum = structCount;
+		tree.newLeaf();
 
         if(node.getStmts() != null)
         {
@@ -280,7 +175,7 @@ public class SymbolCollector extends DepthFirstAdapter
         {
             node.getArguments().apply(this);
         }
-		currentStructNum = struct.get(currentStructNum);
+		tree.returnToParent();
         outAComprSeqExp(node);
     }
 
@@ -288,9 +183,7 @@ public class SymbolCollector extends DepthFirstAdapter
     public void caseARangedComprSeqExp(ARangedComprSeqExp node)
     {
         inARangedComprSeqExp(node);
-		structCount++;
-		struct.put(structCount,currentStructNum);
-		currentStructNum = structCount;
+		tree.newLeaf();
 
         if(node.getStmts() != null)
         {
@@ -306,7 +199,7 @@ public class SymbolCollector extends DepthFirstAdapter
         {
             node.getRval().apply(this);
         }
-		currentStructNum = struct.get(currentStructNum);
+		tree.returnToParent();
         outARangedComprSeqExp(node);
     }
 
@@ -314,9 +207,7 @@ public class SymbolCollector extends DepthFirstAdapter
     public void caseAInfiniteComprSeqExp(AInfiniteComprSeqExp node)
     {
         inAInfiniteComprSeqExp(node);
-		structCount++;
-		struct.put(structCount,currentStructNum);
-		currentStructNum = structCount;
+		tree.newLeaf();
 
         if(node.getStmts() != null)
         {
@@ -328,7 +219,7 @@ public class SymbolCollector extends DepthFirstAdapter
         {
             node.getValExp().apply(this);
         }
-		currentStructNum = struct.get(currentStructNum);
+		tree.returnToParent();
         outAInfiniteComprSeqExp(node);
     }
 
@@ -336,9 +227,7 @@ public class SymbolCollector extends DepthFirstAdapter
     public void caseAComprSetExp(AComprSetExp node)
     {
         inAComprSetExp(node);
-		structCount++;
-		struct.put(structCount,currentStructNum);
-		currentStructNum = structCount;
+		tree.newLeaf();
 
         if(node.getStmts() != null)
         {
@@ -350,7 +239,7 @@ public class SymbolCollector extends DepthFirstAdapter
         {
             node.getArguments().apply(this);
         }
-		currentStructNum = struct.get(currentStructNum);
+		tree.returnToParent();
         outAComprSetExp(node);
     }
 
@@ -358,9 +247,7 @@ public class SymbolCollector extends DepthFirstAdapter
     public void caseARangedComprSetExp(ARangedComprSetExp node)
     {
         inARangedComprSetExp(node);
-		structCount++;
-		struct.put(structCount,currentStructNum);
-		currentStructNum = structCount;
+		tree.newLeaf();
 
         if(node.getStmts() != null)
         {
@@ -376,7 +263,7 @@ public class SymbolCollector extends DepthFirstAdapter
         {
             node.getRval().apply(this);
         }
-		currentStructNum = struct.get(currentStructNum);
+		tree.returnToParent();
         outARangedComprSetExp(node);
     }
 
@@ -384,9 +271,7 @@ public class SymbolCollector extends DepthFirstAdapter
     public void caseAInfiniteComprSetExp(AInfiniteComprSetExp node)
     {
         inAInfiniteComprSetExp(node);
-		structCount++;
-		struct.put(structCount,currentStructNum);
-		currentStructNum = structCount;
+		tree.newLeaf();
 
         if(node.getStmts() != null)
         {
@@ -398,7 +283,7 @@ public class SymbolCollector extends DepthFirstAdapter
         {
             node.getValExp().apply(this);
         }
-		currentStructNum = struct.get(currentStructNum);
+		tree.returnToParent();
         outAInfiniteComprSetExp(node);
     }
 	
@@ -406,9 +291,7 @@ public class SymbolCollector extends DepthFirstAdapter
     public void caseAEnumeratedComprSetExp(AEnumeratedComprSetExp node)
     {
         inAEnumeratedComprSetExp(node);
-		structCount++;
-		struct.put(structCount,currentStructNum);
-		currentStructNum = structCount;
+		tree.newLeaf();
 
         if(node.getStmts() != null)
         {
@@ -420,11 +303,62 @@ public class SymbolCollector extends DepthFirstAdapter
         {
             node.getArguments().apply(this);
         }
-		currentStructNum = struct.get(currentStructNum);
+		tree.returnToParent();
         outAEnumeratedComprSetExp(node);
     }
 //***************************************************************************************************************************************************
 //Patterns	
+	
+    @Override
+    public void caseAVarPattern(AVarPattern node)
+    {
+        inAVarPattern(node);
+		String str = node.getId().toString().replaceAll(" ","");		
+		
+		if(groundrep>0)
+		{
+			addSymbol(str, "Ident (Groundrep.)", node.getId());
+		}
+		else if(currentInParams>0)
+		{		
+			//currentParams.add(str);
+			addSymbol(str, "Ident (Prolog Variable)", node.getId());
+		}
+		
+        if(node.getId() != null)
+        {
+            node.getId().apply(this);
+        }		
+        outAVarPattern(node);
+    }
+//***************************************************************************************************************************************************
+//Agent or Bindval
+
+	@Override
+    public void caseAFunctionExp(AFunctionExp node)
+    {
+        inAFunctionExp(node);
+        if(node.getId() != null)
+        {
+            node.getId().apply(this);			
+			String str = node.getId().toString().replace(" ","");
+			addSymbol(str, "Function or Process", node.getId());
+        }
+		
+		tree.newLeaf();		
+        if(node.getParameters() != null)
+        {
+			currentInParams += 1;
+            node.getParameters().apply(this);
+			currentInParams -= 1;
+        }		
+        if(node.getProc1() != null)
+        {
+            node.getProc1().apply(this);
+        }
+		tree.returnToParent();
+        outAFunctionExp(node);
+    }	
 	
     @Override
     public void caseAPatternExp(APatternExp node)
@@ -436,152 +370,26 @@ public class SymbolCollector extends DepthFirstAdapter
             node.getPattern1().apply(this);
 			groundrep -=1;
         }
+		
+		tree.newLeaf();
+		
         if(node.getProc1() != null)
         {
             node.getProc1().apply(this);
         }
+		
+		tree.returnToParent();
         outAPatternExp(node);
     }
 	
-    @Override
-    public void caseAVarPattern(AVarPattern node)
-    {
-        inAVarPattern(node);
-		String str = node.getId().toString().replaceAll(" ","");		
-		
-		if(groundrep>0)
-		{
-				if(symbols.containsKey(str) && isBuiltin(str))
-				{
-					for(int i = 0;i<symbols.get(str).size();i++)
-					{
-						if(symbols.get(str).get(i).getSymbolInfo().equals("BuiltIn primitive"))
-						{
-							SymInfo si = new SymInfo(node.getId(),"Ident (Groundrep.)",currentStructNum);
-							symbols.get(str).set(i,si);
-							break;
-						}
-					}
-				}
-				else if(symbols.containsKey(str))
-				{
-					ArrayList<SymInfo> temp = symbols.get(str);
-					SymInfo si = new SymInfo(node.getId(),"Ident (Groundrep.)",currentStructNum);
-					temp.add(si);
-					symbols.put(str,temp);
-				}
-				else
-				{
-					ArrayList<SymInfo> temp = new ArrayList<SymInfo>();
-					SymInfo si = new SymInfo(node.getId(),"Ident (Groundrep.)",currentStructNum);
-					temp.add(si);
-					symbols.put(str,temp);
-				}
-		}
-		else if(currentInParams>0)
-		{		
-			//currentParams.add(str);
-		
-			if(symbols.containsKey(str))
-			{
-				ArrayList<SymInfo> temp = symbols.get(str);
-				SymInfo si = new SymInfo(node.getId(),"Ident (Prolog Variable)",currentStructNum);
-				temp.add(si);
-				symbols.put(str,temp);
-			}
-			else
-			{
-				ArrayList<SymInfo> temp = new ArrayList<SymInfo>();
-				SymInfo si = new SymInfo(node.getId(),"Ident (Prolog Variable)",currentStructNum);
-				temp.add(si);
-				symbols.put(str,temp);
-			}
-		}
-		
-        if(node.getId() != null)
-        {
-            node.getId().apply(this);
-        }		
-        outAVarPattern(node);
-    }
-//***************************************************************************************************************************************************
+//*******************************************************************************************************************************
 //Expressions
 
-	@Override
-    public void caseAFunctionExp(AFunctionExp node)
-    {
-        inAFunctionExp(node);
-        if(node.getId() != null)
-        {
-            node.getId().apply(this);			
-			String str = node.getId().toString().replace(" ","");
-			boolean found = false;
-			if(symbols.get(str) != null)
-			{
-				for(int k = 0;k<symbols.get(str).size();k++)
-				{
-					if(symbols.get(str).get(k).getSymbolInfo().equals("Function or Process"))
-					{
-						int v = symbols.get(str).get(k).getStructCount();
-						if(v == currentStructNum)
-						{
-							found = true;
-							//keep in symbols, do not replace !!!
-							break;
-						}
-					}
-					
-				}
-			}
-			if(!found)
-			{
-				if(symbols.get(str) == null)
-				{
-					ArrayList<SymInfo> temp = new ArrayList<SymInfo>();
-					SymInfo si = new SymInfo(node.getId(),"Function or Process",currentStructNum);
-					temp.add(si);
-					symbols.put(str,temp);
-				}
-				else
-				{
-
-					for(int i = 0;i<symbols.get(str).size();i++)
-					{
-						if(symbols.get(str).get(i).getSymbolInfo().equals("BuiltIn primitive"))
-						{
-							SymInfo si = new SymInfo(node.getId(),"Function or Process",currentStructNum);
-							symbols.get(str).set(i,si);
-							found = true;
-							break;
-						}
-					}			
-					if(!found)
-					{
-						ArrayList<SymInfo> temp = symbols.get(str);
-						SymInfo si = new SymInfo(node.getId(),"Function or Process",currentStructNum);
-						temp.add(si);
-						symbols.put(str,temp);
-					}
-				}
-			}
-        }
-        if(node.getParameters() != null)
-        {
-			currentInParams += 1;
-            node.getParameters().apply(this);
-			currentInParams -= 1;
-        }
-        if(node.getProc1() != null)
-        {
-            node.getProc1().apply(this);
-        }
-        outAFunctionExp(node);
-    }	
-	
     @Override
     public void caseALambdaExp(ALambdaExp node)
-    {
+    {	
         inALambdaExp(node);
+		tree.newLeaf();
         {
 			List<PPattern> copy = new ArrayList<PPattern>(node.getPatternList());
 			currentInParams +=1;
@@ -595,6 +403,7 @@ public class SymbolCollector extends DepthFirstAdapter
         {
             node.getProc9().apply(this);
         }
+		tree.returnToParent();
         outALambdaExp(node);
     }
 	
@@ -602,9 +411,7 @@ public class SymbolCollector extends DepthFirstAdapter
     public void caseALetWithinExp(ALetWithinExp node)
     {
         inALetWithinExp(node);
-		structCount++;
-		struct.put(structCount,currentStructNum);
-		currentStructNum = structCount;
+		tree.newLeaf();
         {
             List<PDef> copy = new ArrayList<PDef>(node.getDefs());
             for(PDef e : copy)
@@ -612,11 +419,11 @@ public class SymbolCollector extends DepthFirstAdapter
                 e.apply(this);
             }
         }
-		currentStructNum = struct.get(currentStructNum);
         if(node.getProc9() != null)
         {
             node.getProc9().apply(this);
         }
+		tree.returnToParent();
         outALetWithinExp(node);
     }
 	
@@ -667,61 +474,14 @@ public class SymbolCollector extends DepthFirstAdapter
 		
 		if(patternRequired)
 		{
-			if(symbols.get(str) != null)
-			{
-				ArrayList<SymInfo> temp = symbols.get(str);
-				SymInfo si = new SymInfo(node.getId(),"Ident (Prolog Variable)",currentStructNum);
-				if(inComprGenerator>0)
-				{
-					si.setComprehensionArg(true);
-				}
-				temp.add(si);
-				symbols.put(str,temp);
-			}
-			else
-			{
-				ArrayList<SymInfo> temp = new ArrayList<SymInfo>();
-				SymInfo si = new SymInfo(node.getId(),"Ident (Prolog Variable)",currentStructNum);
-				if(inComprGenerator>0)
-				{
-					si.setComprehensionArg(true);
-				}
-				temp.add(si);
-				symbols.put(str,temp);
-			}
-			
+			addSymbol(str, "Ident (Prolog Variable)", node.getId());			
 		}
 		else if(isBuiltin(str))
 		{
-			if(symbols.get(str)!= null)
-			{
-				boolean found = false;
-				for(int i = 0;i<symbols.get(str).size();i++)
-				{
-					if(symbols.get(str).get(i).getSymbolInfo().equals("BuiltIn primitive"))
-					{
-						found = true;
-						break;
-					}
-				}
-				if(!found)
-				{
-					ArrayList<SymInfo> temp = symbols.get(str);
-					SymInfo si = new SymInfo(node.getId(),"BuiltIn primitive",0);
-					temp.add(si);
-					symbols.put(str,temp);
-				}
-			}
-			else
-			{
-				ArrayList<SymInfo> temp = new ArrayList<SymInfo>();
-				SymInfo si = new SymInfo(node.getId(),"BuiltIn primitive",0);
-				temp.add(si);
-				symbols.put(str,temp);
-			}
-		}	
+			addSymbol(str, "BuiltIn primitive", node.getId());
+		}
         if(node.getLambda() != null)
-        {
+        {			
             node.getLambda().apply(this);
         }
         outAIdExp(node);
@@ -739,36 +499,12 @@ public class SymbolCollector extends DepthFirstAdapter
 		
 		if(isBuiltin(str))
 		{
-			if(symbols.get(str)!= null)
-			{
-				boolean found = false;
-				for(int i = 0;i<symbols.get(str).size();i++)
-				{
-					if(symbols.get(str).get(i).getSymbolInfo().equals("BuiltIn primitive"))
-					{
-						found = true;
-					}
-				}
-				if(!found)
-				{
-					ArrayList<SymInfo> temp = symbols.get(str);
-					SymInfo si = new SymInfo(node.getId(),"BuiltIn primitive",0);
-					temp.add(si);
-					symbols.put(str,temp);
-				}
-			}
-			else
-			{
-				ArrayList<SymInfo> temp = new ArrayList<SymInfo>();
-				SymInfo si = new SymInfo(node.getId(),"BuiltIn primitive",0);
-				temp.add(si);
-				symbols.put(str,temp);
-			}
-		}
-		
-		
+			addSymbol(str, "BuiltIn primitive", node.getId());
+		}	
+	
+			
         if(node.getLambda() != null)
-        {
+        {			
             node.getLambda().apply(this);
         }
         outAIdTypeExp(node);
@@ -797,9 +533,189 @@ public class SymbolCollector extends DepthFirstAdapter
         }
         outAGeneratorStmts(node);
     }
+//*******************************************************************************************************************************
+//Tuple and Parenthesis
+
+    @Override
+    public void caseATupleExp(ATupleExp node)
+    {
+        inATupleExp(node);
+        if(node.getTuple() != null)
+        {
+            node.getTuple().apply(this);
+        }
+        if(node.getLambda() != null)
+        {
+            node.getLambda().apply(this);
+        }
+        outATupleExp(node);
+    }
+	
+    @Override
+    public void caseATupleTuple(ATupleTuple node)
+    {
+        inATupleTuple(node);
+		
+		tree.newLeaf();		
+		if(node.getProc1() != null)
+		{
+			node.getProc1().apply(this);
+		}		
+		tree.returnToParent();
+		
+		{
+			List<PExp> copy = new ArrayList<PExp>(node.getArgumentsList());
+			for(PExp e : copy)
+			{
+				tree.newLeaf();
+				e.apply(this);
+				tree.returnToParent();
+			}
+		}
+        outATupleTuple(node);
+    }
+	
+    @Override
+    public void caseAParenthesisExp(AParenthesisExp node)
+    {
+        inAParenthesisExp(node);
+		tree.newLeaf();
+        if(node.getProc1() != null)
+        {
+            node.getProc1().apply(this);
+        }
+		tree.returnToParent();
+
+        if(node.getLambda() != null)
+        {
+            node.getLambda().apply(this);
+        }
+        outAParenthesisExp(node);
+    }
+	
+    @Override
+    public void caseALambdaLambda(ALambdaLambda node)
+    {
+        inALambdaLambda(node);
+        {
+            List<PExp> copy = new ArrayList<PExp>(node.getArgumentsList());
+            for(PExp e : copy)
+            {
+				tree.newLeaf();
+                e.apply(this);
+				tree.returnToParent();
+            }
+        }
+        outALambdaLambda(node);
+    }
 	
 //***************************************************************************************************************************************************
-	public HashMap<String,ArrayList<SymInfo>> getSymbols()
+//Helpers
+
+	public void addSymbol(String name, String info, Node node)
+	{
+		boolean set = false;
+		if(info.equals("Function of Process"))
+		{
+			for(int i = 0;i< symbols.size();i++)
+			{
+				if(symbols.get(i).symbolName.equals(name)
+					&& (symbols.get(i).blockNumber == tree.getCurrentBlockNumber())
+					&& (symbols.get(i).symbolInfo.equals("Function or Process")))
+				{
+						// do nothing
+						set = true;
+						break;
+				}
+			}			
+		}
+		if(isBuiltin(name) && !info.equals("Ident (Prolog Variable)") && !set)
+		{	
+			for(int i = 0;i< symbols.size();i++)
+			{
+				if(symbols.get(i).symbolName.equals(name)
+					&& (symbols.get(i).blockNumber == tree.getCurrentBlockNumber())
+					&& (symbols.get(i).symbolInfo.equals("BuiltIn primitive")))
+				{
+					if(i == 0)
+					{
+						SymInfo si = new SymInfo(node,info,tree.getCurrentBlockNumber(),name,name);
+						symbols.set(i,si);		
+						set = true;
+					}
+					else
+					{
+						SymInfo si = new SymInfo(node,info,tree.getCurrentBlockNumber(),name,name+(i+1));
+						symbols.set(i,si);		
+						set = true;
+					}
+				}
+			}
+			if(!set)
+			{
+				int countSymbol = 0;
+				for(int i = 0;i< symbols.size();i++)
+				{
+					if(symbols.get(i).symbolName.equals(name))
+					{
+						countSymbol++;
+					}
+				}
+				if(countSymbol == 0)
+				{
+					SymInfo si = new SymInfo(node,"BuiltIn primitive",tree.getCurrentBlockNumber(),name,name);
+					symbols.add(si);
+					set = true;
+				}
+				else
+				{
+					SymInfo si = new SymInfo(node,"BuiltIn primitive",tree.getCurrentBlockNumber(),name,name+(countSymbol+1));
+					symbols.add(si);
+					set = true;
+				}
+			}
+		}
+		if(!set)
+		{
+			int countSymbol = 0;
+			for(int i = 0;i< symbols.size();i++)
+			{
+				if(symbols.get(i).symbolName.equals(name))
+				{
+					countSymbol++;
+				}
+			}			
+			if(info.equals("Ident (Prolog Variable)"))
+			{
+				if(countSymbol == 0)
+				{
+					SymInfo si = new SymInfo(node,info,tree.getCurrentBlockNumber(),name,"_"+name);
+					symbols.add(si);
+				}
+				else
+				{
+					SymInfo si = new SymInfo(node,info,tree.getCurrentBlockNumber(),name,"_"+name+(countSymbol+1));
+					symbols.add(si);
+				}
+			}
+			else
+			{
+				if(countSymbol == 0)
+				{
+					SymInfo si = new SymInfo(node,info,tree.getCurrentBlockNumber(),name,name);
+					symbols.add(si);
+				}
+				else
+				{
+					SymInfo si = new SymInfo(node,info,tree.getCurrentBlockNumber(),name,name+(countSymbol+1));
+					symbols.add(si);			
+				}
+			}
+		}
+		
+	}
+	
+	public ArrayList<SymInfo> getSymbols()
 	{
 		return symbols;
 	}

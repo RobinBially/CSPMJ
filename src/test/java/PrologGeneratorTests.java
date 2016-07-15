@@ -8,6 +8,18 @@ import org.junit.Ignore;
 public class PrologGeneratorTests 
 {	
 	@Test
+	public void RepWithStatements() throws Exception
+	{
+		check( "A  = [] x:2,x,x:3,x@x"
+			,
+				"'bindval'('A','repChoice'(['comprehensionGenerator'(_x,'int'(2)),'comprehensionGuard'(_x),'comprehensionGenerator'(_x2,'int'(3)),'comprehensionGuard'(_x2)],_x2,'no_loc_info_available'),'no_loc_info_available')."
+				+"\n'symbol'('A','A','no_loc_info_available','Ident (Groundrep.)')."
+				+"\n'symbol'('x','x','no_loc_info_available','Ident (Prolog Variable)')."
+				+"\n'symbol'('x','x2','no_loc_info_available','Ident (Prolog Variable)')."
+			);
+	}
+	
+	@Test
 	public void RenamingAndRenamingComprehensions()
 	{
 		check(
@@ -299,7 +311,12 @@ public class PrologGeneratorTests
 	@Test
 	public void LetWithinTest() throws Exception
 	{
-		check("channel a \n R(b) = let \n b = STOP \n within a-> b \n Q = a-> a -> SKIP",				
+		check(			"channel a"
+						+"\n R(b) = let" 
+									+"\n b = STOP" 
+							  +"\n within a-> b "
+						+"\n Q = a-> a -> SKIP"
+						,				
 		"'channel'('a','type'('dotUnitType'))."
 		+"\n'agent'('R'(_b),'let'(['bindval'('b2','stop'('no_loc_info_available'),'no_loc_info_available')],'prefix'('no_loc_info_available',[],'a','val_of'('b2','no_loc_info_available'),'no_loc_info_available')),'no_loc_info_available')."
 		+"\n'bindval'('Q','prefix'('no_loc_info_available',[],'a','prefix'('no_loc_info_available',[],'a','skip'('no_loc_info_available'),'no_loc_info_available'),'no_loc_info_available'),'no_loc_info_available')."

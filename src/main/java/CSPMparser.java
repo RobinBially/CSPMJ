@@ -111,7 +111,7 @@ public class CSPMparser
 					PrologTermOutput pto = new PrologTermOutput();
 					SymbolCollector sc = new SymbolCollector();
 					tree.apply(sc);
-					HashMap<String,ArrayList<SymInfo>> symbols = sc.getSymbols();
+					ArrayList<SymInfo> symbols = sc.getSymbols();
 					
 					PrologGenerator pout = new PrologGenerator(pto,symbols,true,commentList);
 					tree.apply(pout);
@@ -164,7 +164,7 @@ public class CSPMparser
 			PrologTermOutput pto = new PrologTermOutput();
 			SymbolCollector sc = new SymbolCollector();
 			tree.apply(sc);
-			HashMap<String,ArrayList<SymInfo>> symbols = sc.getSymbols();
+			ArrayList<SymInfo> symbols = sc.getSymbols();
 			PrologGenerator pout = new PrologGenerator(pto,symbols,false,commentList);
 			tree.apply(pout);
 			
@@ -223,7 +223,7 @@ public class CSPMparser
 			PrologTermOutput pto = new PrologTermOutput();
 			SymbolCollector sc = new SymbolCollector();
 			tree.apply(sc);
-			HashMap<String,ArrayList<SymInfo>> symbols = sc.getSymbols();
+			ArrayList<SymInfo> symbols = sc.getSymbols();
 			PrologGenerator pout = new PrologGenerator(pto,symbols,true,commentList);
 			tree.apply(pout);
 

@@ -10,156 +10,45 @@ import java.io.*;
 public class PrologGenerator extends DepthFirstAdapter
 {
 	private boolean expectingPattern;
-	private boolean currentInInput;
-	private boolean currentInNondetInput;
+//	private boolean currentInInput;
+//	private boolean currentInNondetInput;
 	private final PrologTermOutput p;
 	private int currentInParams;
-	private HashMap<String,ArrayList<SymInfo>> symbols; //Identifier,Counter
+	private ArrayList<SymInfo> symbols; //Identifier,Counter
 	private int groundrep;
-	private HashMap<String,String> currentParams;
-	private HashMap<String,String> currentLambdaParams;
-	
-	private HashMap<Integer,HashMap<String,String>> letWithinArgs;
+	private boolean currentInChannel;
 	private HashMap<Integer,HashMap<String,String>> generatorArgs;
 	private int currentInPredicate;
 	
-	private int currentInLambdaLeft;
-	private int currentInLambdaRight;
-	private boolean currentInChannel;
+	private BlockTree tree;
+	
 	private int leftFromPrefix;
 	
-	private int structCount; //renumber structs
-	private int currentStructNum; //Saves a reference to the current struct
-	private TreeMap<Integer,Integer> struct;
 	
 	private boolean printSrcLoc;
 	private boolean patternRequired;
 	
 	private ArrayList<CommentInfo> commentList;
 	
-	public PrologGenerator(final PrologTermOutput pto,HashMap<String,ArrayList<SymInfo>> symbols, boolean printSrcLoc, ArrayList<CommentInfo> commentList) 
+	public PrologGenerator(final PrologTermOutput pto,ArrayList<SymInfo> symbols, boolean printSrcLoc, ArrayList<CommentInfo> commentList) 
 	{
 		currentInPredicate = 0;
-
-		structCount = 0;
-		currentStructNum = 0;
-		struct = new TreeMap<Integer,Integer>();
-		
-		letWithinArgs = new HashMap<Integer,HashMap<String,String>>();
-		generatorArgs = new HashMap<Integer,HashMap<String,String>>();
-		
+		tree = new BlockTree();
+		generatorArgs = new HashMap<Integer,HashMap<String,String>>();	
 		expectingPattern = false;
-		currentInInput = false;
-		currentInNondetInput = false;
+	//	currentInInput = false;
+	//	currentInNondetInput = false;
 		leftFromPrefix = 0;
 		currentInChannel = false;
 		p = pto;
 		currentInParams = 0;
 		groundrep = 0;
 		this.symbols = symbols;
-		currentParams = new HashMap<String,String>();
-		currentLambdaParams = new HashMap<String,String>();
-		currentInLambdaLeft = 0;
-		currentInLambdaRight = 0;
+	//	currentParams = new HashMap<String,String>();
 		this.printSrcLoc = printSrcLoc;
 		this.commentList = commentList;
 		patternRequired = false;
 	}
-//***************************************************************************************************************************************************
-//Types
-
-    @Override
-    public void caseADtypeTypes(ADtypeTypes node)
-    {
-        inADtypeTypes(node);
-        if(node.getTypedef() != null)
-        {
-			p.openTerm("dataTypeDef");
-            node.getTypedef().apply(this);
-			p.closeTerm();
-        }
-        outADtypeTypes(node);
-    }
-
-    @Override
-    public void caseAStypeTypes(AStypeTypes node)
-    {
-        inAStypeTypes(node);
-        if(node.getTypedef() != null)
-        {
-			p.openTerm("subTypeDef");
-            node.getTypedef().apply(this);
-			p.closeTerm();
-        }
-        outAStypeTypes(node);
-    }
-
-    @Override
-    public void caseANtypeTypes(ANtypeTypes node)
-    {
-        inANtypeTypes(node);
-		p.openTerm("nameType");
-        if(node.getId() != null)
-        {
-            node.getId().apply(this);
-			p.printAtom(node.getId().toString().replace(" ",""));
-        }
-        if(node.getTypeExp() != null)
-        {
-			p.openTerm("type");
-            node.getTypeExp().apply(this);
-			p.closeTerm();
-        }
-		p.closeTerm();
-        outANtypeTypes(node);
-    }
-
-    @Override
-    public void caseATypedefTypes(ATypedefTypes node)
-    {
-        inATypedefTypes(node);
-        if(node.getId() != null)
-        {
-            node.getId().apply(this);
-			p.printAtom(node.getId().toString().replace(" ",""));
-        }
-		p.openList();
-        {
-            List<PTypes> copy = new ArrayList<PTypes>(node.getTypedefList());
-            for(PTypes e : copy)
-            {
-                e.apply(this);
-				p.closeTerm();
-            }		
-        }
-		p.closeList();
-        outATypedefTypes(node);
-    }
-
-    @Override
-    public void caseAClauseTypes(AClauseTypes node)
-    {
-        inAClauseTypes(node);
-		if(node.getDotted() == null)
-		{
-			p.openTerm("constructor");
-		}
-		else
-		{
-			p.openTerm("constructorC");
-		}
-		
-        if(node.getClauseName() != null)
-        {
-            node.getClauseName().apply(this);
-			p.printAtom(node.getClauseName().toString().replace(" ",""));
-        }
-        if(node.getDotted() != null)
-        {
-            node.getDotted().apply(this);
-        }
-        outAClauseTypes(node);
-    }
 	
 //***************************************************************************************************************************************************
 //Definitions
@@ -217,36 +106,124 @@ public class PrologGenerator extends DepthFirstAdapter
 			p.fullstop();
 		}
 		
-		int symbolCounter = 0;
-		//print Symbols
-		for (String key : symbols.keySet()) 
-		{
-			symbolCounter++;
-			for(int i = 0;i<symbols.get(key).size();i++)
-			{
-				Node n = symbols.get(key).get(i).getNode();
-				p.openTerm("symbol");
 
-				if(i == 0)
-				{
-					p.printAtom(key);
-					p.printAtom(key);
-				}
-				else
-				{
-					p.printAtom(key+(i+1));
-					p.printAtom(key);
-				}				
-		
-				printSrcLoc(n);
-				p.printAtom(symbols.get(key).get(i).getSymbolInfo());
-				p.closeTerm();
-				p.fullstop();
-			}
+		//print Symbols
+	
+		for(int i = 0;i<symbols.size();i++)
+		{
+			p.openTerm("symbol");
+			p.printAtom(symbols.get(i).symbolName);
+			String ref = symbols.get(i).symbolReference;
+			if(ref.startsWith("_"))
+				p.printAtom(ref.substring(1));
+			else
+				p.printAtom(ref);
+			printSrcLoc(symbols.get(i).node);
+			p.printAtom(symbols.get(i).symbolInfo);
+			p.closeTerm();
+			p.fullstop();
 		}
-		
+			
         outADefsStart(node);
     }
+	
+//***************************************************************************************************************************************************
+//Types
+
+    @Override
+    public void caseADtypeTypes(ADtypeTypes node)
+    {
+        inADtypeTypes(node);
+        if(node.getTypedef() != null)
+        {
+			p.openTerm("dataTypeDef");
+            node.getTypedef().apply(this);
+			p.closeTerm();
+        }
+        outADtypeTypes(node);
+    }
+
+    @Override
+    public void caseAStypeTypes(AStypeTypes node)
+    {
+        inAStypeTypes(node);
+        if(node.getTypedef() != null)
+        {
+			p.openTerm("subTypeDef");
+            node.getTypedef().apply(this);
+			p.closeTerm();
+        }
+        outAStypeTypes(node);
+    }
+
+    @Override
+    public void caseANtypeTypes(ANtypeTypes node)
+    {
+        inANtypeTypes(node);
+		p.openTerm("nameType");
+        if(node.getId() != null)
+        {
+            node.getId().apply(this);
+			p.printAtom(getSymbol(node.getId()));
+        }
+        if(node.getTypeExp() != null)
+        {
+			p.openTerm("type");
+            node.getTypeExp().apply(this);
+			p.closeTerm();
+        }
+		p.closeTerm();
+        outANtypeTypes(node);
+    }
+
+    @Override
+    public void caseATypedefTypes(ATypedefTypes node)
+    {
+        inATypedefTypes(node);
+        if(node.getId() != null)
+        {
+            node.getId().apply(this);
+			p.printAtom(getSymbol(node.getId()));
+        }
+		p.openList();
+        {
+            List<PTypes> copy = new ArrayList<PTypes>(node.getTypedefList());
+            for(PTypes e : copy)
+            {
+                e.apply(this);
+				p.closeTerm();
+            }		
+        }
+		p.closeList();
+        outATypedefTypes(node);
+    }
+
+    @Override
+    public void caseAClauseTypes(AClauseTypes node)
+    {
+        inAClauseTypes(node);
+		if(node.getDotted() == null)
+		{
+			p.openTerm("constructor");
+		}
+		else
+		{
+			p.openTerm("constructorC");
+		}
+		
+        if(node.getClauseName() != null)
+        {
+            node.getClauseName().apply(this);
+			p.printAtom(getSymbol(node.getClauseName()));
+        }
+        if(node.getDotted() != null)
+        {
+            node.getDotted().apply(this);
+        }
+        outAClauseTypes(node);
+    }
+	
+
 //***************************************************************************************************************************************************
 //Channel
 
@@ -254,23 +231,22 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseAChannelDef(AChannelDef node)
     {
 		currentInChannel = true;
-		ArrayList<String> strList = new ArrayList<String>();
+		ArrayList<Node> nodeList = new ArrayList<Node>();
         inAChannelDef(node);
         {
             List<PId> copy = new ArrayList<PId>(node.getChanList());
             for(PId e : copy)
             {
                 e.apply(this);
-				String str = e.toString().replace(" ","");
-				strList.add(str);
+				nodeList.add(e);
             }
         }
         if(node.getChanType() != null)
         {
-			for(int i = 0;i<strList.size();i++)
+			for(int i = 0;i<nodeList.size();i++)
 			{
 				p.openTerm("channel");
-				p.printAtom(strList.get(i));
+				p.printAtom(getSymbol(nodeList.get(i)));
 				p.openTerm("type");
 				node.getChanType().apply(this);
 				p.closeTerm();
@@ -281,10 +257,10 @@ public class PrologGenerator extends DepthFirstAdapter
 		else
 		{
 			
-			for(int i = 0;i<strList.size();i++)
+			for(int i = 0;i<nodeList.size();i++)
 			{
 				p.openTerm("channel");
-				p.printAtom(strList.get(i));
+				p.printAtom(getSymbol(nodeList.get(i)));
 				p.openTerm("type");
 				p.printAtom("dotUnitType");
 				p.closeTerm();
@@ -359,26 +335,9 @@ public class PrologGenerator extends DepthFirstAdapter
 			p.openTerm("agent_call");
 			printSrcLoc(node.getId());
         }
-
-		for(int i = 0;i<symbols.get(str).size();i++)
-		{
-			if(symbols.get(str).get(i).getSymbolInfo().equals("Ident (Groundrep.)"))
-			{
-				p.openTerm("val_of");
-				p.printAtom(str);
-				printSrcLoc(node.getId());
-				p.closeTerm();
-			}
-			else if(symbols.get(str).get(i).getSymbolInfo().equals("BuiltIn primitive"))
-			{
-				printBuiltin(str,node.getId());
-			}
-			else
-			{
-				p.printAtom(str);
-			}
-		}
 		
+		printSymbol(str);
+			
         if(node.getLambda() != null)
         {
             node.getLambda().apply(this);
@@ -400,7 +359,7 @@ public class PrologGenerator extends DepthFirstAdapter
         }
 		printSrcLoc(node);
 		p.closeTerm();
-		currentParams.clear();
+	//	currentParams.clear();
         outAExpressionDef(node);
     }
 	
@@ -412,25 +371,9 @@ public class PrologGenerator extends DepthFirstAdapter
         if(node.getId() != null)
         {
             node.getId().apply(this);
-			String str = node.getId().toString().replace(" ","");
-			for(int k = 0;k<symbols.get(str).size();k++)
-			{
-				if(symbols.get(str).get(k).getSymbolInfo().equals("Function or Process")
-					&& (symbols.get(str).get(k).getStructCount() == currentStructNum))
-				{	
-					if(k>0)
-					{
-						p.openTerm(str+(k+1));
-					}
-					else
-					{
-						p.openTerm(str);
-					}
-					break;		
-				}
-			}
-			
+			p.openTerm(getSymbol(node.getId()));			
         }
+		tree.newLeaf();
         if(node.getParameters() != null)
         {
 			currentInParams += 1;
@@ -438,6 +381,7 @@ public class PrologGenerator extends DepthFirstAdapter
 			currentInParams -= 1;
 			p.closeTerm();
         }
+		tree.returnToParent();
         if(node.getProc1() != null)
         {
             node.getProc1().apply(this);
@@ -456,10 +400,12 @@ public class PrologGenerator extends DepthFirstAdapter
             node.getPattern1().apply(this);
 			groundrep -=1;
         }
+		tree.newLeaf();
         if(node.getProc1() != null)
         {
             node.getProc1().apply(this);
         }
+		tree.returnToParent();
         outAPatternExp(node);
     }
 //***************************************************************************************************************************************************
@@ -476,73 +422,13 @@ public class PrologGenerator extends DepthFirstAdapter
             node.getId().apply(this);
         }
 		
-		if(groundrep>0)
-		{
-			for(int k = 0;k<symbols.get(str).size();k++)
-			{
-				if(symbols.get(str).get(k).getNode() == node.getId())
-				{
-					if(k == 0)
-					{
-						p.printAtom(str);
-					}
-					else
-					{
-						p.printAtom(str+(k+1));
-					}
-					break;
-				}
-			}
-		}
-		else if(currentInLambdaLeft>0)
-		{
-			for(int k = 0;k<symbols.get(str).size();k++)
-			{
-				if(symbols.get(str).get(k).getNode() == node.getId())
-				{
-					if(k == 0)
-					{
-						p.printVariable("_"+str);
-						currentLambdaParams.put(str,str);
-					}
-					else
-					{
-						p.printVariable("_"+str+(k+1));
-						currentLambdaParams.put(str,str+(k+1));
-					}
-					break;
-				}
-			}			
-		}
-		else if(currentInParams>0)
-		{
-			for(int k = 0;k<symbols.get(str).size();k++)
-			{
-				//Input and nondetInput replace current parameters
-				if(k == 0 && currentParams.containsKey(str))
-				{
-					currentParams.remove(str);
-				}
-				else if(currentParams.containsKey(str+(k+1)))
-				{
-					currentParams.remove(str+(k+1));
-				}
-				if(symbols.get(str).get(k).getNode() == node.getId())
-				{
-					if(k == 0)
-					{
-						currentParams.put(str,str);
-						p.printVariable("_"+str);
-					}
-					else
-					{
-						currentParams.put(str,str+(k+1));
-						p.printVariable("_"+str+(k+1));
-					}
-					break;
-				}
-			}
-		}
+		if(getSymbol(node.getId()).startsWith("_"))
+			p.printVariable(getSymbol(node.getId()));
+		else
+			p.printAtom(getSymbol(node.getId()));
+		
+			//Add to blocks
+			tree.addSymbol(str,getSymbol(node.getId()));				
 		
         outAVarPattern(node);
     }
@@ -1147,29 +1033,31 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseALambdaExp(ALambdaExp node)
     {
         inALambdaExp(node);
+		tree.newLeaf();
         {
             List<PPattern> copy = new ArrayList<PPattern>(node.getPatternList());
 			p.openTerm("lambda");
 			p.openList();
-			currentInLambdaLeft +=1;
-			currentInParams +=1;
+			//currentInLambdaLeft +=1;
+			//currentInParams +=1;
             for(PPattern e : copy)
             {
                 e.apply(this);
             }
-			currentInParams -=1;
-			currentInLambdaLeft -=1;
+			//currentInParams -=1;
+			//currentInLambdaLeft -=1;
 			p.closeList();
         }
         if(node.getProc9() != null)
         {
-			currentInLambdaRight +=1;
+			//currentInLambdaRight +=1;
             node.getProc9().apply(this);
 			//System.out.println(currentLambdaParams+"\n"+currentParams);
-			currentInLambdaRight -=1;
+			//currentInLambdaRight -=1;
         }
-		currentLambdaParams = new HashMap<String,String>(); //reset
+		//currentLambdaParams = new HashMap<String,String>(); //reset
 		p.closeTerm();
+		tree.returnToParent();
         outALambdaExp(node);
     }
 
@@ -1177,11 +1065,9 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseALetWithinExp(ALetWithinExp node)
     {
         inALetWithinExp(node);
-		structCount++;
-		struct.put(structCount,currentStructNum);		
-		currentStructNum = structCount;
+		tree.newLeaf();
 
-		letWithinArgs.put(structCount,new HashMap<String,String>(currentParams));		
+	//	letWithinArgs.put(blockCount,new HashMap<String,String>(currentParams));		
         {
 			p.openTerm("let");
 			p.openList();
@@ -1196,7 +1082,7 @@ public class PrologGenerator extends DepthFirstAdapter
         {
             node.getProc9().apply(this);
         }
-		currentStructNum = struct.get(currentStructNum);
+		tree.returnToParent();
 		p.closeTerm();
         outALetWithinExp(node);
     }
@@ -1475,12 +1361,12 @@ public class PrologGenerator extends DepthFirstAdapter
 		{
 			p.openTerm("nondetInGuard");
 		}
-		currentInParams +=1;
+		//currentInParams +=1;
         if(node.getPattern1() != null)
         {
             node.getPattern1().apply(this);
         }
-		currentInParams -=1;
+		//currentInParams -=1;
         if(node.getRestriction() != null)
         {
             node.getRestriction().apply(this);
@@ -1503,12 +1389,12 @@ public class PrologGenerator extends DepthFirstAdapter
 		{
 			p.openTerm("inGuard");
 		}
-		currentInParams +=1;
+		//currentInParams +=1;
         if(node.getPattern1() != null)
         {
             node.getPattern1().apply(this);
         }
-		currentInParams -=1;
+		//currentInParams -=1;
         if(node.getRestriction() != null)
         {
             node.getRestriction().apply(this);
@@ -2070,9 +1956,7 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseALinkCompLinkComp(ALinkCompLinkComp node)
     {
         inALinkCompLinkComp(node);
-		structCount++;
-		struct.put(structCount,currentStructNum);
-		currentStructNum = structCount;
+		tree.newLeaf();
 
         {
 			if(node.getStmts() == null)
@@ -2104,7 +1988,7 @@ public class PrologGenerator extends DepthFirstAdapter
 			p.closeList();
 			p.closeTerm();
         }
-		currentStructNum = struct.get(currentStructNum);
+		tree.returnToParent();
         outALinkCompLinkComp(node);
     }
 
@@ -2122,9 +2006,7 @@ public class PrologGenerator extends DepthFirstAdapter
             node.getProc10().apply(this);
         }
 		
-		structCount++;
-		struct.put(structCount,currentStructNum);
-		currentStructNum = structCount;
+		tree.newLeaf();
         {
 			int count = 0;
             List<PExp> copy = new ArrayList<PExp>(node.getRcList());
@@ -2148,7 +2030,7 @@ public class PrologGenerator extends DepthFirstAdapter
             node.getStmts().apply(this);
         }
 		p.closeTerm();
-		currentStructNum = struct.get(currentStructNum);
+		tree.returnToParent();
         outARenameCompRenameComp(node);
     }
 	
@@ -2159,9 +2041,7 @@ public class PrologGenerator extends DepthFirstAdapter
     {
         inAComprSeqExp(node);
 		
-		structCount++;
-		struct.put(structCount,currentStructNum);
-		currentStructNum = structCount;
+		tree.newLeaf();
 
 		p.openTerm("listExp");
 		p.openTerm("rangeEnum");
@@ -2185,7 +2065,7 @@ public class PrologGenerator extends DepthFirstAdapter
             node.getSeqClose().apply(this);
         }
 		p.closeTerm();
-		currentStructNum = struct.get(currentStructNum);
+		tree.returnToParent();
         outAComprSeqExp(node);
     }
 
@@ -2194,9 +2074,7 @@ public class PrologGenerator extends DepthFirstAdapter
     {
         inARangedComprSeqExp(node);
 		
-		structCount++;
-		struct.put(structCount,currentStructNum);
-		currentStructNum = structCount;
+		tree.newLeaf();
 
 		p.openTerm("listExp");
 		p.openTerm("rangeClosed");		
@@ -2222,7 +2100,7 @@ public class PrologGenerator extends DepthFirstAdapter
             node.getSeqClose().apply(this);
         }
 		p.closeTerm();
-		currentStructNum = struct.get(currentStructNum);
+		tree.returnToParent();
         outARangedComprSeqExp(node);
     }
 
@@ -2231,9 +2109,7 @@ public class PrologGenerator extends DepthFirstAdapter
     {
         inAInfiniteComprSeqExp(node);
 		
-		structCount++;
-		struct.put(structCount,currentStructNum);
-		currentStructNum = structCount;
+		tree.newLeaf();
 
 		p.openTerm("listExp");
 		p.openTerm("rangeOpen");
@@ -2255,7 +2131,7 @@ public class PrologGenerator extends DepthFirstAdapter
             node.getSeqClose().apply(this);
         }
 		p.closeTerm();
-		currentStructNum = struct.get(currentStructNum);
+		tree.returnToParent();
         outAInfiniteComprSeqExp(node);
     }
 	
@@ -2266,9 +2142,7 @@ public class PrologGenerator extends DepthFirstAdapter
     {
         inAComprSetExp(node);
 		
-		structCount++;
-		struct.put(structCount,currentStructNum);
-		currentStructNum = structCount;
+		tree.newLeaf();
 		
 		p.openTerm("setExp");
 		p.openTerm("rangeEnum");
@@ -2292,7 +2166,7 @@ public class PrologGenerator extends DepthFirstAdapter
             node.getBraceR().apply(this);
         }
 		p.closeTerm();
-		currentStructNum = struct.get(currentStructNum);
+		tree.returnToParent();
         outAComprSetExp(node);
     }
 
@@ -2301,9 +2175,7 @@ public class PrologGenerator extends DepthFirstAdapter
     {
         inARangedComprSetExp(node);
 		
-		structCount++;
-		struct.put(structCount,currentStructNum);
-		currentStructNum = structCount;
+		tree.newLeaf();
 
 		p.openTerm("setExp");
 		p.openTerm("rangeClosed");
@@ -2330,7 +2202,7 @@ public class PrologGenerator extends DepthFirstAdapter
             node.getBraceR().apply(this);
         }
 		p.closeTerm();
-		currentStructNum = struct.get(currentStructNum);
+		tree.returnToParent();
         outARangedComprSetExp(node);
     }
 
@@ -2339,9 +2211,7 @@ public class PrologGenerator extends DepthFirstAdapter
     {
         inAInfiniteComprSetExp(node);
 		
-		structCount++;
-		struct.put(structCount,currentStructNum);
-		currentStructNum = structCount;
+		tree.newLeaf();
 
 		p.openTerm("setExp");
 		p.openTerm("rangeOpen");
@@ -2363,7 +2233,7 @@ public class PrologGenerator extends DepthFirstAdapter
             node.getBraceR().apply(this);
         }
 		p.closeTerm();
-		currentStructNum = struct.get(currentStructNum);
+		tree.returnToParent();
         outAInfiniteComprSetExp(node);
     }
 	
@@ -2372,9 +2242,7 @@ public class PrologGenerator extends DepthFirstAdapter
     {
         inAEnumeratedComprSetExp(node);
 		
-		structCount++;
-		struct.put(structCount,currentStructNum);
-		currentStructNum = structCount;
+		tree.newLeaf();
 		
 		p.openTerm("closureComp");
         if(node.getBraceL() != null)
@@ -2396,7 +2264,7 @@ public class PrologGenerator extends DepthFirstAdapter
             node.getBraceR().apply(this);
         }
 		p.closeTerm();
-		currentStructNum = struct.get(currentStructNum);
+		tree.returnToParent();
         outAEnumeratedComprSetExp(node);
     }
 //***************************************************************************************************************************************************
@@ -2485,17 +2353,17 @@ public class PrologGenerator extends DepthFirstAdapter
 			p.openList();
 			if(node.getProc1() != null)
 			{
+				tree.newLeaf();
 				node.getProc1().apply(this);
-			}
-			if(node.getComma() != null)
-			{
-				node.getComma().apply(this);
+				tree.returnToParent();
 			}
 			{
 				List<PExp> copy = new ArrayList<PExp>(node.getArgumentsList());
 				for(PExp e : copy)
 				{
+					tree.newLeaf();
 					e.apply(this);
+					tree.returnToParent();
 				}
 			}
 			p.closeList();
@@ -2522,7 +2390,9 @@ public class PrologGenerator extends DepthFirstAdapter
         }
         if(node.getProc1() != null)
         {
+			tree.newLeaf();
             node.getProc1().apply(this);
+			tree.returnToParent();
         }
         if(node.getParR() != null)
         {
@@ -2545,7 +2415,9 @@ public class PrologGenerator extends DepthFirstAdapter
             List<PExp> copy = new ArrayList<PExp>(node.getArgumentsList());
             for(PExp e : copy)
             {
+				tree.newLeaf();
                 e.apply(this);
+				tree.returnToParent();
             }
 			p.closeList();
         }
@@ -2644,164 +2516,19 @@ public class PrologGenerator extends DepthFirstAdapter
         }
 		if(patternRequired)
 		{	
-			for(int i = 0; i<symbols.get(str).size();i++)
-			{
-				if(node.getId() == symbols.get(str).get(i).getNode())
-				{
-					if(i == 0)
-					{
-						HashMap<String,String> map = new HashMap<String,String>();
-						if(generatorArgs.get(currentStructNum) != null)
-						map = generatorArgs.get(currentStructNum);
-						map.put(str,str);
-						generatorArgs.put(currentStructNum,map);
-						
-						p.printVariable("_"+str);
-						break;
-					}
-					else
-					{
-						HashMap<String,String> map = new HashMap<String,String>();
-						if(generatorArgs.get(currentStructNum) != null)
-						map = generatorArgs.get(currentStructNum);
-						map.put(str,str+(i+1));
-						generatorArgs.put(currentStructNum,map);
-						
-						p.printVariable("_"+str+(i+1));
-						break;
-					}
-				}
-			}
-			
+			//Hinzufügen zu Blöcken
+			p.printVariable(getSymbol(node.getId()));
+			tree.addSymbol(str,getSymbol(node.getId()));
 		}
 		else
 		{
-			if(node.getLambda() != null)
-			{
-				p.openTerm("agent_call");
-				printSrcLoc(node);		
-			}
-							
-			int dimCounter = currentStructNum;	
-			boolean found = false;
-			while(!found && symbols.get(str) != null)
-			{		
-		
-					if(currentInPredicate>0 
-					&& generatorArgs.get(dimCounter) != null
-					&& generatorArgs.get(dimCounter).get(str) != null)
-					{
-						p.printVariable("_"+generatorArgs.get(dimCounter).get(str));
-						found = true;
-						break;
-					}
-					
-				for(int a = 0;a<symbols.get(str).size();a++)
-				{	
-					//In Comprehension?
-					if(symbols.get(str).get(a).getStructCount() == dimCounter
-						&& symbols.get(str).get(a).isComprehensionArg())
-					{	
-					
-						if(a == 0)
-						p.printVariable("_"+str);
-						else
-						p.printVariable("_"+str+(a+1));
-						
-						found = true;
-						break;
-					}
-					
-				}
-				
-				if(found)
-				break;
-					
-				//Search in symbol map	
-				for(int a = 0;a<symbols.get(str).size();a++)
-				{
-					//In Lambda?					
-					if(currentInLambdaRight>0 && (currentLambdaParams.get(str) != null))
-					{
-						p.printVariable("_"+currentLambdaParams.get(str));
-						found = true;
-						break;
-					}
-					//Current Function Parameters?
-					else if(currentParams.get(str) != null)
-					{
-						p.printVariable("_"+currentParams.get(str));
-						found = true;
-						break;
-					}		
-					//In Identifier list of this dimension?
-					else if(symbols.get(str).get(a).getSymbolInfo().equals("Ident (Groundrep.)")
-					&& symbols.get(str).get(a).getStructCount() == dimCounter)
-					{
-						if(a == 0)
-						{
-							p.openTerm("val_of");
-							p.printAtom(str);
-							printSrcLoc(node.getId());
-							p.closeTerm();
-						}
-						else
-						{
-							p.openTerm("val_of");
-							p.printAtom(str+(a+1));
-							printSrcLoc(node.getId());
-							p.closeTerm();
-						}
-						found = true;
-						break;						
-					}
-					//In functions channels or datatypes of this dimension?
-					else if((symbols.get(str).get(a).getSymbolInfo().equals("Function or Process") 					
-					|| symbols.get(str).get(a).getSymbolInfo().equals("Channel")					
-					|| symbols.get(str).get(a).getSymbolInfo().equals("Constructor of Datatype")				
-					|| symbols.get(str).get(a).getSymbolInfo().equals("Datatype")				
-					|| symbols.get(str).get(a).getSymbolInfo().equals("Nametype"))
-					&& symbols.get(str).get(a).getStructCount() == dimCounter)
-					{					
-						if(a == 0)
-							p.printAtom(str);
-						else
-							p.printAtom(str+(a+1));
-						
-						found = true;
-						break;
-					}
-					else if(symbols.get(str).get(a).getSymbolInfo().equals("BuiltIn primitive")
-							&& symbols.get(str).get(a).getStructCount() == dimCounter)
-					{
-						printBuiltin(str,node.getId());
-					}
-				}
-				//In let-within-args?
-				if(!found
-				&& letWithinArgs.get(dimCounter) != null 
-				&& (letWithinArgs.get(dimCounter).get(str) != null))
-				{
-					p.printVariable("_"+letWithinArgs.get(dimCounter).get(str)); //key is var name and value string is enumerated key
-									//In let-within-args?
-					found = true;
-					break;
-				}
-				if(dimCounter == 0)
-				{
-					break;
-				}
-				else
-				{
-					dimCounter = struct.get(dimCounter); //Not found, search in predecessor
-				}			
-			}
-
-			if(node.getLambda() != null)
-			{
-				node.getLambda().apply(this);
-				p.closeTerm();
-			}
+			printSymbol(str);
+			//Search and print!
+		}
+		if(node.getLambda() != null)
+		{
+			node.getLambda().apply(this);
+			p.closeTerm();
 		}
         outAIdExp(node);
     }
@@ -2864,6 +2591,111 @@ public class PrologGenerator extends DepthFirstAdapter
 
 //***************************************************************************************************************************************************
 //Helpers	
+
+	public String getSymbol(Node n)
+	{
+		for(int i = 0; i<symbols.size();i++)
+		{
+			if(symbols.get(i).node == n)
+			{
+				return symbols.get(i).symbolReference;
+			}
+		}
+		return "";
+	}
+	
+	public String trySymbolBuiltin(String str)
+	{
+		for(int i = 0; i<symbols.size();i++)
+		{
+			if(symbols.get(i).symbolName.equals(str)
+				&& symbols.get(i).symbolInfo.equals("BuiltIn primitive")
+				&& symbols.get(i).blockNumber == tree.getCurrentBlockNumber())
+			{
+				return symbols.get(i).symbolReference;
+			}
+		}
+		return "";		
+	}
+	
+	public void printSymbol(String str)
+	{
+		String reference = "";
+		int saveCurrentBlockNumber = tree.getCurrentBlockNumber();
+		do
+		{
+			if(!trySymbolBuiltin(str).equals(""))
+			{
+				p.printAtom(str);
+				break;
+			}
+			else if(tree.isDefined(str))
+			{
+				reference = tree.getSymbol(str);
+				break;
+			}
+			else if(!findInSymbols(str).equals(""))
+			{
+				reference = findInSymbols(str);
+				break;
+			}
+			else
+			{			
+				tree.returnToParent();
+			}
+		}
+		while(tree.getCurrentBlockNumber()>0);
+		
+		if(getInfoFromReference(reference).equals("Ident (Groundrep.)"))
+		{
+			p.openTerm("val_of");
+			p.printAtom(reference);
+			printSrcLoc(getNodeFromReference(reference));
+			p.closeTerm();
+		}
+		else if(reference.startsWith("_"))
+		{
+			p.printVariable(reference);
+		}
+		else
+		{
+			p.printAtom(reference);
+		}
+		
+		tree.setCurrentBlockNumber(saveCurrentBlockNumber);
+	}
+	
+	public String findInSymbols(String s)
+	{
+		for(int i = 0; i< symbols.size();i++)
+		{
+			if(symbols.get(i).symbolName.equals(s)
+			&& symbols.get(i).blockNumber == tree.getCurrentBlockNumber())
+			return symbols.get(i).symbolReference;
+		}
+		return "";
+	}
+	
+	public String getInfoFromReference(String str)
+	{
+		for(int i = 0; i< symbols.size();i++)
+		{
+			if(symbols.get(i).symbolReference.equals(str))
+			return symbols.get(i).symbolInfo;
+		}		
+		return "";
+	}
+	
+	public Node getNodeFromReference(String str)
+	{
+		for(int i = 0; i< symbols.size();i++)
+		{
+			if(symbols.get(i).symbolReference.equals(str))
+			return symbols.get(i).node;
+		}	
+		return null;
+	}
+	
 	public boolean isNumeric(String str)  
 	{  
 	  try  
