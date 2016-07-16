@@ -1300,9 +1300,9 @@ public class StatementPatternCheck extends DepthFirstAdapter
     public void caseAPredicateStmts(APredicateStmts node)
     {
         inAPredicateStmts(node);
-        if(node.getBoolExp() != null)
+        if(node.getProc1() != null)
         {
-            node.getBoolExp().apply(this);
+            node.getProc1().apply(this);
         }
         outAPredicateStmts(node);
     }

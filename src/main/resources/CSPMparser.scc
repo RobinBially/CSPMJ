@@ -1,6 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * A Parser for CSP in JAVA                           		  *
- * CSPMJ V0.36.1606XX										  *
+ * CSPMJ V0.59												  *
  *															  *
  * robin.bially@hhu.de		                                  *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -186,7 +186,6 @@ dotted {->types}  		=  dot type_exp								{-> New types.dotted(type_exp)};
 typedef_list {->types+} =  {single} clause pipe typedef_list		{-> [clause.types,typedef_list.types]}
 						  |{end} clause								{-> [clause.types]}
 						  ;
-
 ntype {->types}			=  n_type id eq type_exp					{-> New types.ntype(id,type_exp)};	  
 //---------------------------------------------------------------------------------------------------------------------------------------------------
 /*Creation of Channels*/
@@ -393,7 +392,7 @@ lc_list {-> exp+}	=  {list} [levent]:event d_arr [revent]:event comma lc_list		{
 					  |{end} [levent]:event d_arr [revent]:event					{-> [levent.exp,revent.exp]}
 					  ;
 		
-rename_comp			= proc10 dbracket_l rc_list  add_stmts? dbracket_r 		{-> New rename_comp.rename_comp(proc10.exp,[rc_list.exp],add_stmts.stmts)};
+rename_comp			= proc10 dbracket_l rc_list  add_stmts? dbracket_r 		{-> New rename_comp.rename_comp(proc10.exp,dbracket_l,[rc_list.exp],add_stmts.stmts,dbracket_r)};
 
 rc_list {-> exp+} 	=  {list} [levent]:event arrow_l [revent]:event comma rc_list 	{-> [levent.exp, revent.exp,rc_list.exp]}
 					  |{end} [levent]:event arrow_l [revent]:event					{-> [levent.exp, revent.exp]}
@@ -459,7 +458,7 @@ stmt_list {->stmts+}		=   {gen_list} generator comma stmt_list 				{-> [generato
 							   |{pred_end} predicate								{-> [predicate.stmts]}
 							   ;
 generator {->stmts}			=  dpattern generator_op proc1					{-> New stmts.generator(dpattern.exp,generator_op.stmts,proc1.exp)};
-predicate {->stmts}			=  bool_exp										{-> New stmts.predicate(bool_exp.exp)};
+predicate {->stmts}			=  proc1										{-> New stmts.predicate(proc1.exp)};
 
 generator_op {->stmts}		=  {arrow} arrow_l 								{-> New stmts.arrow(arrow_l)}
 							   |{ddot} ddot									{-> New stmts.ddot(ddot)}
@@ -661,12 +660,12 @@ lambda 			=  {lambda} [arguments_list]:exp+;
 arguments 		=  {arg_list} [arguments_list]:exp+;
 					
 link_comp 		=  {link_comp}[lc_list]:exp+ stmts?;
-rename_comp 	=  {rename_comp} [proc10]:exp [rc_list]:exp+ stmts?;
+rename_comp 	=  {rename_comp} [proc10]:exp dbracket_l [rc_list]:exp+ stmts? dbracket_r;
 
 				  
 stmts 			=  {stmt_list}[stmts_list]:stmts+
 				  |{generator} [dpattern]:exp [generator_op]:stmts [proc1]:exp
-				  |{predicate} [bool_exp]:exp
+				  |{predicate} [proc1]:exp
 				  |{arrow} arrow_l
 				  |{ddot} ddot
 				  ;

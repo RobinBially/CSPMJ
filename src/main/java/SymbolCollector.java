@@ -12,7 +12,7 @@ public class SymbolCollector extends DepthFirstAdapter
 {	
 	private boolean patternRequired;
 	private int currentInParams;
-
+	private boolean inSubtypeDef;
 	private int groundrep;
 	private int inComprGenerator;			
 	
@@ -22,7 +22,7 @@ public class SymbolCollector extends DepthFirstAdapter
 
 	public SymbolCollector()
 	{
-			
+		inSubtypeDef = false;	
 		patternRequired = false;
 		inComprGenerator = 0;
 		currentInParams = 0;
@@ -52,7 +52,20 @@ public class SymbolCollector extends DepthFirstAdapter
 
         outANtypeTypes(node);
     }
-
+	
+    @Override
+    public void caseAStypeTypes(AStypeTypes node)
+    {
+        inAStypeTypes(node);
+        if(node.getTypedef() != null)
+        {
+			inSubtypeDef = true;
+            node.getTypedef().apply(this);
+			inSubtypeDef = false;
+        }
+        outAStypeTypes(node);
+    }
+	
     @Override
     public void caseATypedefTypes(ATypedefTypes node)
     {
@@ -80,8 +93,11 @@ public class SymbolCollector extends DepthFirstAdapter
         if(node.getClauseName() != null)
         {
             node.getClauseName().apply(this);
-			String str = node.getClauseName().toString().replace(" ","");
-			addSymbol(str, "Constructor of Datatype", node.getClauseName());
+			if(!inSubtypeDef)
+			{
+				String str = node.getClauseName().toString().replace(" ","");
+				addSymbol(str, "Constructor of Datatype", node.getClauseName());
+			}
         }
         if(node.getDotted() != null)
         {
@@ -141,8 +157,11 @@ public class SymbolCollector extends DepthFirstAdapter
     public void caseARenameCompRenameComp(ARenameCompRenameComp node)
     {
 		inARenameCompRenameComp(node);
+		if(node.getProc10() != null)
+        {
+            node.getProc10().apply(this);
+        }
 		tree.newLeaf();
-
 		if(node.getStmts() != null)
         {
 			inComprGenerator += 1;
@@ -342,7 +361,7 @@ public class SymbolCollector extends DepthFirstAdapter
         {
             node.getId().apply(this);			
 			String str = node.getId().toString().replace(" ","");
-			addSymbol(str, "Function or Process", node.getId());
+			addSymbol(str,"Function or Process", node.getId());
         }
 		
 		tree.newLeaf();		
@@ -476,10 +495,10 @@ public class SymbolCollector extends DepthFirstAdapter
 		{
 			addSymbol(str, "Ident (Prolog Variable)", node.getId());			
 		}
-		else if(isBuiltin(str))
-		{
-			addSymbol(str, "BuiltIn primitive", node.getId());
-		}
+		// else if(isBuiltin(str))
+		// {
+			// addSymbol(str, "BuiltIn primitive", node.getId());
+		// }
         if(node.getLambda() != null)
         {			
             node.getLambda().apply(this);
@@ -497,10 +516,10 @@ public class SymbolCollector extends DepthFirstAdapter
             node.getId().apply(this);
         }
 		
-		if(isBuiltin(str))
-		{
-			addSymbol(str, "BuiltIn primitive", node.getId());
-		}	
+		// if(isBuiltin(str))
+		// {
+			// addSymbol(str, "BuiltIn primitive", node.getId());
+		// }	
 	
 			
         if(node.getLambda() != null)
@@ -615,7 +634,7 @@ public class SymbolCollector extends DepthFirstAdapter
 	public void addSymbol(String name, String info, Node node)
 	{
 		boolean set = false;
-		if(info.equals("Function of Process"))
+		if(info.equals("Function or Process"))
 		{
 			for(int i = 0;i< symbols.size();i++)
 			{
@@ -628,52 +647,6 @@ public class SymbolCollector extends DepthFirstAdapter
 						break;
 				}
 			}			
-		}
-		if(isBuiltin(name) && !info.equals("Ident (Prolog Variable)") && !set)
-		{	
-			for(int i = 0;i< symbols.size();i++)
-			{
-				if(symbols.get(i).symbolName.equals(name)
-					&& (symbols.get(i).blockNumber == tree.getCurrentBlockNumber())
-					&& (symbols.get(i).symbolInfo.equals("BuiltIn primitive")))
-				{
-					if(i == 0)
-					{
-						SymInfo si = new SymInfo(node,info,tree.getCurrentBlockNumber(),name,name);
-						symbols.set(i,si);		
-						set = true;
-					}
-					else
-					{
-						SymInfo si = new SymInfo(node,info,tree.getCurrentBlockNumber(),name,name+(i+1));
-						symbols.set(i,si);		
-						set = true;
-					}
-				}
-			}
-			if(!set)
-			{
-				int countSymbol = 0;
-				for(int i = 0;i< symbols.size();i++)
-				{
-					if(symbols.get(i).symbolName.equals(name))
-					{
-						countSymbol++;
-					}
-				}
-				if(countSymbol == 0)
-				{
-					SymInfo si = new SymInfo(node,"BuiltIn primitive",tree.getCurrentBlockNumber(),name,name);
-					symbols.add(si);
-					set = true;
-				}
-				else
-				{
-					SymInfo si = new SymInfo(node,"BuiltIn primitive",tree.getCurrentBlockNumber(),name,name+(countSymbol+1));
-					symbols.add(si);
-					set = true;
-				}
-			}
 		}
 		if(!set)
 		{

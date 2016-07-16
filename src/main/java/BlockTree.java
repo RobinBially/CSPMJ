@@ -5,8 +5,8 @@ public class BlockTree
 {
 	private int currentBlockNumber;
 	private int blockCounter;
-	private TreeMap<Integer,Integer> blockStructure;
-	private HashMap<Integer,TreeMap<String,String>> tree;
+	public TreeMap<Integer,Integer> blockStructure;
+	public HashMap<Integer,TreeMap<String,String>> tree;
 	
 	public BlockTree()
 	{
@@ -23,9 +23,17 @@ public class BlockTree
 		currentBlockNumber = blockCounter;
 	}
 	
-	public void returnToParent()
+	public boolean returnToParent()
 	{
-		currentBlockNumber = blockStructure.get(currentBlockNumber);
+		if(blockStructure.get(currentBlockNumber) != null)
+		{
+			currentBlockNumber = blockStructure.get(currentBlockNumber);
+			return true;
+		}
+		else
+		{
+			return false;
+		}
 	}
 	
 	public void addSymbol(String symbol, String name)
@@ -63,7 +71,7 @@ public class BlockTree
 	{
 		if(tree.get(currentBlockNumber) == null)
 		{
-			return null;
+			return "";
 		}
 		else
 		{
@@ -71,11 +79,12 @@ public class BlockTree
 			reverseMap.putAll(tree.get(currentBlockNumber));
 			for(String key : reverseMap.keySet())
 			{
+				if(reverseMap.get(key).equals(str))
 				return key;
 			}
 			
 		}
-		return null;
+		return "";
 	}
 	
 	public int getCurrentBlockNumber()

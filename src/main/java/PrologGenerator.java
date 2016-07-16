@@ -10,24 +10,18 @@ import java.io.*;
 public class PrologGenerator extends DepthFirstAdapter
 {
 	private boolean expectingPattern;
-//	private boolean currentInInput;
-//	private boolean currentInNondetInput;
+	private boolean inSubtypeDef;
 	private final PrologTermOutput p;
 	private int currentInParams;
 	private ArrayList<SymInfo> symbols; //Identifier,Counter
 	private int groundrep;
 	private boolean currentInChannel;
 	private HashMap<Integer,HashMap<String,String>> generatorArgs;
-	private int currentInPredicate;
-	
-	private BlockTree tree;
-	
-	private int leftFromPrefix;
-	
-	
+	private int currentInPredicate;	
+	private BlockTree tree;	
+	private int leftFromPrefix;		
 	private boolean printSrcLoc;
-	private boolean patternRequired;
-	
+	private boolean patternRequired;	
 	private ArrayList<CommentInfo> commentList;
 	
 	public PrologGenerator(final PrologTermOutput pto,ArrayList<SymInfo> symbols, boolean printSrcLoc, ArrayList<CommentInfo> commentList) 
@@ -36,15 +30,13 @@ public class PrologGenerator extends DepthFirstAdapter
 		tree = new BlockTree();
 		generatorArgs = new HashMap<Integer,HashMap<String,String>>();	
 		expectingPattern = false;
-	//	currentInInput = false;
-	//	currentInNondetInput = false;
+		inSubtypeDef = false;
 		leftFromPrefix = 0;
 		currentInChannel = false;
 		p = pto;
 		currentInParams = 0;
 		groundrep = 0;
 		this.symbols = symbols;
-	//	currentParams = new HashMap<String,String>();
 		this.printSrcLoc = printSrcLoc;
 		this.commentList = commentList;
 		patternRequired = false;
@@ -105,20 +97,21 @@ public class PrologGenerator extends DepthFirstAdapter
 			}
 			p.fullstop();
 		}
-		
-
-		//print Symbols
-	
+		//print Symbols	
 		for(int i = 0;i<symbols.size();i++)
 		{
 			p.openTerm("symbol");
-			p.printAtom(symbols.get(i).symbolName);
+			//print symbol reference name
 			String ref = symbols.get(i).symbolReference;
 			if(ref.startsWith("_"))
 				p.printAtom(ref.substring(1));
 			else
 				p.printAtom(ref);
+			//print symbol name
+			p.printAtom(symbols.get(i).symbolName);
+			//print location of symbol
 			printSrcLoc(symbols.get(i).node);
+			//print type of symbol
 			p.printAtom(symbols.get(i).symbolInfo);
 			p.closeTerm();
 			p.fullstop();
@@ -150,8 +143,11 @@ public class PrologGenerator extends DepthFirstAdapter
         if(node.getTypedef() != null)
         {
 			p.openTerm("subTypeDef");
+			inSubtypeDef = true;
             node.getTypedef().apply(this);
+			inSubtypeDef = false;
 			p.closeTerm();
+
         }
         outAStypeTypes(node);
     }
@@ -163,7 +159,7 @@ public class PrologGenerator extends DepthFirstAdapter
 		p.openTerm("nameType");
         if(node.getId() != null)
         {
-            node.getId().apply(this);
+            node.getId().apply(this);		
 			p.printAtom(getSymbol(node.getId()));
         }
         if(node.getTypeExp() != null)
@@ -214,7 +210,10 @@ public class PrologGenerator extends DepthFirstAdapter
         if(node.getClauseName() != null)
         {
             node.getClauseName().apply(this);
-			p.printAtom(getSymbol(node.getClauseName()));
+			if(!inSubtypeDef)//In datatype, it defines a new constructor. In subtype, it looks for the reference of a existing constructor	
+				p.printAtom(getSymbol(node.getClauseName()));		
+			else
+				printSymbol(node.getClauseName().toString().replace(" ",""),node.getClauseName());
         }
         if(node.getDotted() != null)
         {
@@ -336,7 +335,8 @@ public class PrologGenerator extends DepthFirstAdapter
 			printSrcLoc(node.getId());
         }
 		
-		printSymbol(str);
+		printSymbol(str,node.getId());
+		
 			
         if(node.getLambda() != null)
         {
@@ -371,7 +371,15 @@ public class PrologGenerator extends DepthFirstAdapter
         if(node.getId() != null)
         {
             node.getId().apply(this);
-			p.openTerm(getSymbol(node.getId()));			
+			String str = node.getId().toString().replace(" ","");
+			if(getSymbol(node.getId()).equals(""))//Redefinition of Function!
+			{
+				p.openTerm(findInSymbols(str));
+			}
+			else
+			{
+				p.openTerm(getSymbol(node.getId()));	
+			}				
         }
 		tree.newLeaf();
         if(node.getParameters() != null)
@@ -381,11 +389,11 @@ public class PrologGenerator extends DepthFirstAdapter
 			currentInParams -= 1;
 			p.closeTerm();
         }
-		tree.returnToParent();
         if(node.getProc1() != null)
         {
             node.getProc1().apply(this);
         }
+		tree.returnToParent();
         outAFunctionExp(node);
     }
 	
@@ -1957,7 +1965,6 @@ public class PrologGenerator extends DepthFirstAdapter
     {
         inALinkCompLinkComp(node);
 		tree.newLeaf();
-
         {
 			if(node.getStmts() == null)
 			{
@@ -1997,40 +2004,56 @@ public class PrologGenerator extends DepthFirstAdapter
     {
         inARenameCompRenameComp(node);
 		if(node.getStmts() != null)
-		p.openTerm("procRenamingComp");
+			p.openTerm("procRenamingComp"); 
 		else
-		p.openTerm("procRenaming");
-	
-        if(node.getProc10() != null)
-        {
-            node.getProc10().apply(this);
-        }
+			p.openTerm("procRenaming");	
 		
-		tree.newLeaf();
+		
+		if(node.getProc10() != null && node.getStmts() != null) //Comprehension -> Different order!!!
+		{
+			node.getProc10().apply(this);
+		}
+        if(node.getDbracketL() != null)
         {
-			int count = 0;
-            List<PExp> copy = new ArrayList<PExp>(node.getRcList());
-            for(PExp e : copy)
-            {
-				if(count == 0)
+            node.getDbracketL().apply(this);
+        }	
+			tree.newLeaf();
+			if(node.getStmts() != null)
+			{
+				node.getStmts().apply(this);
+			}
+			{
+				int count = 0;
+				List<PExp> copy = new ArrayList<PExp>(node.getRcList());
+				p.openList();
+				for(PExp e : copy)
 				{
-					p.openTerm("rename");
+					if(count == 0)
+					{
+						p.openTerm("rename");
+					}
+					e.apply(this);
+					if(count == 1)
+					{
+						p.closeTerm();
+					}
+					count += 1;
+					count %= 2;
 				}
-                e.apply(this);
-				if(count == 1)
-				{
-					p.closeTerm();
-				}
-				count += 1;
-				count %= 2;
-            }
-        }
-        if(node.getStmts() != null)
-        {
-            node.getStmts().apply(this);
-        }
+				p.closeList();
+			}
+			tree.returnToParent();				
+		if(node.getProc10() != null && node.getStmts() == null) //No Comprehension -> Different order!!!
+		{
+			node.getProc10().apply(this);
+			printSrcLoc(node.getDbracketL(),node.getDbracketR());
+		}			
 		p.closeTerm();
-		tree.returnToParent();
+		
+        if(node.getDbracketR() != null)
+        {
+            node.getDbracketR().apply(this);
+        }
         outARenameCompRenameComp(node);
     }
 	
@@ -2509,6 +2532,11 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseAIdExp(AIdExp node)
     {
         inAIdExp(node);
+		if(node.getLambda() != null)
+		{
+			p.openTerm("agent_call");
+			printSrcLoc(node.getId());
+		}
 		String str = node.getId().toString().replace(" ","");
         if(node.getId() != null)
         {
@@ -2516,13 +2544,13 @@ public class PrologGenerator extends DepthFirstAdapter
         }
 		if(patternRequired)
 		{	
-			//Hinzufügen zu Blöcken
+			//Add to blocks and print
 			p.printVariable(getSymbol(node.getId()));
 			tree.addSymbol(str,getSymbol(node.getId()));
 		}
 		else
 		{
-			printSymbol(str);
+			printSymbol(str,node.getId());
 			//Search and print!
 		}
 		if(node.getLambda() != null)
@@ -2580,9 +2608,9 @@ public class PrologGenerator extends DepthFirstAdapter
         inAPredicateStmts(node);
 		p.openTerm("comprehensionGuard");
 		currentInPredicate += 1;
-        if(node.getBoolExp() != null)
+        if(node.getProc1() != null)
         {
-            node.getBoolExp().apply(this);
+            node.getProc1().apply(this);
         }
 		currentInPredicate -= 1;
 		p.closeTerm();
@@ -2602,34 +2630,16 @@ public class PrologGenerator extends DepthFirstAdapter
 			}
 		}
 		return "";
-	}
-	
-	public String trySymbolBuiltin(String str)
+	}	
+
+	public void printSymbol(String str, Node n)
 	{
-		for(int i = 0; i<symbols.size();i++)
+		String reference = "";				
+		//System.out.println("a search"+tree.tree+" "+tree.getCurrentBlockNumber()+"\n"+tree.blockStructure);		
+		int saveCurrentBlockNumber = tree.getCurrentBlockNumber();	
+		while(true)
 		{
-			if(symbols.get(i).symbolName.equals(str)
-				&& symbols.get(i).symbolInfo.equals("BuiltIn primitive")
-				&& symbols.get(i).blockNumber == tree.getCurrentBlockNumber())
-			{
-				return symbols.get(i).symbolReference;
-			}
-		}
-		return "";		
-	}
-	
-	public void printSymbol(String str)
-	{
-		String reference = "";
-		int saveCurrentBlockNumber = tree.getCurrentBlockNumber();
-		do
-		{
-			if(!trySymbolBuiltin(str).equals(""))
-			{
-				p.printAtom(str);
-				break;
-			}
-			else if(tree.isDefined(str))
+			if(tree.isDefined(str))
 			{
 				reference = tree.getSymbol(str);
 				break;
@@ -2641,11 +2651,11 @@ public class PrologGenerator extends DepthFirstAdapter
 			}
 			else
 			{			
-				tree.returnToParent();
+				if(!tree.returnToParent())
+				break;			
 			}
 		}
-		while(tree.getCurrentBlockNumber()>0);
-		
+			
 		if(getInfoFromReference(reference).equals("Ident (Groundrep.)"))
 		{
 			p.openTerm("val_of");
@@ -2657,7 +2667,13 @@ public class PrologGenerator extends DepthFirstAdapter
 		{
 			p.printVariable(reference);
 		}
-		else
+		else if (reference.equals("") && isBuiltin(str))
+		{
+			p.printAtom(str);
+			SymInfo si = new SymInfo(n,"BuiltIn primitive",tree.getCurrentBlockNumber(),str,str);
+			symbols.add(si);
+		}
+		else if (!reference.equals(""))
 		{
 			p.printAtom(reference);
 		}
@@ -2667,7 +2683,7 @@ public class PrologGenerator extends DepthFirstAdapter
 	
 	public String findInSymbols(String s)
 	{
-		for(int i = 0; i< symbols.size();i++)
+		for(int i=symbols.size()-1; i>=0 ; i=i-1)
 		{
 			if(symbols.get(i).symbolName.equals(s)
 			&& symbols.get(i).blockNumber == tree.getCurrentBlockNumber())
@@ -2726,44 +2742,7 @@ public class PrologGenerator extends DepthFirstAdapter
 			return false;
 		}
 	}
-	
-	public void printBuiltin(String str, Node node)
-	{
-
-		if(str.equals("STOP"))
-		{
-			p.openTerm("stop");
-			printSrcLoc(node);
-			p.closeTerm();
-		}
-		else if(str.equals("SKIP"))
-		{
-			p.openTerm("skip");
-			printSrcLoc(node);
-			p.closeTerm();
-		}
-		else if(str.equals("Bool"))
-		{
-			p.printAtom("boolType");
-		}
-		else if(str.equals("Int"))
-		{
-			p.printAtom("intType");
-		}
-		else if(str.equals("CHAOS"))
-		{
-			p.openTerm("CHAOS");
-			printSrcLoc(node);
-			p.closeTerm();
-		}
-		else
-		{
-			p.printAtom(str);
-		}
 		
-	}
-
-	
     public void printSrcLoc(Node node) 
     {
 		   /* Data type of src_loc in cspmf 
@@ -2786,8 +2765,42 @@ public class PrologGenerator extends DepthFirstAdapter
     		p.printNumber(node.getEndPos().getLine());
     		p.printNumber(node.getEndPos().getPos());
     		// TODO: do we need this?? the offset (start line (file), start column (file)) to (start line (node), start position (node))
+			p.printNumber(node.getStartPos().getPos()-1);
     		p.printNumber(node.getEndPos().getPos()-node.getStartPos().getPos());
-    		p.printNumber(node.getEndPos().getPos()-node.getStartPos().getPos());
+
+    		p.closeTerm();
+    	} 
+		else 
+		{
+    		p.printAtom("no_loc_info_available");
+    	}
+    }
+	
+	
+    public void printSrcLoc(Node startNode, Node endNode) 
+    {
+		   /* Data type of src_loc in cspmf 
+			* src_loc 
+			{
+			   fixedStartLine   = getStartLine s
+			  ,fixedStartCol    = getStartCol s
+			  ,fixedEndLine     = getEndLine e
+			  ,fixedEndCol      = getEndCol e
+			  ,fixedLen         = getEndOffset e - getStartOffset s
+			  ,fixedStartOffset = getStartOffset s
+			}
+		  */
+    	if (this.printSrcLoc) 
+		{
+    		p.openTerm("src_span");
+    		// src_loc(startline,startcolumn,endline,endcolumn,offset???,length)
+    		p.printNumber(startNode.getStartPos().getLine());
+    		p.printNumber(startNode.getStartPos().getPos());
+    		p.printNumber(endNode.getEndPos().getLine());
+    		p.printNumber(endNode.getEndPos().getPos());
+    		// TODO: do we need this?? the offset (start line (file), start column (file)) to (start line (node), start position (node))
+			p.printNumber(startNode.getStartPos().getPos()-1);
+    		p.printNumber(endNode.getEndPos().getPos()-startNode.getStartPos().getPos());
     		p.closeTerm();
     	} 
 		else 

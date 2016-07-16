@@ -1,8 +1,4 @@
-A  = [] x:2,x,x:3,x@x
-{-
-a = 1
-x(a) = 1
-b(a) = 1
-c = 1?d -> d
-channel e: c
--}
+B  = {member|x<-1}
+C = let D = member
+		member = 1
+	within 1
