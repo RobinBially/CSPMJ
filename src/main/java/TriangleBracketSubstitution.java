@@ -12,13 +12,13 @@ import CSPMparser.parser.*;
 import CSPMparser.lexer.*;
 import CSPMparser.node.*;
 
-public class TriangleBruteForce
+public class TriangleBracketSubstitution
 {
 private String stream;	
 private String white;
 private String white2;
 	
-	public TriangleBruteForce(String s)
+	public TriangleBracketSubstitution(String s)
 	{
 		stream = s;
 		white = defineWhitespace();
@@ -91,9 +91,9 @@ private String white2;
 			stream = stream.replaceAll("\\?"+white+"<","?$1\u00AB");						
 			stream = stream.replaceAll("[:]"+white+"<",":$1\u00AB");
 			stream = stream.replaceAll("\\."+white+"<",".$1\u00AB");
-			stream = stream.replaceAll("\r\n"+white+"<","\r\n$1\u00BB");
-			stream = stream.replaceAll("\r"+white+"<","\n$1\u00BB");
-			stream = stream.replaceAll("\n"+white+"<","\r$1\u00BB");
+			stream = stream.replaceAll("\r\n"+white+"<","\r\n$1\u00AB");
+			stream = stream.replaceAll("\r"+white+"<","\n$1\u00AB");
+			stream = stream.replaceAll("\n"+white+"<","\r$1\u00AB");
 			stream = stream.replaceAll("[=]"+white+"<","=$1\u00AB");
 			stream = stream.replaceAll("[(]"+white+"<","($1\u00AB");
 			stream = stream.replaceAll("\\["+white+"<","[$1\u00AB");

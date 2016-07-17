@@ -8,6 +8,48 @@ import org.junit.Ignore;
 public class PrologGeneratorTests 
 {
 	@Test
+	public void PatternsInComprehensions() throws Exception
+	{
+		check(
+				"{} = 2"
+				+"\n{1} = 1"
+				+"\n_ = 3"
+				+"\n<> = 3"
+				+"\n<1,2> = 5"
+				+"\n1 = {1|_<-2}"
+				+"\n1 = {1|{}<-2}"
+				+"\n1 = {1|{1}<-2}"
+				+"\n1 = {1|<><-2}"
+				+"\n1 = {1|<1,2,3><-2}"
+				+"\n1 = {1|(x,y)<-2,x}"
+				+"\n1 = {1|(x)<-2,x}"
+				+"\n1 = {1|(a.b^c@@(d),e)<-2,a,b,c,d,e}"
+			 ,
+				"'bindval'('emptySet','int'(2),'no_loc_info_available')."
+				+"\n'bindval'('singleSetPat'(['int'(1)]),'int'(1),'no_loc_info_available')."
+				+"\n'bindval'(_,'int'(3),'no_loc_info_available')."
+				+"\n'bindval'('listPat'([]),'int'(3),'no_loc_info_available')."
+				+"\n'bindval'('listPat'(['int'(1),'int'(2)]),'int'(5),'no_loc_info_available')."
+				+"\n'bindval'('int'(1),'setExp'('rangeEnum'(['int'(1)]),['comprehensionGenerator'(_,'int'(2))]),'no_loc_info_available')."
+				+"\n'bindval'('int'(1),'setExp'('rangeEnum'(['int'(1)]),['comprehensionGenerator'('emptySet','int'(2))]),'no_loc_info_available')."
+				+"\n'bindval'('int'(1),'setExp'('rangeEnum'(['int'(1)]),['comprehensionGenerator'('singleSetPat'(['int'(1)]),'int'(2))]),'no_loc_info_available')."
+				+"\n'bindval'('int'(1),'setExp'('rangeEnum'(['int'(1)]),['comprehensionGenerator'('listPat'([]),'int'(2))]),'no_loc_info_available')."
+				+"\n'bindval'('int'(1),'setExp'('rangeEnum'(['int'(1)]),['comprehensionGenerator'('listPat'(['int'(1),'int'(2),'int'(3)]),'int'(2))]),'no_loc_info_available')."
+				+"\n'bindval'('int'(1),'setExp'('rangeEnum'(['int'(1)]),['comprehensionGenerator'('tuplePat'([_x,_y]),'int'(2)),'comprehensionGuard'(_x)]),'no_loc_info_available')."
+				+"\n'bindval'('int'(1),'setExp'('rangeEnum'(['int'(1)]),['comprehensionGenerator'(_x2,'int'(2)),'comprehensionGuard'(_x2)]),'no_loc_info_available')."
+				+"\n'bindval'('int'(1),'setExp'('rangeEnum'(['int'(1)]),['comprehensionGenerator'('tuplePat'(['alsoPattern'(['dotpat'([_a,'appendPattern'([_b,_c])]),_d]),_e]),'int'(2)),'comprehensionGuard'(_a),'comprehensionGuard'(_b),'comprehensionGuard'(_c),'comprehensionGuard'(_d),'comprehensionGuard'(_e)]),'no_loc_info_available')."
+				+"\n'symbol'('x','x','no_loc_info_available','Ident (Prolog Variable)')."
+				+"\n'symbol'('y','y','no_loc_info_available','Ident (Prolog Variable)')."
+				+"\n'symbol'('x2','x','no_loc_info_available','Ident (Prolog Variable)')."
+				+"\n'symbol'('a','a','no_loc_info_available','Ident (Prolog Variable)')."
+				+"\n'symbol'('b','b','no_loc_info_available','Ident (Prolog Variable)')."
+				+"\n'symbol'('c','c','no_loc_info_available','Ident (Prolog Variable)')."
+				+"\n'symbol'('d','d','no_loc_info_available','Ident (Prolog Variable)')."
+				+"\n'symbol'('e','e','no_loc_info_available','Ident (Prolog Variable)')."
+			 );
+	}
+	
+	@Test
 	public void PrintExpressions() throws Exception
 	{
 		check(
@@ -503,14 +545,6 @@ public class PrologGeneratorTests
 	
 	@Test
 	public void Functional() throws Exception
-	{
-		check("1 = ((1)(1))(1)",
-		"'bindval'('int'(1),'agent_call'('no_loc_info_available','agent_call'('no_loc_info_available','int'(1),['int'(1)]),['int'(1)]),'no_loc_info_available')."
-		);
-	}
-	
-	@Test
-	public void Patterns() throws Exception
 	{
 	  check(	
 				"A(x) = (1?x->1)(x)+x"

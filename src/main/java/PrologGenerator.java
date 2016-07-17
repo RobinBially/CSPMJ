@@ -521,6 +521,7 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseAEmptySetPattern(AEmptySetPattern node)
     {
         inAEmptySetPattern(node);
+		p.printAtom("emptySet");
         outAEmptySetPattern(node);
     }
 
@@ -528,10 +529,14 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseASetPattern(ASetPattern node)
     {
         inASetPattern(node);
+		p.openTerm("singleSetPat");
+		p.openList();
         if(node.getPattern1() != null)
         {
             node.getPattern1().apply(this);
         }
+		p.closeList();
+		p.closeTerm();
         outASetPattern(node);
     }
 	
@@ -539,6 +544,10 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseAEmptyListPattern(AEmptyListPattern node)
     {
         inAEmptyListPattern(node);
+		p.openTerm("listPat");
+		p.openList();
+		p.closeList();
+		p.closeTerm();
         outAEmptyListPattern(node);
     }
 
@@ -547,11 +556,15 @@ public class PrologGenerator extends DepthFirstAdapter
     {
         inAListPattern(node);
         {
+			p.openTerm("listPat");
+			p.openList();
             List<PPattern> copy = new ArrayList<PPattern>(node.getPatternList());
             for(PPattern e : copy)
             {
                 e.apply(this);
             }
+			p.closeList();
+			p.closeTerm();
         }
         outAListPattern(node);
     }
@@ -720,10 +733,6 @@ public class PrologGenerator extends DepthFirstAdapter
         {
             node.getProc3().apply(this);
         }
-        if(node.getOpStart() != null)
-        {
-            node.getOpStart().apply(this);
-        }
         if(node.getEvent() != null)
         {
             node.getEvent().apply(this);
@@ -732,7 +741,7 @@ public class PrologGenerator extends DepthFirstAdapter
         {
             node.getProc4().apply(this);
         }
-		printSrcLoc(node.getOpStart());
+		printSrcLoc(node.getOpStart(),node.getOpEnd());
 		p.closeTerm();
         outAExceptExp(node);
     }
@@ -746,10 +755,6 @@ public class PrologGenerator extends DepthFirstAdapter
         {
             node.getProc3().apply(this);
         }
-        if(node.getOpStart() != null)
-        {
-            node.getOpStart().apply(this);
-        }
         if(node.getEvent() != null)
         {
             node.getEvent().apply(this);
@@ -758,7 +763,7 @@ public class PrologGenerator extends DepthFirstAdapter
         {
             node.getProc4().apply(this);
         }
-		printSrcLoc(node.getOpStart());
+		printSrcLoc(node.getOpStart(),node.getOpEnd());
 		p.closeTerm();
         outAGenParExp(node);
     }
@@ -772,10 +777,6 @@ public class PrologGenerator extends DepthFirstAdapter
         {
             node.getProc3().apply(this);
         }
-        if(node.getOpStart() != null)
-        {
-            node.getOpStart().apply(this);
-        }
         if(node.getEventl() != null)
         {
             node.getEventl().apply(this);
@@ -788,7 +789,7 @@ public class PrologGenerator extends DepthFirstAdapter
         {
             node.getProc4().apply(this);
         }
-		printSrcLoc(node.getOpStart());
+		printSrcLoc(node.getOpStart(),node.getOpEnd());
 		p.closeTerm();
         outAAlphParExp(node);
     }
@@ -798,11 +799,6 @@ public class PrologGenerator extends DepthFirstAdapter
     {
         inALinkedParExp(node);
 		p.openTerm("lParallel");
-
-        if(node.getOpStart() != null)
-        {
-            node.getOpStart().apply(this);
-        }
         if(node.getLinkComp() != null)
         {
             node.getLinkComp().apply(this);
@@ -815,7 +811,7 @@ public class PrologGenerator extends DepthFirstAdapter
         {
             node.getProc4().apply(this);
         }
-		printSrcLoc(node.getOpStart());
+		printSrcLoc(node.getOpStart(),node.getOpEnd());
 		p.closeTerm();
         outALinkedParExp(node);
     }
@@ -880,10 +876,6 @@ public class PrologGenerator extends DepthFirstAdapter
         {
             node.getProc5().apply(this);
         }
-        if(node.getOpStart() != null)
-        {
-            node.getOpStart().apply(this);
-        }
         if(node.getEvent() != null)
         {
             node.getEvent().apply(this);
@@ -892,7 +884,7 @@ public class PrologGenerator extends DepthFirstAdapter
         {
             node.getProc6().apply(this);
         }
-		printSrcLoc(node.getOpStart());
+		printSrcLoc(node.getOpStart(),node.getOpEnd());
 		p.closeTerm();
         outASyncExtExp(node);
     }
@@ -931,10 +923,6 @@ public class PrologGenerator extends DepthFirstAdapter
         {
             node.getProc6().apply(this);
         }
-        if(node.getSyncIntL() != null)
-        {
-            node.getSyncIntL().apply(this);
-        }
         if(node.getEvent() != null)
         {
             node.getEvent().apply(this);
@@ -943,7 +931,7 @@ public class PrologGenerator extends DepthFirstAdapter
         {
             node.getProc7().apply(this);
         }
-		printSrcLoc(node.getSyncIntL());
+		printSrcLoc(node.getOpStart(),node.getOpEnd());
 		p.closeTerm();
         outASyncInterruptExp(node);
     }
@@ -1048,24 +1036,16 @@ public class PrologGenerator extends DepthFirstAdapter
             List<PPattern> copy = new ArrayList<PPattern>(node.getPatternList());
 			p.openTerm("lambda");
 			p.openList();
-			//currentInLambdaLeft +=1;
-			//currentInParams +=1;
             for(PPattern e : copy)
             {
                 e.apply(this);
             }
-			//currentInParams -=1;
-			//currentInLambdaLeft -=1;
 			p.closeList();
         }
         if(node.getProc9() != null)
         {
-			//currentInLambdaRight +=1;
             node.getProc9().apply(this);
-			//System.out.println(currentLambdaParams+"\n"+currentParams);
-			//currentInLambdaRight -=1;
         }
-		//currentLambdaParams = new HashMap<String,String>(); //reset
 		p.closeTerm();
 		tree.returnToParent();
         outALambdaExp(node);
@@ -1075,9 +1055,7 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseALetWithinExp(ALetWithinExp node)
     {
         inALetWithinExp(node);
-		tree.newLeaf();
-
-	//	letWithinArgs.put(blockCount,new HashMap<String,String>(currentParams));		
+		tree.newLeaf();		
         {
 			p.openTerm("let");
 			p.openList();
@@ -1315,10 +1293,15 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseAERenamingExp(AERenamingExp node)
     {
         inAERenamingExp(node);
+		p.openTerm("procRenaming");
+		p.openList();
+		p.closeList();
         if(node.getProc10() != null)
         {
             node.getProc10().apply(this);
         }
+		printSrcLoc(node.getOpStart(),node.getOpEnd());
+		p.closeTerm();
         outAERenamingExp(node);
     }
 
@@ -1371,12 +1354,10 @@ public class PrologGenerator extends DepthFirstAdapter
 		{
 			p.openTerm("nondetInGuard");
 		}
-		//currentInParams +=1;
         if(node.getPattern1() != null)
         {
             node.getPattern1().apply(this);
         }
-		//currentInParams -=1;
         if(node.getRestriction() != null)
         {
             node.getRestriction().apply(this);
@@ -1399,12 +1380,10 @@ public class PrologGenerator extends DepthFirstAdapter
 		{
 			p.openTerm("inGuard");
 		}
-		//currentInParams +=1;
         if(node.getPattern1() != null)
         {
             node.getPattern1().apply(this);
         }
-		//currentInParams -=1;
         if(node.getRestriction() != null)
         {
             node.getRestriction().apply(this);
@@ -1744,20 +1723,30 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseAEmptySeqExp(AEmptySeqExp node)
     {
         inAEmptySeqExp(node);
-		p.openTerm("listExp");
-		p.openTerm("rangeEnum");
-		p.openList();
-        if(node.getSeqOpen() != null)
-        {
-            node.getSeqOpen().apply(this);
-        }
-        if(node.getSeqClose() != null)
-        {
-            node.getSeqClose().apply(this);
-        }
-		p.closeList();
-		p.closeTerm();
-		p.closeTerm();
+		if(patternRequired)
+		{
+			p.openTerm("listPat");
+			p.openList();
+			p.closeList();
+			p.closeTerm();
+		}
+		else
+		{
+			p.openTerm("listExp");
+			p.openTerm("rangeEnum");
+			p.openList();
+			if(node.getSeqOpen() != null)
+			{
+				node.getSeqOpen().apply(this);
+			}
+			if(node.getSeqClose() != null)
+			{
+				node.getSeqClose().apply(this); // Do not delete these !!!
+			}
+			p.closeList();
+			p.closeTerm();
+			p.closeTerm();
+		}
         outAEmptySeqExp(node);
     }
 
@@ -1765,24 +1754,38 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseAExplSeqExp(AExplSeqExp node)
     {
         inAExplSeqExp(node);
-		p.openTerm("listExp");
-		p.openTerm("rangeEnum");
-		p.openList();
-        if(node.getSeqOpen() != null)
-        {
-            node.getSeqOpen().apply(this);
-        }
-        if(node.getArguments() != null)
-        {
-            node.getArguments().apply(this);
-        }
-        if(node.getSeqClose() != null)
-        {
-            node.getSeqClose().apply(this);
-        }
-		p.closeList();
-		p.closeTerm();
-		p.closeTerm();
+		if(patternRequired)
+		{
+			p.openTerm("listPat");
+			p.openList();
+			if(node.getArguments() != null)
+			{
+				node.getArguments().apply(this);
+			}
+			p.closeList();
+			p.closeTerm();
+		}
+		else
+		{
+			p.openTerm("listExp");
+			p.openTerm("rangeEnum");
+			p.openList();
+			if(node.getSeqOpen() != null)
+			{
+				node.getSeqOpen().apply(this);
+			}
+			if(node.getArguments() != null)
+			{
+				node.getArguments().apply(this);
+			}
+			if(node.getSeqClose() != null)
+			{
+				node.getSeqClose().apply(this);
+			}
+			p.closeList();
+			p.closeTerm();
+			p.closeTerm();
+		}
         outAExplSeqExp(node);
     }
 
@@ -1843,20 +1846,27 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseAEmptySetExp(AEmptySetExp node)
     {
         inAEmptySetExp(node);
-		p.openTerm("setExp");
-		p.openTerm("rangeEnum");
-		p.openList();
-        if(node.getBraceL() != null)
-        {
-            node.getBraceL().apply(this);
-        }
-        if(node.getBraceR() != null)
-        {
-            node.getBraceR().apply(this);
-        }
-		p.closeList();
-		p.closeTerm();
-		p.closeTerm();
+		if(patternRequired)
+		{
+			p.printAtom("emptySet");
+		}
+		else
+		{
+			p.openTerm("setExp");
+			p.openTerm("rangeEnum");
+			p.openList();
+			if(node.getBraceL() != null)
+			{
+				node.getBraceL().apply(this);
+			}
+			if(node.getBraceR() != null)
+			{
+				node.getBraceR().apply(this); // do not delete these braces!!!
+			}
+			p.closeList();
+			p.closeTerm();
+			p.closeTerm();
+		}
         outAEmptySetExp(node);
     }
 
@@ -1864,24 +1874,38 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseASetExp(ASetExp node)
     {
         inASetExp(node);
-		p.openTerm("setExp");
-		p.openTerm("rangeEnum");
-		p.openList();
-        if(node.getBraceL() != null)
-        {
-            node.getBraceL().apply(this);
-        }
-        if(node.getArguments() != null)
-        {
-            node.getArguments().apply(this);
-        }
-        if(node.getBraceR() != null)
-        {
-            node.getBraceR().apply(this);
-        }
-		p.closeList();
-		p.closeTerm();
-		p.closeTerm();
+		if(patternRequired)
+		{
+			p.openTerm("singleSetPat");
+			p.openList();
+			if(node.getArguments() != null)
+			{
+				node.getArguments().apply(this);
+			}
+			p.closeList();
+			p.closeTerm();
+		}
+		else
+		{
+			p.openTerm("setExp");
+			p.openTerm("rangeEnum");
+			p.openList();
+			if(node.getBraceL() != null)
+			{
+				node.getBraceL().apply(this);
+			}
+			if(node.getArguments() != null)
+			{
+				node.getArguments().apply(this);
+			}
+			if(node.getBraceR() != null)
+			{
+				node.getBraceR().apply(this);
+			}
+			p.closeList();
+			p.closeTerm();
+			p.closeTerm();
+		}
         outASetExp(node);
     }
 
@@ -2014,48 +2038,39 @@ public class PrologGenerator extends DepthFirstAdapter
 		if(node.getProc10() != null && node.getStmts() != null) //Comprehension -> Different order!!!
 		{
 			node.getProc10().apply(this);
+		}	
+		tree.newLeaf();
+		if(node.getStmts() != null)
+		{
+			node.getStmts().apply(this);
 		}
-        if(node.getDbracketL() != null)
-        {
-            node.getDbracketL().apply(this);
-        }	
-			tree.newLeaf();
-			if(node.getStmts() != null)
+		{
+			int count = 0;
+			List<PExp> copy = new ArrayList<PExp>(node.getRcList());
+			p.openList();
+			for(PExp e : copy)
 			{
-				node.getStmts().apply(this);
-			}
-			{
-				int count = 0;
-				List<PExp> copy = new ArrayList<PExp>(node.getRcList());
-				p.openList();
-				for(PExp e : copy)
+				if(count == 0)
 				{
-					if(count == 0)
-					{
-						p.openTerm("rename");
-					}
-					e.apply(this);
-					if(count == 1)
-					{
-						p.closeTerm();
-					}
-					count += 1;
-					count %= 2;
+					p.openTerm("rename");
 				}
-				p.closeList();
+				e.apply(this);
+				if(count == 1)
+				{
+					p.closeTerm();
+				}
+				count += 1;
+				count %= 2;
 			}
-			tree.returnToParent();				
+			p.closeList();
+		}
+		tree.returnToParent();				
 		if(node.getProc10() != null && node.getStmts() == null) //No Comprehension -> Different order!!!
 		{
 			node.getProc10().apply(this);
-			printSrcLoc(node.getDbracketL(),node.getDbracketR());
+			printSrcLoc(node.getOpStart(),node.getOpEnd());
 		}			
 		p.closeTerm();
-		
-        if(node.getDbracketR() != null)
-        {
-            node.getDbracketR().apply(this);
-        }
         outARenameCompRenameComp(node);
     }
 	
@@ -2348,9 +2363,20 @@ public class PrologGenerator extends DepthFirstAdapter
 		}
         if(node.getTuple() != null)
         {
-			p.openTerm("tupleExp");
-            node.getTuple().apply(this);
-			p.closeTerm();
+			if(patternRequired)
+			{
+				p.openTerm("tuplePat");
+				p.openList();
+				node.getTuple().apply(this);
+				p.closeList();
+				p.closeTerm();
+			}
+			else
+			{
+				p.openTerm("tupleExp");
+				node.getTuple().apply(this);
+				p.closeTerm();
+			}
         }
         if(node.getLambda() != null)
         {
@@ -2371,11 +2397,21 @@ public class PrologGenerator extends DepthFirstAdapter
             node.getParL().apply(this);
         }
 		if(patternRequired)
-        {
-
-        }
-		else
 		{
+			if(node.getProc1() != null)
+			{
+				node.getProc1().apply(this);
+			}
+			{
+				List<PExp> copy = new ArrayList<PExp>(node.getArgumentsList());
+				for(PExp e : copy)
+				{
+					e.apply(this);
+				}
+			}
+		}
+		else
+        {
 			p.openList();
 			if(node.getProc1() != null)
 			{
@@ -2416,9 +2452,16 @@ public class PrologGenerator extends DepthFirstAdapter
         }
         if(node.getProc1() != null)
         {
-			tree.newLeaf();
-            node.getProc1().apply(this);
-			tree.returnToParent();
+			if(patternRequired)
+			{
+				node.getProc1().apply(this);
+			}
+			else
+			{
+				tree.newLeaf();
+				node.getProc1().apply(this);
+				tree.returnToParent();
+			}
         }
         if(node.getParR() != null)
         {

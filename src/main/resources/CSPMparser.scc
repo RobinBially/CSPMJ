@@ -1,11 +1,10 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * A Parser for CSP in JAVA                           		  *
- * CSPMJ V0.60												  *
+ * CSPMJ V0.61												  *
  *															  *
  * robin.bially@hhu.de		                                  *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-//Fehlt: Mapping Funktionen
 Package CSPMparser;
 Helpers
 
@@ -28,7 +27,7 @@ Helpers
 	blank = (' '|tab);
 	white = (' '|tab|cr|lf)*;
 	
-/*	Triangle substitutions:
+/*	Triangle bracket substitutions:
 	\u00AB = «	seq opening
 	\u00BB = »	seq closing
 	\u00A3 = £	greater
@@ -41,7 +40,6 @@ Helpers
 
 Tokens
 
-//---------------------------------------------------------------------------------------------------------------------------------------------------
 //CSPM command words
 	ltl				= 'LTL';
 	ctl				= 'CTL';	
@@ -72,7 +70,6 @@ Tokens
 	not 			= white 'not' white;	
 	true			= 'true';
 	false			= 'false';
-
 //---------------------------------------------------------------------------------------------------------------------------------------------------
 	comma 			= ',' white;
 	apo 			= ''';
@@ -276,22 +273,22 @@ proc1 {->exp}		=  	 {hide} proc1 b_slash proc2 									{-> New exp.hide(proc1.e
 proc2 {->exp}		=    {ileave} proc2 i_leaving proc3 								{-> New exp.ileave(proc2.exp,i_leaving,proc3.exp)}
 						|{p3} proc3 													{-> proc3.exp}
 						;
-proc3 {->exp}		=  	 {except} proc3 bracket_pipe_l event pipe tria_r proc4			{-> New exp.except(proc3.exp,bracket_pipe_l,event.exp,proc4.exp)}	
-						|{gen_par} proc3 bracket_pipe_l event bracket_pipe_r proc4		{-> New exp.gen_par(proc3.exp,bracket_pipe_l,event.exp,proc4.exp)}
+proc3 {->exp}		=  	 {except} proc3 bracket_pipe_l event pipe tria_r proc4			{-> New exp.except(proc3.exp,bracket_pipe_l,event.exp,tria_r,proc4.exp)}	
+						|{gen_par} proc3 bracket_pipe_l event bracket_pipe_r proc4		{-> New exp.gen_par(proc3.exp,bracket_pipe_l,event.exp,bracket_pipe_r,proc4.exp)}
 						|{alph_par} proc3 bracket_l [eventl]:event dpipe
-								[eventr]:event bracket_r proc4 							{-> New exp.alph_par(proc3.exp,bracket_l,eventl.exp,eventr.exp,proc4.exp)}
-						|{linked_par} proc3 bracket_l link_comp bracket_r proc4			{-> New exp.linked_par(proc3.exp,bracket_l,link_comp,proc4.exp)}
+								[eventr]:event bracket_r proc4 							{-> New exp.alph_par(proc3.exp,bracket_l,eventl.exp,eventr.exp,bracket_r,proc4.exp)}
+						|{linked_par} proc3 bracket_l link_comp bracket_r proc4			{-> New exp.linked_par(proc3.exp,bracket_l,link_comp,bracket_r,proc4.exp)}
 						|{p4} proc4 													{-> proc4.exp}
 						;			
 proc4 {->exp}		=  	 {int_choice} proc4 i_choice proc5								{-> New exp.int_choice(proc4.exp,i_choice,proc5.exp)} 
 						|{p5} proc5														{-> proc5.exp}
 						;
 proc5 {->exp}		=  	 {ext_choice} proc5 e_choice proc6 								{-> New exp.ext_choice(proc5.exp,e_choice,proc6.exp)} 
-						|{sync_ext} proc5 sync_par_l event sync_par_r proc6				{-> New exp.sync_ext(proc5.exp,sync_par_l,event.exp,proc6.exp)} 
+						|{sync_ext} proc5 sync_par_l event sync_par_r proc6				{-> New exp.sync_ext(proc5.exp,sync_par_l,event.exp,sync_par_r,proc6.exp)} 
 						|{p6} proc6 													{-> proc6.exp}
 						;
 proc6 {->exp}		= 	 {interrupt} proc6 interrupt proc7								{-> New exp.interrupt(proc6.exp,interrupt,proc7.exp)}									
-						|{sync_interrupt} proc6 sync_int_l event sync_int_r proc7		{-> New exp.sync_interrupt(proc6.exp,sync_int_l,event.exp,proc7.exp)}
+						|{sync_interrupt} proc6 sync_int_l event sync_int_r proc7		{-> New exp.sync_interrupt(proc6.exp,sync_int_l,event.exp,sync_int_r,proc7.exp)}
 						|{p7} proc7 													{-> proc7.exp}
 						;
 proc7 {->exp}		= 	 {sliding_choice} proc7 timeout proc8 					{-> New exp.sliding_choice(proc7.exp,timeout,proc8.exp)}
@@ -309,7 +306,7 @@ proc9 {->exp}		= 	 {guard} dot_op guard proc9								{-> New exp.guard(dot_op.ex
 						|{p10} proc10											{-> proc10.exp}
 						;				
 proc10 {->exp} 		=	 {renaming} rename_comp 								{-> New exp.renaming(rename_comp)}
-						|{e_renaming} proc10 dbracket_l dbracket_r				{-> New exp.e_renaming(proc10.exp,dbracket_l)}
+						|{e_renaming} proc10 dbracket_l dbracket_r				{-> New exp.e_renaming(proc10.exp,dbracket_l,dbracket_r)}
 						|{event} event 											{-> event.exp}
 						;
 			
@@ -555,15 +552,15 @@ exp 			=  {function} id parameters [proc1]:exp
 				  |{pattern} [pattern1]:pattern [proc1]:exp
 				  |{hide} [proc1]:exp b_slash [proc2]:exp
 				  |{ileave} [proc2]:exp i_leaving [proc3]:exp
-				  |{except} [proc3]:exp [op_start]:bracket_pipe_l [event]:exp [proc4]:exp
-				  |{gen_par} [proc3]:exp [op_start]:bracket_pipe_l [event]:exp [proc4]:exp
-				  |{alph_par} [proc3]:exp [op_start]:bracket_l [eventl]:exp [eventr]:exp [proc4]:exp
-				  |{linked_par} [proc3]:exp [op_start]:bracket_l link_comp [proc4]:exp
+				  |{except} [proc3]:exp [op_start]:bracket_pipe_l [event]:exp [op_end]:tria_r [proc4]:exp
+				  |{gen_par} [proc3]:exp [op_start]:bracket_pipe_l [event]:exp [op_end]:bracket_pipe_r [proc4]:exp
+				  |{alph_par} [proc3]:exp [op_start]:bracket_l [eventl]:exp [eventr]:exp [op_end]:bracket_r [proc4]:exp
+				  |{linked_par} [proc3]:exp [op_start]:bracket_l link_comp [op_end]:bracket_r [proc4]:exp
 				  |{int_choice} [proc4]:exp i_choice [proc5]:exp
 				  |{ext_choice} [proc5]:exp e_choice [proc6]:exp
-				  |{sync_ext} [proc5]:exp [op_start]:sync_par_l [event]:exp [proc6]:exp
+				  |{sync_ext} [proc5]:exp [op_start]:sync_par_l [event]:exp [op_end]:sync_par_r [proc6]:exp
 				  |{interrupt} [proc6]:exp interrupt [proc7]:exp
-				  |{sync_interrupt} [proc6]:exp sync_int_l [event]:exp [proc7]:exp
+				  |{sync_interrupt} [proc6]:exp [op_start]:sync_int_l [event]:exp [op_end]:sync_int_r [proc7]:exp
 				  |{sliding_choice} [proc7]:exp timeout [proc8]:exp
 				  |{seq_composition} [proc8]:exp semicolon [proc9]:exp
 				  |{guard} [dot_op]:exp guard [proc9]:exp
@@ -583,7 +580,7 @@ exp 			=  {function} id parameters [proc1]:exp
 				  |{sync_par_rep} [event]:exp stmts [proc9]:exp
 //rep end				  
 				  |{renaming} rename_comp
-				  |{e_renaming} [proc10]:exp dbracket_l
+				  |{e_renaming} [proc10]:exp [op_start]:dbracket_l [op_end]:dbracket_r
 				  |{event} [dpattern]:exp [f1_list]:pattern* [f2_list]:pattern*
 				  |{restriction} [dot_op]:exp
 				  |{dpattern} [double_list2]:exp+
@@ -641,7 +638,7 @@ lambda 			=  {lambda} [arguments_list]:exp+;
 arguments 		=  {arg_list} [arguments_list]:exp+;
 					
 link_comp 		=  {link_comp}[lc_list]:exp+ stmts?;
-rename_comp 	=  {rename_comp} [proc10]:exp dbracket_l [rc_list]:exp+ stmts? dbracket_r;
+rename_comp 	=  {rename_comp} [proc10]:exp [op_start]:dbracket_l [rc_list]:exp+ stmts? [op_end]:dbracket_r;
 
 				  
 stmts 			=  {stmt_list}[stmts_list]:stmts+
