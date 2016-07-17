@@ -6,7 +6,91 @@ import org.junit.Ignore;
 //Notepad Regex for replacing src-locations:    'src_span'\(\d+,\d+,\d+,\d+,\d+,\d+\)  ->   'no_loc_info_available'
 
 public class PrologGeneratorTests 
-{	
+{
+	@Test
+	public void PrintExpressions() throws Exception
+	{
+		check(
+					"print 1->2"
+			 ,
+					"'cspPrint'('prefix'('no_loc_info_available',[],'int'(1),'int'(2),'no_loc_info_available'))."
+			 );
+	}	
+	
+	@Test
+	public void TransparentFunctions() throws Exception
+	{
+		check(
+					"transparent f,member"
+					+"\nA = f"
+			 ,
+					"'cspTransparent'(['f','member'])."
+					+"\n'bindval'('A','f','no_loc_info_available')."
+					+"\n'symbol'('f','f','no_loc_info_available','Transparent function')."
+					+"\n'symbol'('member','member','no_loc_info_available','Transparent function')."
+					+"\n'symbol'('A','A','no_loc_info_available','Ident (Groundrep.)')."
+			 );		
+	}
+	
+	@Test
+	public void Assertions() throws Exception
+	{
+		check(		"assert 1 [T= 1"
+					+"\nassert 1 [F= 1"
+					+"\nassert 1 [FD= 1"
+					+"\nassert not 1->2 [R= 2"
+					+"\nassert 1 |= LTL: \"true\""
+					+"\nassert 1 |= CTL: \"true\""
+					+"\nassert 1 :[deadlock free]"
+					+"\nassert 1 :[deadlock free [F]]"
+					+"\nassert 1 :[deadlock free [FD]]"
+					+"\nassert 1 :[deadlock free [T]]"
+					+"\nassert 1 :[divergence free]"
+					+"\nassert 1 :[divergence free [F]]"
+					+"\nassert 1 :[divergence free [FD]]"
+					+"\nassert 1 :[divergence free [T]]"
+					+"\nassert 1 :[livelock free]"
+					+"\nassert 1 :[livelock free [F]]"
+					+"\nassert 1 :[livelock free [FD]]"
+					+"\nassert 1 :[livelock free [T]]"
+					+"\nassert 1 :[deterministic]"
+					+"\nassert 1 :[deterministic [T]]"
+					+"\nassert 1 :[deterministic [F]]"
+					+"\nassert 1 :[deterministic [FD]]"
+					+"\nassert 1 :[has trace]: 2"
+					+"\nassert 1 :[has trace [F]]: 2"
+					+"\nassert 1 :[has trace [FD]]: 2"
+					+"\nassert 1 :[has trace [T]]: 2"
+				,
+					"'assertRef'('False','int'(1),'Trace','int'(1),'no_loc_info_available')."
+					+"\n'assertRef'('False','int'(1),'Failure','int'(1),'no_loc_info_available')."
+					+"\n'assertRef'('False','int'(1),'FailureDivergence','int'(1),'no_loc_info_available')."
+					+"\n'assertRef'('True','prefix'('no_loc_info_available',[],'int'(1),'int'(2),'no_loc_info_available'),'RefusalTesting','int'(2),'no_loc_info_available')."
+					+"\n'assertLtl'('False','int'(1),'true','no_loc_info_available')."
+					+"\n'assertCtl'('False','int'(1),'true','no_loc_info_available')."
+					+"\n'assertModelCheck'('False','int'(1),'DeadlockFree')."
+					+"\n'assertModelCheckExt'('False','int'(1),'DeadlockFree','F')."
+					+"\n'assertModelCheckExt'('False','int'(1),'DeadlockFree','FD')."
+					+"\n'assertModelCheckExt'('False','int'(1),'DeadlockFree','T')."
+					+"\n'assertModelCheck'('False','int'(1),'LivelockFree')."
+					+"\n'assertModelCheckExt'('False','int'(1),'LivelockFree','F')."
+					+"\n'assertModelCheckExt'('False','int'(1),'LivelockFree','FD')."
+					+"\n'assertModelCheckExt'('False','int'(1),'LivelockFree','T')."
+					+"\n'assertModelCheck'('False','int'(1),'LivelockFree')."
+					+"\n'assertModelCheckExt'('False','int'(1),'LivelockFree','F')."
+					+"\n'assertModelCheckExt'('False','int'(1),'LivelockFree','FD')."
+					+"\n'assertModelCheckExt'('False','int'(1),'LivelockFree','T')."
+					+"\n'assertModelCheck'('False','int'(1),'Deterministic')."
+					+"\n'assertModelCheckExt'('False','int'(1),'Deterministic','T')."
+					+"\n'assertModelCheckExt'('False','int'(1),'Deterministic','F')."
+					+"\n'assertModelCheckExt'('False','int'(1),'Deterministic','FD')."
+					+"\n'assertHasTrace'('False','int'(1),'int'(2))."
+					+"\n'assertHasTraceExt'('False','int'(1),'int'(2),'F')."
+					+"\n'assertHasTraceExt'('False','int'(1),'int'(2),'FD')."
+					+"\n'assertHasTraceExt'('False','int'(1),'int'(2),'T')."
+				);
+	}
+	
 	@Test
 	public void ComplexBuiltinCallInLetWithin()
 	{

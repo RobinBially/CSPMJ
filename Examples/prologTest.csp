@@ -1,4 +1,2 @@
-B  = {member|x<-1}
-C = let D = member
-		member = 1
-	within 1
+transparent f,member
+A = f

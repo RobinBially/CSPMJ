@@ -1135,14 +1135,11 @@ public class StatementPatternCheck extends DepthFirstAdapter
 		{
 			throw new RuntimeException("Expecting pattern (Maps are not allowed).");
 		}
-        if(node.getLbool() != null)
-        {
-            node.getLbool().apply(this);
-        }
-        if(node.getRbool() != null)
-        {
-            node.getRbool().apply(this);
-        }
+		List<PExp> copy = new ArrayList<PExp>(node.getMapList());
+		for(PExp e : copy)
+		{
+			e.apply(this);
+		}
         outAMapExp(node);
     }
 

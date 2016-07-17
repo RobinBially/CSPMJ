@@ -1,6 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * A Parser for CSP in JAVA                           		  *
- * CSPMJ V0.59												  *
+ * CSPMJ V0.60												  *
  *															  *
  * robin.bially@hhu.de		                                  *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -56,13 +56,12 @@ Tokens
 	chan 			= 'channel';
 	transparent 	= 'transparent';
 	external		= 'external';
-	assert 			= 'assert';
+	assert 			= 'assert'| 'assert not';
 	include 		= 'include';
 	print 			= 'print';
 	dl_free 		= 'deadlock free';
-	div_free 		= 'divergence free';
+	div_free 		= 'divergence free'|'livelock free';
 	det 			= 'deterministic';
-	live_free 		= 'livelock free';
 	has_trace 		= 'has trace';
 	timed 			= 'Timed';
 	mod_defs		= 'module';	
@@ -113,7 +112,8 @@ Tokens
 	sync_int_r		= white '+\' white;
 	dbracket_l 		= white '[[' white;
 	dbracket_r 		= white ']]';
-	dp_bracket 		= white ':[' white;
+	dp_bracket_l 	= white ':[' white;
+	dp_bracket_r 	= white ']:' white;
 	bracket_pipe_l	= white '[|' white;
 	bracket_pipe_r	= white '|]' white;
 	bracket_l 		= white '[' white;
@@ -131,13 +131,12 @@ Tokens
 	equi 			= '<=>';
 	imp_r 			= '=>';
 	imp_l 			= '<=';
-	equal			= white '==' white | white '!=' white;
+	equal			= white '==' white | white '!=' white;	
 	tra_mod 		= white '[T=' white;
 	fail_mod  		= white '[F=' white;
 	fail_div 		= white '[FD=' white;
-	t_mod 			= white '[T]' white;
-	f_mod		    = white '[F]' white; 
-	f_div		    = white '[FD]' white;
+	refusal			= white '[R=' white;	
+	model 			= white ('[T]'|'[F]'|'[FD]') white;	
 	mul_div_mod 	= white '*' white | white '/' white | white '%' white;
 	plus 			= white '+' white;
 	minus		    = '-';
@@ -150,7 +149,6 @@ Tokens
 	string			= '"' char* '"';
 	char			= ''' char ''';
 	blank			= blank*;
-
 	
 Ignored Tokens
 	blank;
@@ -167,14 +165,25 @@ def					=	 {expression} exp									{-> New def.expression(exp)}
 						|{types} types										{-> New def.types(types)}
 						|{channel} channel									{-> channel.def}
 						|{assertion} assertion								{-> New def.assertion(assertion)}
-						|{print} print_exp									{-> print_exp.def}
+						|{print} print proc1 								{-> New def.print_exp(proc1.exp)}
 						|{timed_section} time								{-> time.def}
 						|{module} module									{-> module.def}
 						|{include_file} include_file						{-> include_file.def}
-						|{trans} transparent id								{-> New def.transparent(id)}
+						|{trans} transparent id_list						{-> New def.transparent([id_list.id])}
 						|{ext} external id									{-> New def.external(id)}
 						; 
-					
+//---------------------------------------------------------------------------------------------------------------------------------------------------
+time {->def} =  timed par_l proc1 par_r brace_l defs brace_r 				{-> New def.timed(proc1.exp,[defs.def])};
+//---------------------------------------------------------------------------------------------------------------------------------------------------
+module {->def} = mod_defs id [ldefs]:defs exports [rdefs]:defs endmodule 	{-> New def.module(id,[ldefs.def],[rdefs.def])};
+//---------------------------------------------------------------------------------------------------------------------------------------------------
+/*Include File if path is valid*/
+include_file {->def} = include string 										{-> New def.include_file(string)};		
+//---------------------------------------------------------------------------------------------------------------------------------------------------
+id 					= 	identifier 					{-> New id.identifier(identifier)};
+id_list {->id+}		= 	{list} id comma id_list		{-> [id,id_list.id]}
+						|{end} id					{-> [id]}
+						;
 //---------------------------------------------------------------------------------------------------------------------------------------------------
 types					= 	{dtype} d_type typedef 					{-> New types.dtype(typedef.types)}
 						   |{stype} s_type typedef 					{-> New types.stype(typedef.types)}
@@ -372,8 +381,6 @@ atom {->exp}		= 	 {sequence} sequence 								{-> sequence.exp}
 						|{id} id lambda?									{-> New exp.id(id,lambda)}
 						;
 //---------------------------------------------------------------------------------------------------------------------------------------------------
-id = identifier {-> New id.identifier(identifier)};
-//---------------------------------------------------------------------------------------------------------------------------------------------------
 /*(e1,e2,...,en) different types possible*/
 tuple 	 		=  {tuple} par_l proc1 comma arguments_list par_r			{-> New tuple.tuple(par_l,proc1.exp,comma,[arguments_list.exp],par_r)};
 lambda 			=  {lambda} par_l arguments_list par_r						{-> New lambda.lambda([arguments_list.exp])};
@@ -433,10 +440,12 @@ enum_set {->exp}   	    =  brace_l [lpipe]:pipe arguments [rpipe]:pipe brace_r		
 enum_set_comp {->exp}	=  brace_l [lpipe]:pipe arguments [mpipe]:pipe stmts 		
 						  [rpipe]:pipe brace_r										{-> New exp.enumerated_compr_set(brace_l,arguments,stmts,brace_r)};
 //---------------------------------------------------------------------------------------------------------------------------------------------------
-map {->exp}	 =	  {map} par_l [lpipe]:pipe [lbool_exp]:bool_exp imp_r 
-								   [rbool_exp]:bool_exp [rpipe]:pipe par_r			{-> New exp.map(par_l,lbool_exp.exp,rbool_exp.exp,par_r)}
-				|{emptymap} empty_map												{-> New exp.empty_map(empty_map)}
-				;
+map {->exp}			 =	  {map} par_l [lpipe]:pipe map_list [rpipe]:pipe par_r		{-> New exp.map(par_l,[map_list.exp],par_r)}
+						|{emptymap} empty_map										{-> New exp.empty_map(empty_map)}
+						;
+map_list {->exp+}	 =  {list} [lproc1]:proc1 imp_r [rproc1]:proc1 comma map_list	{-> [lproc1.exp,rproc1.exp,map_list.exp]}
+						|{end} [lproc1]:proc1 imp_r [rproc1]:proc1					{-> [lproc1.exp,rproc1.exp]}
+						;
 //---------------------------------------------------------------------------------------------------------------------------------------------------		 	 
 
 rep {->exp}	=    {ext_choice_rep} e_choice stmts at	proc9								{-> New exp.ext_choice_rep(stmts,proc9.exp)}
@@ -464,58 +473,30 @@ generator_op {->stmts}		=  {arrow} arrow_l 								{-> New stmts.arrow(arrow_l)}
 							   |{ddot} ddot									{-> New stmts.ddot(ddot)}
 							   ;
 //---------------------------------------------------------------------------------------------------------------------------------------------------	
-assertion = 	 {mod} assert [lproc]:proc1 tra_mod [rproc]:proc1			{-> New assertion.mod(lproc.exp,rproc.exp)}
-				|{fm} assert [lproc]:proc1 fail_mod [rproc]:proc1			{-> New assertion.fm(lproc.exp,rproc.exp)}
-				|{fd} assert [lproc]:proc1 fail_div [rproc]:proc1			{-> New assertion.fd(lproc.exp,rproc.exp)}
-				|{ltl} assert proc1 pipe_equals ltl ddot string				{-> New assertion.ltl(proc1.exp,string)}
-				|{ctl} assert proc1 pipe_equals ctl ddot string				{-> New assertion.ctl(proc1.exp,string)}
-				|{dl_free} assertion_dl										{-> assertion_dl.assertion}
-				|{div_free} assertion_div									{-> assertion_div.assertion}
-				|{det} assertion_det										{-> assertion_det.assertion}
-				|{live_free} assertion_ll									{-> assertion_ll.assertion}
-				|{has_trace} assertion_ht									{-> assertion_ht.assertion}
-				|{negated} not assertion									{-> New assertion.negated(assertion)}
+assertion = 	 {mod} assert [lproc]:proc1 tra_mod [rproc]:proc1			{-> New assertion.mod(assert,lproc.exp,rproc.exp)}
+				|{fm} assert [lproc]:proc1 fail_mod [rproc]:proc1			{-> New assertion.fm(assert,lproc.exp,rproc.exp)}
+				|{fd} assert [lproc]:proc1 fail_div [rproc]:proc1			{-> New assertion.fd(assert,lproc.exp,rproc.exp)}
+				|{ref} assert [lproc]:proc1 refusal [rproc]:proc1			{-> New assertion.ref(assert,lproc.exp,rproc.exp)}
+				|{ltl} assert proc1 pipe_equals ltl ddot string				{-> New assertion.ltl(assert,proc1.exp,string)}
+				|{ctl} assert proc1 pipe_equals ctl ddot string				{-> New assertion.ctl(assert,proc1.exp,string)}
+			
+				|{dl_free} assertion_deadlock								{-> assertion_deadlock.assertion}
+				|{div_free} assertion_divergence							{-> assertion_divergence.assertion}
+				|{det} assertion_deterministic								{-> assertion_deterministic.assertion}
+				|{has_trace} assertion_hastrace								{-> assertion_hastrace.assertion}
 				;
 
 			
-assertion_dl {->assertion}	=	 {dl_main} assert proc1 dp_bracket dl_free bracket_r	{-> New assertion.dl_main(proc1.exp)}
-								|{fm} assert proc1 dp_bracket dl_free f_mod bracket_r	{-> New assertion.dl_fm(proc1.exp)}
-								|{fd} assert proc1 dp_bracket dl_free f_div bracket_r	{-> New assertion.dl_fd(proc1.exp)}
-								;
+assertion_deadlock {->assertion} = assert proc1 dp_bracket_l dl_free model? bracket_r	{-> New assertion.deadlock(assert,proc1.exp,model)};
 							 
-assertion_div {->assertion}	=  	 {div_main} assert proc1 dp_bracket div_free bracket_r	{-> New assertion.div_main(proc1.exp)}
-								|{fd} assert proc1 dp_bracket div_free f_div bracket_r	{-> New assertion.div_fd(proc1.exp)}
-								;
+assertion_divergence {->assertion}	=  assert proc1 dp_bracket_l div_free model? bracket_r		{-> New assertion.divergence(assert,proc1.exp,model)};
 							 
-assertion_det {->assertion}	= 	 {det_main} assert proc1 dp_bracket det bracket_r 		{-> New assertion.det_main(proc1.exp)}
-								|{fm} assert proc1 dp_bracket det f_mod bracket_r		{-> New assertion.det_fm(proc1.exp)}
-								|{fd} assert proc1 dp_bracket det f_div bracket_r		{-> New assertion.det_fd(proc1.exp)}
-								;
-									
-assertion_ll {->assertion}	= 	assert proc1 dp_bracket live_free bracket_r				{-> New assertion.ll(proc1.exp)}
-							;
+assertion_deterministic {->assertion}	=  assert proc1 dp_bracket_l det model? bracket_r 		{-> New assertion.deterministic(assert,proc1.exp,model)};
+															
+assertion_hastrace {->assertion}	=  assert [lproc]:proc1 dp_bracket_l 
+											has_trace model? dp_bracket_r [rproc]:proc1		{-> New assertion.hastrace(assert,lproc.exp,model,rproc.exp)};
 
-assertion_ht {->assertion}	= 	{trace_main} assert proc1 dp_bracket 
-								 has_trace bracket_r ddot val_exp			{-> New assertion.ht_main(proc1.exp,val_exp.exp)}
-								|{tra_mod} assert proc1 dp_bracket 
-								 has_trace t_mod bracket_r ddot val_exp 	{-> New assertion.ht_mod(proc1.exp,val_exp.exp)}
-								|{fm} assert proc1 dp_bracket 
-								 has_trace f_mod bracket_r ddot val_exp 	{-> New assertion.ht_fm(proc1.exp,val_exp.exp)}
-								|{fd} assert proc1 dp_bracket 
-								 has_trace f_div bracket_r ddot val_exp		{-> New assertion.ht_fd(proc1.exp,val_exp.exp)}
-								;
-	
-//---------------------------------------------------------------------------------------------------------------------------------------------------	
-print_exp {->def} 	= 	 {print_exp} print proc1 							{-> New def.print_exp(proc1.exp)};
-//---------------------------------------------------------------------------------------------------------------------------------------------------
-time {->def} =  timed par_l proc1 par_r brace_l defs brace_r 				{-> New def.timed(proc1.exp,[defs.def])};
-//---------------------------------------------------------------------------------------------------------------------------------------------------
-module {->def} = mod_defs id [ldefs]:defs exports [rdefs]:defs endmodule 	{-> New def.module(id,[ldefs.def],[rdefs.def])};
-//---------------------------------------------------------------------------------------------------------------------------------------------------
-/*Include File if path is valid*/
-include_file {->def} = include string 										{-> New def.include_file(string)};	
-//---------------------------------------------------------------------------------------------------------------------------------------------------
-					
+//---------------------------------------------------------------------------------------------------------------------------------------------------				
 /*******************************************************************
  * Abstract Syntax Tree                                            *
  *******************************************************************/
@@ -527,7 +508,7 @@ def 			=  {expression} exp
 				  |{types} types
 				  |{channel} [chan_list]:id+ [chan_type]:type_exp?
 				  |{assertion} assertion
-				  |{transparent} id
+				  |{transparent} [id_list]:id+
 				  |{external} id
 				  |{print_exp} [proc1]:exp
 				  |{timed} [proc1]:exp [defs]:def+
@@ -640,7 +621,7 @@ exp 			=  {function} id parameters [proc1]:exp
 				  |{enumerated_set} brace_l arguments brace_r
 				  |{enumerated_compr_set} brace_l arguments stmts brace_r
 //Maps
-				  |{map} par_l [lbool]:exp [rbool]:exp par_r
+				  |{map} par_l [map_list]:exp+ par_r
 				  |{empty_map} empty_map
 //Atoms
 				  |{tuple} tuple lambda?
@@ -670,23 +651,14 @@ stmts 			=  {stmt_list}[stmts_list]:stmts+
 				  |{ddot} ddot
 				  ;
 				  
-assertion 		=  {mod}[lproc]:exp [rproc]:exp
-				  |{fm} [lproc]:exp [rproc]:exp
-				  |{fd} [lproc]:exp [rproc]:exp
-				  |{ltl} [proc1]:exp string
-				  |{ctl} [proc1]:exp string
-				  |{negated} assertion
-				  |{dl_main} [proc1]:exp
-				  |{dl_fm} [proc1]:exp
-				  |{dl_fd} [proc1]:exp
-				  |{div_main} [proc1]:exp
-				  |{div_fd} [proc1]:exp
-				  |{det_main} [proc1]:exp
-				  |{det_fm} [proc1]:exp
-				  |{det_fd} [proc1]:exp
-				  |{ll} [proc1]:exp
-				  |{ht_main} [proc1]:exp [val_exp]:exp
-				  |{ht_mod} [proc1]:exp [val_exp]:exp
-				  |{ht_fm} [proc1]:exp [val_exp]:exp
-				  |{ht_fd} [proc1]:exp [val_exp]:exp
+assertion 		=  {mod} assert [lproc]:exp [rproc]:exp
+				  |{fm} assert [lproc]:exp [rproc]:exp
+				  |{fd} assert [lproc]:exp [rproc]:exp
+				  |{ref} assert [lproc]:exp [rproc]:exp
+				  |{ltl} assert [proc1]:exp string
+				  |{ctl} assert [proc1]:exp string
+				  |{deadlock} assert [proc1]:exp model?
+				  |{divergence} assert [proc1]:exp model?
+				  |{deterministic} assert [proc1]:exp model?
+				  |{hastrace} assert [lproc]:exp model? [rproc]:exp
 				  ;

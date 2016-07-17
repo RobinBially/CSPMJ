@@ -495,10 +495,7 @@ public class SymbolCollector extends DepthFirstAdapter
 		{
 			addSymbol(str, "Ident (Prolog Variable)", node.getId());			
 		}
-		// else if(isBuiltin(str))
-		// {
-			// addSymbol(str, "BuiltIn primitive", node.getId());
-		// }
+
         if(node.getLambda() != null)
         {			
             node.getLambda().apply(this);
@@ -514,13 +511,7 @@ public class SymbolCollector extends DepthFirstAdapter
         if(node.getId() != null)
         {
             node.getId().apply(this);
-        }
-		
-		// if(isBuiltin(str))
-		// {
-			// addSymbol(str, "BuiltIn primitive", node.getId());
-		// }	
-	
+        }	
 			
         if(node.getLambda() != null)
         {			
@@ -528,6 +519,28 @@ public class SymbolCollector extends DepthFirstAdapter
         }
         outAIdTypeExp(node);
     }
+	
+    @Override
+    public void caseAMapExp(AMapExp node)
+    {
+        inAMapExp(node);
+        if(node.getParL() != null)
+        {
+            node.getParL().apply(this);
+        }
+		List<PExp> copy = new ArrayList<PExp>(node.getMapList());
+		for(PExp e : copy)
+		{
+			tree.newLeaf();
+			e.apply(this);
+			tree.returnToParent();
+		}
+        if(node.getParR() != null)
+        {
+            node.getParR().apply(this);
+        }
+        outAMapExp(node);
+    }	
 	
 //***************************************************************************************************************************************************
 //Statements
@@ -626,6 +639,25 @@ public class SymbolCollector extends DepthFirstAdapter
             }
         }
         outALambdaLambda(node);
+    }
+//***************************************************************************************************************************************************
+//Transparent
+
+    @Override
+    public void caseATransparentDef(ATransparentDef node)
+    {
+        inATransparentDef(node);
+        {
+            List<PId> copy = new ArrayList<PId>(node.getIdList());
+			String str;
+            for(PId e : copy)
+            {
+                e.apply(this);
+				str = e.toString().replace(" ","");
+				addSymbol(str,"Transparent function",e);
+            }
+        }
+        outATransparentDef(node);
     }
 	
 //***************************************************************************************************************************************************

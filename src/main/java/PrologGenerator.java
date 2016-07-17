@@ -9,6 +9,7 @@ import java.io.*;
 
 public class PrologGenerator extends DepthFirstAdapter
 {
+	private boolean assertionNegated;
 	private boolean expectingPattern;
 	private boolean inSubtypeDef;
 	private final PrologTermOutput p;
@@ -26,6 +27,7 @@ public class PrologGenerator extends DepthFirstAdapter
 	
 	public PrologGenerator(final PrologTermOutput pto,ArrayList<SymInfo> symbols, boolean printSrcLoc, ArrayList<CommentInfo> commentList) 
 	{
+		assertionNegated = false;
 		currentInPredicate = 0;
 		tree = new BlockTree();
 		generatorArgs = new HashMap<Integer,HashMap<String,String>>();	
@@ -2303,14 +2305,15 @@ public class PrologGenerator extends DepthFirstAdapter
         }
 		p.openTerm("mapExp");
 		p.openList();
-        if(node.getLbool() != null)
-        {
-            node.getLbool().apply(this);
-        }
-        if(node.getRbool() != null)
-        {
-            node.getRbool().apply(this);
-        }
+		
+		List<PExp> copy = new ArrayList<PExp>(node.getMapList());
+		for(PExp e : copy)
+		{
+			tree.newLeaf();
+			e.apply(this);
+			tree.returnToParent();
+		}
+		
 		p.closeList();
 		p.closeTerm();
         if(node.getParR() != null)
@@ -2616,7 +2619,315 @@ public class PrologGenerator extends DepthFirstAdapter
 		p.closeTerm();
         outAPredicateStmts(node);
     }
+//***************************************************************************************************************************************************
+//Assertions
+	
+    @Override
+    public void caseAModAssertion(AModAssertion node) //assert Proc [T= Proc
+    {
+        inAModAssertion(node);
 
+		p.openTerm("assertRef");
+		if(node.getAssert().getText().equals("assert"))
+		p.printAtom("False");
+		else
+		p.printAtom("True");
+	
+        if(node.getLproc() != null)
+        {
+            node.getLproc().apply(this);
+        }
+		p.printAtom("Trace");
+        if(node.getRproc() != null)
+        {
+            node.getRproc().apply(this);
+        }
+		printSrcLoc(node);
+		p.closeTerm();
+        outAModAssertion(node);
+    }
+
+    @Override
+    public void caseAFmAssertion(AFmAssertion node) //assert Proc [F= Proc
+    {
+        inAFmAssertion(node);
+		p.openTerm("assertRef");
+		if(node.getAssert().getText().equals("assert"))
+		p.printAtom("False");
+		else
+		p.printAtom("True");
+        if(node.getLproc() != null)
+        {
+            node.getLproc().apply(this);
+        }
+		p.printAtom("Failure");
+        if(node.getRproc() != null)
+        {
+            node.getRproc().apply(this);
+        }
+		printSrcLoc(node);
+		p.closeTerm();
+        outAFmAssertion(node);
+    }
+
+    @Override
+    public void caseAFdAssertion(AFdAssertion node) //assert Proc [FD= Proc
+    {
+        inAFdAssertion(node);
+        if(node.getAssert() != null)
+        {
+            node.getAssert().apply(this);
+        }
+		p.openTerm("assertRef");
+		if(node.getAssert().getText().equals("assert"))
+		p.printAtom("False");
+		else
+		p.printAtom("True");
+        if(node.getLproc() != null)
+        {
+            node.getLproc().apply(this);
+        }
+		p.printAtom("FailureDivergence");
+        if(node.getRproc() != null)
+        {
+            node.getRproc().apply(this);
+        }
+		printSrcLoc(node);
+		p.closeTerm();
+        outAFdAssertion(node);
+    }
+	
+    @Override
+    public void caseARefAssertion(ARefAssertion node)
+    {
+        inARefAssertion(node);
+		p.openTerm("assertRef");
+		if(node.getAssert().getText().equals("assert"))
+		p.printAtom("False");
+		else
+		p.printAtom("True");
+        if(node.getLproc() != null)
+        {
+            node.getLproc().apply(this);
+        }
+		p.printAtom("RefusalTesting");
+        if(node.getRproc() != null)
+        {
+            node.getRproc().apply(this);
+        }
+		printSrcLoc(node);
+		p.closeTerm();
+        outARefAssertion(node);
+    }
+	
+    @Override
+    public void caseALtlAssertion(ALtlAssertion node)
+    {
+        inALtlAssertion(node);
+		p.openTerm("assertLtl");
+		if(node.getAssert().getText().equals("assert"))
+		p.printAtom("False");
+		else
+		p.printAtom("True");
+        if(node.getProc1() != null)
+        {
+            node.getProc1().apply(this);
+        }
+        if(node.getString() != null)
+        {
+            node.getString().apply(this);
+			p.printAtom(node.getString().getText().replaceAll("\"",""));
+        }
+		printSrcLoc(node);
+		p.closeTerm();
+        outALtlAssertion(node);
+    }
+
+    @Override
+    public void caseACtlAssertion(ACtlAssertion node)
+    {
+        inACtlAssertion(node);
+		p.openTerm("assertCtl");
+		if(node.getAssert().getText().equals("assert"))
+		p.printAtom("False");
+		else
+		p.printAtom("True");	
+        if(node.getProc1() != null)
+        {
+            node.getProc1().apply(this);
+        }
+        if(node.getString() != null)
+        {
+            node.getString().apply(this);
+			p.printAtom(node.getString().getText().replaceAll("\"",""));
+        }
+		printSrcLoc(node);
+		p.closeTerm();
+        outACtlAssertion(node);
+    }
+
+    @Override
+    public void caseADeadlockAssertion(ADeadlockAssertion node)
+    {
+        inADeadlockAssertion(node);
+		if(node.getModel() == null)
+			p.openTerm("assertModelCheck");
+		else
+			p.openTerm("assertModelCheckExt");	
+		if(node.getAssert().getText().equals("assert"))
+			p.printAtom("False");
+		else
+			p.printAtom("True");	
+        if(node.getAssert() != null)
+        {
+            node.getAssert().apply(this);
+        }
+        if(node.getProc1() != null)
+        {
+            node.getProc1().apply(this);
+        }
+		p.printAtom("DeadlockFree");
+        if(node.getModel() != null)
+        {
+            node.getModel().apply(this);
+			String s = node.getModel().getText().replace(" ","");
+			p.printAtom(s.substring(1,s.length()-1));
+        }
+		p.closeTerm();
+        outADeadlockAssertion(node);
+    }
+
+    @Override
+    public void caseADivergenceAssertion(ADivergenceAssertion node)
+    {
+        inADivergenceAssertion(node);
+		if(node.getModel() == null)
+			p.openTerm("assertModelCheck");
+		else
+			p.openTerm("assertModelCheckExt");	
+		if(node.getAssert().getText().equals("assert"))
+			p.printAtom("False");
+		else
+			p.printAtom("True");	
+        if(node.getAssert() != null)
+        {
+            node.getAssert().apply(this);
+        }
+        if(node.getProc1() != null)
+        {
+            node.getProc1().apply(this);
+        }
+		p.printAtom("LivelockFree");
+        if(node.getModel() != null)
+        {
+            node.getModel().apply(this);
+			String s = node.getModel().getText().replace(" ","");
+			p.printAtom(s.substring(1,s.length()-1));
+        }
+		p.closeTerm();
+        outADivergenceAssertion(node);
+    }
+
+    @Override
+    public void caseADeterministicAssertion(ADeterministicAssertion node)
+    {
+        inADeterministicAssertion(node);
+		if(node.getModel() == null)
+			p.openTerm("assertModelCheck");
+		else
+			p.openTerm("assertModelCheckExt");	
+		if(node.getAssert().getText().equals("assert"))
+			p.printAtom("False");
+		else
+			p.printAtom("True");	
+        if(node.getAssert() != null)
+        {
+            node.getAssert().apply(this);
+        }
+        if(node.getProc1() != null)
+        {
+            node.getProc1().apply(this);
+        }
+		p.printAtom("Deterministic");
+        if(node.getModel() != null)
+        {
+            node.getModel().apply(this);
+			String s = node.getModel().getText().replace(" ","");
+			p.printAtom(s.substring(1,s.length()-1));
+        }
+		p.closeTerm();
+        outADeterministicAssertion(node);
+    }
+
+    @Override
+    public void caseAHastraceAssertion(AHastraceAssertion node)
+    {
+        inAHastraceAssertion(node);
+		if(node.getModel() == null)
+			p.openTerm("assertHasTrace");
+		else
+			p.openTerm("assertHasTraceExt");	
+		if(node.getAssert().getText().equals("assert"))
+			p.printAtom("False");
+		else
+			p.printAtom("True");	
+        if(node.getAssert() != null)
+        {
+            node.getAssert().apply(this);
+        }
+        if(node.getLproc() != null)
+        {
+            node.getLproc().apply(this);
+        }
+        if(node.getRproc() != null)
+        {
+            node.getRproc().apply(this);
+        }
+        if(node.getModel() != null)
+        {
+            node.getModel().apply(this);
+			String s = node.getModel().getText().replace(" ","");
+			p.printAtom(s.substring(1,s.length()-1));
+        }
+		p.closeTerm();
+        outAHastraceAssertion(node);
+    }
+//***************************************************************************************************************************************************
+//Transparent
+
+    @Override
+    public void caseATransparentDef(ATransparentDef node)
+    {
+        inATransparentDef(node);
+        {
+			p.openTerm("cspTransparent");
+            List<PId> copy = new ArrayList<PId>(node.getIdList());
+			p.openList();
+            for(PId e : copy)
+            {
+                e.apply(this);
+				p.printAtom(getSymbol(e));
+            }
+			p.closeList();
+			p.closeTerm();
+        }
+        outATransparentDef(node);
+    }
+//***************************************************************************************************************************************************
+//Print expressions
+
+    @Override
+    public void caseAPrintExpDef(APrintExpDef node)
+    {
+        inAPrintExpDef(node);
+		p.openTerm("cspPrint");
+        if(node.getProc1() != null)
+        {
+            node.getProc1().apply(this);
+        }
+		p.closeTerm();
+        outAPrintExpDef(node);
+    }	
 //***************************************************************************************************************************************************
 //Helpers	
 

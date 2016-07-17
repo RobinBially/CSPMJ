@@ -879,32 +879,36 @@ public class IdentifierAnalysis extends DepthFirstAdapter
 		currentInput.clear();
         outAInputPattern(node);
     }
-
-	@Override
+	
+    @Override
     public void caseATransparentDef(ATransparentDef node)
     {
         inATransparentDef(node);
-        if(node.getId() != null)
         {
-            node.getId().apply(this);
-			String str = node.getId().toString().replaceAll(" ","");
-			if(left.get(letWithinDepth) == null)
-			{
-				left.put(letWithinDepth,new ArrayList<String>());
-			}
-			if(!left.get(letWithinDepth).contains(str))
-			{
-				ArrayList<String> temp = left.get(letWithinDepth);
-				temp.add(str);
-				left.put(letWithinDepth,temp);
-			}
-			else
-			{
-				throw new RuntimeException("Redefinition of Identifier "+str+" "+getSrcLoc(node.getId())+".");
-			}
+            List<PId> copy = new ArrayList<PId>(node.getIdList());
+            for(PId e : copy)
+            {
+                e.apply(this);
+				String str = e.toString().replaceAll(" ","");
+				if(left.get(letWithinDepth) == null)
+				{
+					left.put(letWithinDepth,new ArrayList<String>());
+				}
+				if(!left.get(letWithinDepth).contains(str))
+				{
+					ArrayList<String> temp = left.get(letWithinDepth);
+					temp.add(str);
+					left.put(letWithinDepth,temp);
+				}
+				else
+				{
+					throw new RuntimeException("Redefinition of Identifier "+str+" "+getSrcLoc(e)+".");
+				}
+            }
         }
         outATransparentDef(node);
     }
+
 	
     @Override
     public void caseAExternalDef(AExternalDef node)
