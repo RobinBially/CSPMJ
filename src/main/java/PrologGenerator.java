@@ -9,6 +9,7 @@ import java.io.*;
 
 public class PrologGenerator extends DepthFirstAdapter
 {
+	private boolean renamingActivated; //print symbol-numbers or not (needed for cspmf comparison)
 	private boolean assertionNegated;
 	private boolean expectingPattern;
 	private boolean inSubtypeDef;
@@ -25,7 +26,7 @@ public class PrologGenerator extends DepthFirstAdapter
 	private boolean patternRequired;	
 	private ArrayList<CommentInfo> commentList;
 	
-	public PrologGenerator(final PrologTermOutput pto,ArrayList<SymInfo> symbols, boolean printSrcLoc, ArrayList<CommentInfo> commentList) 
+	public PrologGenerator(final PrologTermOutput pto,ArrayList<SymInfo> symbols, boolean printSrcLoc, boolean rna, ArrayList<CommentInfo> commentList) 
 	{
 		assertionNegated = false;
 		currentInPredicate = 0;
@@ -40,6 +41,7 @@ public class PrologGenerator extends DepthFirstAdapter
 		groundrep = 0;
 		this.symbols = symbols;
 		this.printSrcLoc = printSrcLoc;
+		renamingActivated = rna;
 		this.commentList = commentList;
 		patternRequired = false;
 	}
@@ -63,103 +65,105 @@ public class PrologGenerator extends DepthFirstAdapter
 				currentInChannel = false;
             }
         }
-		//print pragmas
-		for(CommentInfo cinfo : commentList)
+		if(renamingActivated)
 		{
-			if(!cinfo.formula.equals(""))
+			//print pragmas
+			for(CommentInfo cinfo : commentList)
 			{
-				String tempFormula = cinfo.formula;
-				tempFormula = tempFormula.replaceAll("\n","\\\\n");
-				tempFormula = tempFormula.replaceAll("\r","\\\\r");
-				String tempCom = cinfo.pragmaComment;
-				tempCom = tempCom.replaceAll("\n","\\\\n");
-				tempCom = tempCom.replaceAll("\r","\\\\r");
-				
-				p.appendTerm("'pragma'(");
-				if(cinfo.isLTL)
-				p.appendTerm("'assert_ltl \""+tempFormula+"\"");
+				if(!cinfo.formula.equals(""))
+				{
+					String tempFormula = cinfo.formula;
+					tempFormula = tempFormula.replaceAll("\n","\\\\n");
+					tempFormula = tempFormula.replaceAll("\r","\\\\r");
+					String tempCom = cinfo.pragmaComment;
+					tempCom = tempCom.replaceAll("\n","\\\\n");
+					tempCom = tempCom.replaceAll("\r","\\\\r");
+					
+					p.appendTerm("'pragma'(");
+					if(cinfo.isLTL)
+					p.appendTerm("'assert_ltl \""+tempFormula+"\"");
+					else
+					p.appendTerm("'assert_ctl \""+tempFormula+"\"");	
+					if(!tempCom.equals(""))
+					p.appendTerm(" \""+tempCom+"\"')");
+					else
+					p.appendTerm("')");
+					p.fullstop();
+				}
+			}
+			//print comments		
+			for(CommentInfo cinfo : commentList)
+			{
+				if(cinfo.isMultilineComment)
+				{
+					String comment = cinfo.comment;
+					p.openTerm("comment");
+					if(cinfo.formula.equals(""))
+					p.openTerm("blockComment");
+					else
+					p.openTerm("pragmaComment");
+					comment = comment.replaceAll("\n","\\\\n");
+					comment = comment.replaceAll("\r","\\\\r");
+					p.printAtom(comment);
+					p.closeTerm();
+					if(printSrcLoc)
+					{
+						p.openTerm("src_position");
+						p.printNumber(cinfo.startLine);
+						p.printNumber(cinfo.startColumn);
+						p.printNumber(cinfo.offset);
+						p.printNumber(cinfo.len);
+						p.closeTerm();
+					}
+					else
+					{
+						p.printAtom("no_loc_info_available");
+					}
+					p.closeTerm();
+				}
 				else
-				p.appendTerm("'assert_ctl \""+tempFormula+"\"");	
-				if(!tempCom.equals(""))
-				p.appendTerm(" \""+tempCom+"\"')");
-				else
-				p.appendTerm("')");
+				{
+					p.openTerm("comment");
+					p.openTerm("lineComment");
+					p.printAtom(cinfo.comment);
+					if(printSrcLoc)
+					{
+						p.openTerm("src_position");
+						p.printNumber(cinfo.startLine);
+						p.printNumber(cinfo.startColumn);
+						p.printNumber(cinfo.offset);
+						p.printNumber(cinfo.len);
+						p.closeTerm();
+					}
+					else
+					{
+						p.printAtom("no_loc_info_available");
+					}
+					p.closeTerm();
+					p.closeTerm();				
+				}
 				p.fullstop();
 			}
-		}
-		//print comments		
-		for(CommentInfo cinfo : commentList)
-		{
-			if(cinfo.isMultilineComment)
+			//print Symbols	
+			for(int i = 0;i<symbols.size();i++)
 			{
-				String comment = cinfo.comment;
-				p.openTerm("comment");
-				if(cinfo.formula.equals(""))
-				p.openTerm("blockComment");
+				p.openTerm("symbol");
+				//print symbol reference name
+				String ref = symbols.get(i).symbolReference;
+				if(ref.startsWith("_"))
+					p.printAtom(ref.substring(1));
 				else
-				p.openTerm("pragmaComment");
-				comment = comment.replaceAll("\n","\\\\n");
-				comment = comment.replaceAll("\r","\\\\r");
-				p.printAtom(comment);
+					p.printAtom(ref);
+				//print symbol name
+				p.printAtom(symbols.get(i).symbolName);
+				//print location of symbol
+				printSrcLoc(symbols.get(i).node);
+				//print type of symbol
+				p.printAtom(symbols.get(i).symbolInfo);
 				p.closeTerm();
-				if(printSrcLoc)
-				{
-					p.openTerm("src_position");
-					p.printNumber(cinfo.startLine);
-					p.printNumber(cinfo.startColumn);
-					p.printNumber(cinfo.offset);
-					p.printNumber(cinfo.len);
-					p.closeTerm();
-				}
-				else
-				{
-					p.printAtom("no_loc_info_available");
-				}
-				p.closeTerm();
+				p.fullstop();
 			}
-			else
-			{
-				p.openTerm("comment");
-				p.openTerm("lineComment");
-				p.printAtom(cinfo.comment);
-				if(printSrcLoc)
-				{
-					p.openTerm("src_position");
-					p.printNumber(cinfo.startLine);
-					p.printNumber(cinfo.startColumn);
-					p.printNumber(cinfo.offset);
-					p.printNumber(cinfo.len);
-					p.closeTerm();
-				}
-				else
-				{
-					p.printAtom("no_loc_info_available");
-				}
-				p.closeTerm();
-				p.closeTerm();				
-			}
-			p.fullstop();
-		}
-		//print Symbols	
-		for(int i = 0;i<symbols.size();i++)
-		{
-			p.openTerm("symbol");
-			//print symbol reference name
-			String ref = symbols.get(i).symbolReference;
-			if(ref.startsWith("_"))
-				p.printAtom(ref.substring(1));
-			else
-				p.printAtom(ref);
-			//print symbol name
-			p.printAtom(symbols.get(i).symbolName);
-			//print location of symbol
-			printSrcLoc(symbols.get(i).node);
-			//print type of symbol
-			p.printAtom(symbols.get(i).symbolInfo);
-			p.closeTerm();
-			p.fullstop();
-		}
-			
+		}	
         outADefsStart(node);
     }
 	
@@ -3159,9 +3163,22 @@ public class PrologGenerator extends DepthFirstAdapter
 	{
 		for(int i = 0; i<symbols.size();i++)
 		{
-			if(symbols.get(i).node == n)
+			if(renamingActivated)
 			{
-				return symbols.get(i).symbolReference;
+				if(symbols.get(i).node == n)
+				{
+					return symbols.get(i).symbolReference;
+				}
+			}
+			else
+			{
+				if(symbols.get(i).node == n)
+				{
+					if(symbols.get(i).symbolReference.startsWith("_"))
+					return "_"+symbols.get(i).symbolName;
+					else
+					return symbols.get(i).symbolName;
+				}				
 			}
 		}
 		return "";
@@ -3176,13 +3193,35 @@ public class PrologGenerator extends DepthFirstAdapter
 		{
 			if(tree.isDefined(str))
 			{
-				reference = tree.getSymbol(str);
-				break;
+				if(renamingActivated)
+				{
+					reference = tree.getSymbol(str);
+					break;
+				}
+				else
+				{
+					if(tree.getSymbol(str).startsWith("_"))
+					reference = "_"+str;
+					else
+					reference = str;
+					break;					
+				}
 			}
 			else if(!findInSymbols(str).equals(""))
 			{
-				reference = findInSymbols(str);
-				break;
+				if(renamingActivated)
+				{
+					reference = findInSymbols(str);
+					break;
+				}
+				else
+				{
+					if(findInSymbols(str).startsWith("_"))
+					reference = "_"+str;
+					else
+					reference = str;		
+					break;
+				}
 			}
 			else
 			{			

@@ -1,4 +1,4 @@
-assert 1 [T= 2 :[tau priority 1]
-assert 1 [FD= 2 :[tau priority 1]
-assert 1 [F= 2 :[tau priority 1]
-assert not 1 [R= 2 :[tau priority 1]
+A(x) = 1
+B(x) = 2+x
+x = 3
+C = x

@@ -846,7 +846,7 @@ public class PrologGeneratorTests
 	private String parseString(final String input) throws CSPMparserException 
 	{
 		CSPMparser parser = new CSPMparser();
-		return parser.parseString(input);
+		return parser.parseString(input,true);
 	}
 
 

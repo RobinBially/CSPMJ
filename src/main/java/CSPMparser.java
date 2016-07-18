@@ -80,57 +80,16 @@ public class CSPMparser
 			else if(getExtension(fileEntry.toString()).equals("csp"))
 			{
 				fileCounter++;
-				if(show)
-				System.out.println("\n\nParsing '"+fileEntry.getName()+"':");
-				else
-				System.out.println("\n\nParsing '"+fileEntry.getName()+"'...");
-
+				System.out.println("\n\nParsing '"+fileEntry.getName()+"'...");			
 				try 
 				{
-					newstream = getStringFromFile(fileEntry.toString());
-					newstream = saveComments(newstream);
-					newstream = includeFile(newstream);
-					newstream = saveComments(newstream);
-					
-					TriangleBracketSubstitution tbs = new TriangleBracketSubstitution(newstream);
-					if(!newstream.equals(""))
-					newstream = tbs.findTriangles();
-
-					StringReader sr = new StringReader(newstream);
-					BufferedReader br = new BufferedReader(sr); 
-					Lexer l = new LexHelper(new PushbackReader(br,100000));
-					Parser p = new Parser(l);
-					Start tree = p.parse();						
-
-					StatementPatternCheck spc = new StatementPatternCheck();
-					tree.apply(spc);
-					
-					TreeLogicChecker tlc = new TreeLogicChecker();
-					tree.apply(tlc);
-					System.out.println("Checking unbound and renamed identifiers.");
-					IdentifierAnalysis ia = new IdentifierAnalysis();
-					tree.apply(ia);
-					System.out.println("No unbound identifiers were found.\nYour File has been parsed successfully.");	
-					
-					PrologTermOutput pto = new PrologTermOutput();
-					SymbolCollector sc = new SymbolCollector();
-					tree.apply(sc);
-					ArrayList<SymInfo> symbols = sc.getSymbols();
-					
-					PrologGenerator pout = new PrologGenerator(pto,symbols,true,commentList);
-					tree.apply(pout);
-
-					System.out.println("Generating Prolog-File.");
-					createPrologFile(pto,fileEntry.toString(),null,"");
-					
-					//Typechecker ts = new Typechecker();
-					//tree.apply(ts);
+					String s = getStringFromFile(fileEntry.toString());
+					parsingRoutine(s,true,true,true,fileEntry.toString(),""); 
 				} 	
-				catch (Exception e) 
+				catch(Exception e) 
 				{
 					exceptionCounter++;
-					System.out.println("An Exception was thrown!");
-					createPrologFile(null,fileEntry.toString(),e,"");
+					System.out.println(e.getMessage());
 				}
 			}
 			commentList.clear();
@@ -139,56 +98,22 @@ public class CSPMparser
 	}
 
 	
-	public String parseString(String s) throws CSPMparserException 
+	public String parseString(String s, boolean renamingActivated) throws CSPMparserException 
 	{
 		String ret = "";
-		
-		newstream = saveComments(s);
-		newstream = includeFile(newstream);
-		newstream = saveComments(newstream);
-		TriangleBracketSubstitution tbs = new TriangleBracketSubstitution(newstream);
-		if(!newstream.equals(""))
-		newstream = tbs.findTriangles();
-	
-		StringReader sr = new StringReader(newstream);
-		BufferedReader br = new BufferedReader(sr); 
-		Lexer l = new LexHelper(new PushbackReader(br,100000));
-		Parser p = new Parser(l);
-		try {
-			Start tree = p.parse();
-			
-			StatementPatternCheck spc = new StatementPatternCheck();
-			tree.apply(spc);
-						
-			TreeLogicChecker tlc = new TreeLogicChecker();
-			tree.apply(tlc);
-
-			IdentifierAnalysis ia = new IdentifierAnalysis();
-			tree.apply(ia);
-			
-			PrologTermOutput pto = new PrologTermOutput();
-			SymbolCollector sc = new SymbolCollector();
-			tree.apply(sc);
-			ArrayList<SymInfo> symbols = sc.getSymbols();
-			PrologGenerator pout = new PrologGenerator(pto,symbols,false,commentList);
-			tree.apply(pout);
-			
-			ret = pto.getStringWriter().toString();
+		try
+		{
+			ret = parsingRoutine(s,false,false,renamingActivated,"","");
 			while(ret.endsWith("\n") || ret.endsWith("\r"))
 			{
 				ret = ret.substring(0,ret.length()-1);
-			}		
-			
-		} catch (ParserException e) {
-			e.printStackTrace();
-			throw new CSPMparserException(e.getToken(),e.getLocalizedMessage());
-		} catch (LexerException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			}
 		}
+		catch(CSPMparserException e) 
+		{
+			throw e;
+		}
+		
 		return ret;
 	}
 
@@ -198,7 +123,22 @@ public class CSPMparser
 		System.out.println("Parsing '"+inputFile+"'...");
 		try 
 		{			
-			newstream = getStringFromFile(inputFile);
+			String s = getStringFromFile(inputFile);
+			parsingRoutine(s,true,true,true,inputFile,outputFile);
+		} 	
+		catch(Exception e) 
+		{
+			System.out.println(e.getMessage());
+		}
+
+	}
+
+	
+	public String parsingRoutine(String newstream, boolean createPrologFile, boolean printSrc, boolean renamingActivated,
+	String inputFile, String outputFile) throws CSPMparserException
+	{
+		try 
+		{		
 			newstream = saveComments(newstream);
 			newstream = includeFile(newstream);
 			newstream = saveComments(newstream);
@@ -206,8 +146,6 @@ public class CSPMparser
 			TriangleBracketSubstitution tbs = new TriangleBracketSubstitution(newstream);
 			if(!newstream.equals(""))
 			newstream = tbs.findTriangles();
-			
-			//System.out.println(newstream);
 
 			StringReader sr = new StringReader(newstream);
 			BufferedReader br = new BufferedReader(sr); 
@@ -217,7 +155,7 @@ public class CSPMparser
 			
 			StatementPatternCheck spc = new StatementPatternCheck();
 			tree.apply(spc);
-	
+			
 			TreeLogicChecker tlc = new TreeLogicChecker();
 			tree.apply(tlc);
 			
@@ -232,21 +170,48 @@ public class CSPMparser
 			SymbolCollector sc = new SymbolCollector();
 			tree.apply(sc);
 			ArrayList<SymInfo> symbols = sc.getSymbols();
-			PrologGenerator pout = new PrologGenerator(pto,symbols,true,commentList);
-			tree.apply(pout);
+			PrologGenerator pout = new PrologGenerator(pto,symbols,printSrc,renamingActivated,commentList);
+			tree.apply(pout);										
 
 			System.out.println("Generating Prolog-File.");
+			
+			if(createPrologFile)
 			createPrologFile(pto,inputFile,null,outputFile);
+			else
+			return pto.getStringWriter().toString();
 
-
-		} 	
-		catch (Exception e) 
+		} 
+		catch (ParserException e) 
 		{
-			System.out.println("An Exception was thrown!");
+			System.out.println("An Exception was thrown.");
+			if(createPrologFile)
 			createPrologFile(null,inputFile,e,outputFile);
+			throw new CSPMparserException(e.getToken(),e.getLocalizedMessage());
+		} 
+		catch(LexerException e) 
+		{
+			System.out.println("An Exception was thrown.");
+			if(createPrologFile)
+			createPrologFile(null,inputFile,e,outputFile);			
+			throw new RuntimeException(e.getMessage());
+		} 
+		catch(IOException e) 
+		{
+			System.out.println("An Exception was thrown.");
+			if(createPrologFile)
+			createPrologFile(null,inputFile,e,outputFile);
+			throw new RuntimeException(e.getMessage());
 		}		
+		catch(Exception e) 
+		{
+			System.out.println("An Exception was thrown.");
+			if(createPrologFile)
+			createPrologFile(null,inputFile,e,outputFile);
+			throw new RuntimeException(e.getMessage());
+		}
+		return "";
 	}
-
+	
 	public void createPrologFile(PrologTermOutput pto,String filename, Exception e, String outputFile)
 	{
 		try
@@ -318,9 +283,8 @@ public class CSPMparser
 		}
 		catch(Exception e) 		
 		{
-			throw new RuntimeException("\nYour File was not found!");
-		}	
-		
+			throw new RuntimeException("Your File has not been converted to a String.");
+		}
 	}
 	
 	public int getLineFromPos(int pos, char[] c)
@@ -477,52 +441,12 @@ public class CSPMparser
 			else
 			{
 				throw new RuntimeException("File "+path+" was not found.");
-			}		
-			String str = getStringFromFile(path);	
+			}
+			String str = getStringFromFile(path);
 			matcher.appendReplacement(sb,str);	
 		}
 		matcher.appendTail(sb);
 		return sb.toString();
-	}
-
-
-	public static void main(String arguments[]) 
-	{		
-		CSPMparser cspm = new CSPMparser();
-		if(arguments.length == 3 && arguments[0].equals("-parse"))
-		{	if(arguments[2].startsWith("--prologOut="))
-			{
-				cspm.parseFile(arguments[1],arguments[2]);
-			}
-			else
-			{
-				System.out.println("Incorrect input!");
-				System.exit(1);
-			}
-		}
-		else if(arguments.length == 2 && arguments[0].equals("-parse"))
-		{	
-				cspm.parseFile(arguments[1],"");
-		}
-		else if((arguments.length == 1) && (arguments[0].equals("-parseAll")))
-		{
-			File folder = new File(cspm.getPath());
-			int fileCounter = cspm.parseFilesInFolder(folder,false);
-
-			if(fileCounter-cspm.getExceptionCounter() == 0)
-			{
-				System.out.println("\nNo CSPM-File has been parsed successfully!");
-			}
-			else
-			{
-				System.out.println("\n"+(fileCounter-cspm.getExceptionCounter())+" of "+fileCounter+" CSPM-Files have been parsed successfully!");
-			}
-		}
-		else
-		{
-			System.out.println("Incorrect input!");
-			System.exit(1);
-		}	
 	}
 	
 	public void setVersion(String s)
@@ -544,5 +468,44 @@ public class CSPMparser
 			else
 			versionString += subnum[j];
 		}
+	}
+
+	public static void main(String arguments[]) 
+	{		
+		CSPMparser cspm = new CSPMparser();
+		if(arguments.length == 3 && arguments[0].equals("-parse"))
+		{	if(arguments[2].startsWith("--prologOut="))
+			{
+				cspm.parseFile(arguments[1],arguments[2]);
+			}
+			else
+			{
+				System.out.println("Incorrect input!");
+				System.exit(1);
+			}
+		}
+		else if(arguments.length == 2 && arguments[0].equals("-parse"))
+		{	
+			cspm.parseFile(arguments[1],"");
+		}
+		else if((arguments.length == 1) && (arguments[0].equals("-parseAll")))
+		{
+			File folder = new File(cspm.getPath());
+			int fileCounter = cspm.parseFilesInFolder(folder,false);
+
+			if(fileCounter-cspm.getExceptionCounter() == 0)
+			{
+				System.out.println("\nNo CSPM-File has been parsed successfully!");
+			}
+			else
+			{
+				System.out.println("\n"+(fileCounter-cspm.getExceptionCounter())+" of "+fileCounter+" CSPM-Files have been parsed successfully!");
+			}
+		}
+		else
+		{
+			System.out.println("Incorrect input!");
+			System.exit(1);
+		}	
 	}
 }
