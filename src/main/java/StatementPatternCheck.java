@@ -923,9 +923,9 @@ public class StatementPatternCheck extends DepthFirstAdapter
 		{
 			throw new RuntimeException("Expecting pattern (Seq Compr. not allowed).");
 		}
-        if(node.getArguments() != null)
+        if(node.getExpressions() != null)
         {
-            node.getArguments().apply(this);
+            node.getExpressions().apply(this);
         }
         if(node.getStmts() != null)
         {
@@ -987,11 +987,11 @@ public class StatementPatternCheck extends DepthFirstAdapter
     public void caseASetExp(ASetExp node)
     {
         inASetExp(node);
-        if(node.getArguments() != null)
+        if(node.getExpressions() != null)
         {
-            node.getArguments().apply(this);
+            node.getExpressions().apply(this);
         }
-		if(patternRequired>0 && checkNumberOfArgs(node.getArguments().toString())>1)
+		if(patternRequired>0 && checkNumberOfArgs(node.getExpressions().toString())>1)
 		{
 			throw new RuntimeException("Expecting pattern (Set patterns must have 1 Element.");
 		}
@@ -1040,9 +1040,9 @@ public class StatementPatternCheck extends DepthFirstAdapter
 		{
 			throw new RuntimeException("Expecting pattern (Set Compr. not allowed).");
 		}
-        if(node.getArguments() != null)
+        if(node.getExpressions() != null)
         {
-            node.getArguments().apply(this);
+            node.getExpressions().apply(this);
         }
         if(node.getStmts() != null)
         {
@@ -1101,9 +1101,9 @@ public class StatementPatternCheck extends DepthFirstAdapter
 		{
 			throw new RuntimeException("Expecting pattern (Enumerated Set not allowed).");
 		}
-        if(node.getArguments() != null)
+        if(node.getExpressions() != null)
         {
-            node.getArguments().apply(this);
+            node.getExpressions().apply(this);
         }
         outAEnumeratedSetExp(node);
     }
@@ -1116,9 +1116,9 @@ public class StatementPatternCheck extends DepthFirstAdapter
 		{
 			throw new RuntimeException("Expecting pattern (Enumerated Set Compr. not allowed).");
 		}
-        if(node.getArguments() != null)
+        if(node.getExpressions() != null)
         {
-            node.getArguments().apply(this);
+            node.getExpressions().apply(this);
         }
         if(node.getStmts() != null)
         {
@@ -1162,18 +1162,22 @@ public class StatementPatternCheck extends DepthFirstAdapter
     public void caseATupleExp(ATupleExp node)
     {
         inATupleExp(node);
+		List<PArguments> copy = new ArrayList<PArguments>(node.getArguments());
+		if(patternRequired>0 && copy.size()>0)
+		{
+			throw new RuntimeException("Expecting Pattern (Tuple-Pattern does not allow lambda params).");
+		}
         if(node.getTuple() != null)
         {
             node.getTuple().apply(this);
         }
-        if(node.getLambda() != null)
-        {
-            node.getLambda().apply(this);
+        {     
+            for(PArguments e : copy)
+            {
+                e.apply(this);
+            }
         }
-		if(patternRequired>0 && node.getLambda() != null)
-		{
-			throw new RuntimeException("Expecting Pattern (Tuple-Pattern does not allow lambda params).");
-		}
+
         outATupleExp(node);
     }
 	
@@ -1181,6 +1185,11 @@ public class StatementPatternCheck extends DepthFirstAdapter
     public void caseAParenthesisExp(AParenthesisExp node)
     {
         inAParenthesisExp(node);
+		List<PArguments> copy = new ArrayList<PArguments>(node.getArguments());
+		if(patternRequired>0 && copy.size()>0)
+		{
+			throw new RuntimeException("Expecting Pattern (Parenthesis-Pattern does not allow lambda params).");
+		}
         if(node.getParL() != null)
         {
             node.getParL().apply(this);
@@ -1193,14 +1202,13 @@ public class StatementPatternCheck extends DepthFirstAdapter
         {
             node.getParR().apply(this);
         }
-        if(node.getLambda() != null)
-        {
-            node.getLambda().apply(this);
+        {     
+            for(PArguments e : copy)
+            {
+                e.apply(this);
+            }
         }
-		if(patternRequired>0 && node.getLambda() != null)
-		{
-			throw new RuntimeException("Expecting Pattern (Parenthesis-Pattern does not allow lambda params).");
-		}
+
         outAParenthesisExp(node);
     }
 	
@@ -1257,18 +1265,22 @@ public class StatementPatternCheck extends DepthFirstAdapter
     public void caseAIdExp(AIdExp node)
     {
         inAIdExp(node);
+		List<PArguments> copy = new ArrayList<PArguments>(node.getArguments());
+		if(patternRequired>0 && copy.size() >0)
+		{
+			throw new RuntimeException("Expecting Pattern (Var. Pattern does not allow arguments).");
+		}
         if(node.getId() != null)
         {
             node.getId().apply(this);
         }
-        if(node.getLambda() != null)
-        {
-            node.getLambda().apply(this);
+        {        
+            for(PArguments e : copy)
+            {
+                e.apply(this);
+            }
         }
-		if(patternRequired>0 && node.getLambda() != null)
-		{
-			throw new RuntimeException("Expecting Pattern (Var. Pattern does not allow parameters).");
-		}
+
         outAIdExp(node);
     }
 

@@ -1,6 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * A Parser for CSP in JAVA                           		  *
- * CSPMJ V0.61												  *
+ * CSPMJ V0.62												  *
  *															  *
  * robin.bially@hhu.de		                                  *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -60,6 +60,7 @@ Tokens
 	dl_free 		= 'deadlock free';
 	div_free 		= 'divergence free'|'livelock free';
 	det 			= 'deterministic';
+	tau 			= 'tau priority';
 	has_trace 		= 'has trace';
 	timed 			= 'Timed';
 	mod_defs		= 'module';	
@@ -210,7 +211,7 @@ type_exp1 {->type_exp}		= 	 {par} par_l type_exp_list par_r		{-> New type_exp.pa
 								|{set_type} type_exp2					{-> type_exp2.type_exp}
 								;
 type_exp2 {->type_exp} 		=  	 {set} set								{-> New type_exp.set(set.exp)}
-								|{set_name} id lambda?					{-> New type_exp.id(id,lambda)}
+								|{set_name} id arguments*				{-> New type_exp.id(id,[arguments])}
 								;
 type_exp_list {->type_exp+}  = 	 {list} type_exp0 comma type_exp_list	{->[type_exp0.type_exp,type_exp_list.type_exp]}
 								|{end} type_exp0						{->[type_exp0.type_exp]}
@@ -263,7 +264,7 @@ tuple_pattern {->pattern}   =  par_l pattern1 comma pattern_list par_r 		{-> New
 //---------------------------------------------------------------------------------------------------------------------------------------------------
 /*Creation of Expressions*/	
 
-exp  				=	 {function} id parameters eq proc1 								{-> New exp.function(id,parameters,proc1.exp)}
+exp  				=	 {function} id parameters+ eq proc1 							{-> New exp.function(id,[parameters],proc1.exp)}
 						|{pattern} pattern1 eq proc1 									{-> New exp.pattern(pattern1.pattern,proc1.exp)}
 						;
 
@@ -367,28 +368,29 @@ concat 	{->exp+}	=	 {list} concat cat atom							{-> [concat.exp,atom.exp]}
 atom {->exp}		= 	 {sequence} sequence 								{-> sequence.exp}
 						|{set} set 											{-> set.exp}
 						|{map} map 											{-> map.exp}
-						|{tuple} tuple lambda? 								{-> New exp.tuple(tuple,lambda)}
-						|{parenthesis} par_l proc1 par_r lambda?			{-> New exp.parenthesis(par_l,proc1.exp,par_r,lambda)}
 						|{string} string 									{-> New exp.string(string)}
 						|{char} char 										{-> New exp.char(char)}
 						|{wildcard} wildcard 								{-> New exp.wildcard(wildcard)}
 						|{num} number  										{-> New exp.number(number)}
 						|{true} true 										{-> New exp.true(true)}
 						|{false} false 										{-> New exp.false(false)}
-						|{id} id lambda?									{-> New exp.id(id,lambda)}
+						|{tuple} tuple arguments* 							{-> New exp.tuple(tuple,[arguments])}
+						|{parenthesis} par_l proc1 par_r arguments*			{-> New exp.parenthesis(par_l,proc1.exp,par_r,[arguments])}
+						|{id} id arguments*									{-> New exp.id(id,[arguments])}
 						;
 //---------------------------------------------------------------------------------------------------------------------------------------------------
 /*(e1,e2,...,en) different types possible*/
-tuple 	 		=  {tuple} par_l proc1 comma arguments_list par_r			{-> New tuple.tuple(par_l,proc1.exp,comma,[arguments_list.exp],par_r)};
-lambda 			=  {lambda} par_l arguments_list par_r						{-> New lambda.lambda([arguments_list.exp])};
+tuple 	 		=  {tuple} par_l proc1 comma expression_list par_r			{-> New tuple.tuple(par_l,proc1.exp,comma,[expression_list.exp],par_r)};
+
+arguments 			=  {arguments} par_l expressions par_r					{-> New arguments.arg_list(expressions.expressions)};
 
 //---------------------------------------------------------------------------------------------------------------------------------------------------
 // e1,e2,...,en    all of type a! The first node seems to be pointless but it is not!
 
-arguments {-> arguments}	=   arguments_list 									{-> New arguments.arg_list([arguments_list.exp])}; 
-arguments_list {-> exp+}	=   {arg_start} proc1 comma arguments_list			{-> [proc1.exp, arguments_list.exp]}
-								|{arg_end} proc1								{-> [proc1.exp]}
-								;
+expressions {-> expressions}	=   expression_list 								{-> New expressions.expression_list([expression_list.exp])}; 
+expression_list {-> exp+}		=   {list} proc1 comma expression_list				{-> [proc1.exp, expression_list.exp]}
+									|{end} proc1									{-> [proc1.exp]}
+									;	
 //---------------------------------------------------------------------------------------------------------------------------------------------------
 link_comp 			= lc_list add_stmts?											{-> New link_comp.link_comp([lc_list.exp],add_stmts.stmts)};
 
@@ -405,11 +407,11 @@ rc_list {-> exp+} 	=  {list} [levent]:event arrow_l [revent]:event comma rc_list
 add_stmts {-> stmts}	= pipe stmts 												{-> stmts.stmts};
 //---------------------------------------------------------------------------------------------------------------------------------------------------
 sequence {->exp} =	 {empty_seq} seq_open seq_close									{-> New exp.empty_seq(seq_open,seq_close)}										
-					|{expl_seq} seq_open arguments seq_close						{-> New exp.expl_seq(seq_open,arguments,seq_close)}
+					|{expl_seq} seq_open expressions seq_close						{-> New exp.expl_seq(seq_open,expressions,seq_close)}
 					|{ranged} seq_open [lval]:val_exp dotdot 
 							   [rval]:val_exp seq_close								{-> New exp.ranged_seq(seq_open,lval.exp,rval.exp,seq_close)}
 					|{infinite} seq_open val_exp dotdot seq_close					{-> New exp.infinite_seq(seq_open,val_exp.exp,seq_close)}
-					|{compr} seq_open arguments pipe stmts seq_close 				{-> New exp.compr_seq(seq_open,arguments,stmts,seq_close)}
+					|{compr} seq_open expressions pipe stmts seq_close 				{-> New exp.compr_seq(seq_open,expressions,stmts,seq_close)}
 
 					|{ranged_compr} seq_open [lval]:val_exp dotdot 
 								 [rval]:val_exp pipe stmts seq_close 				{-> New exp.ranged_compr_seq(seq_open,lval.exp,rval.exp,stmts,seq_close)}
@@ -421,11 +423,11 @@ sequence {->exp} =	 {empty_seq} seq_open seq_close									{-> New exp.empty_seq
 /*Examples: {v,w,x,y,z}, {m..n}, {m..},{x*2..64|x<-{8,4}}*/
 
 set {-> exp} = 	 {empty_set} brace_l brace_r 											{-> New exp.empty_set(brace_l,brace_r)}
-				|{set} brace_l arguments brace_r										{-> New exp.set(brace_l,arguments,brace_r)}
+				|{set} brace_l expressions brace_r										{-> New exp.set(brace_l,expressions,brace_r)}
 				|{ranged} brace_l [lval]:val_exp dotdot 							
 										[rval]:val_exp brace_r							{-> New exp.ranged_set(brace_l,lval.exp,rval.exp,brace_r)}
 				|{infinite} brace_l val_exp dotdot brace_r								{-> New exp.infinite_set(brace_l,val_exp.exp,brace_r)}
-				|{compr} brace_l arguments pipe stmts brace_r							{-> New exp.compr_set(brace_l,arguments,stmts,brace_r)}
+				|{compr} brace_l expressions pipe stmts brace_r							{-> New exp.compr_set(brace_l,expressions,stmts,brace_r)}
 				|{ranged_compr} brace_l [lval]:val_exp dotdot 
 									   [rval]:val_exp pipe stmts brace_r				{-> New exp.ranged_compr_set(brace_l,lval.exp,rval.exp,stmts,brace_r)}
 				|{infinite_comp} brace_l val_exp dotdot pipe stmts brace_r				{-> New exp.infinite_compr_set(brace_l,val_exp.exp,stmts,brace_r)}
@@ -433,9 +435,9 @@ set {-> exp} = 	 {empty_set} brace_l brace_r 											{-> New exp.empty_set(br
 				|{enum_set_comp} enum_set_comp											{-> enum_set_comp.exp}
 				;
 	
-enum_set {->exp}   	    =  brace_l [lpipe]:pipe arguments [rpipe]:pipe brace_r		{-> New exp.enumerated_set(brace_l,arguments,brace_r)};
-enum_set_comp {->exp}	=  brace_l [lpipe]:pipe arguments [mpipe]:pipe stmts 		
-						  [rpipe]:pipe brace_r										{-> New exp.enumerated_compr_set(brace_l,arguments,stmts,brace_r)};
+enum_set {->exp}   	    =  brace_l [lpipe]:pipe expressions [rpipe]:pipe brace_r		{-> New exp.enumerated_set(brace_l,expressions,brace_r)};
+enum_set_comp {->exp}	=  brace_l [lpipe]:pipe expressions [mpipe]:pipe stmts 		
+						  [rpipe]:pipe brace_r										{-> New exp.enumerated_compr_set(brace_l,expressions,stmts,brace_r)};
 //---------------------------------------------------------------------------------------------------------------------------------------------------
 map {->exp}			 =	  {map} par_l [lpipe]:pipe map_list [rpipe]:pipe par_r		{-> New exp.map(par_l,[map_list.exp],par_r)}
 						|{emptymap} empty_map										{-> New exp.empty_map(empty_map)}
@@ -476,6 +478,8 @@ assertion = 	 {mod} assert [lproc]:proc1 tra_mod [rproc]:proc1			{-> New asserti
 				|{ref} assert [lproc]:proc1 refusal [rproc]:proc1			{-> New assertion.ref(assert,lproc.exp,rproc.exp)}
 				|{ltl} assert proc1 pipe_equals ltl ddot string				{-> New assertion.ltl(assert,proc1.exp,string)}
 				|{ctl} assert proc1 pipe_equals ctl ddot string				{-> New assertion.ctl(assert,proc1.exp,string)}
+				|{tau_prio} assert [lproc]:proc1 as_op [mproc]:proc1								
+						dp_bracket_l tau  [rproc]:proc1 bracket_r 		{-> New assertion.tauprio(assert,lproc.exp,as_op,mproc.exp,rproc.exp)}
 			
 				|{dl_free} assertion_deadlock								{-> assertion_deadlock.assertion}
 				|{div_free} assertion_divergence							{-> assertion_divergence.assertion}
@@ -493,6 +497,11 @@ assertion_deterministic {->assertion}	=  assert proc1 dp_bracket_l det model? br
 assertion_hastrace {->assertion}	=  assert [lproc]:proc1 dp_bracket_l 
 											has_trace model? dp_bracket_r [rproc]:proc1		{-> New assertion.hastrace(assert,lproc.exp,model,rproc.exp)};
 
+as_op =   {tm} tra_mod 					{-> New as_op.tm(tra_mod)}						
+		| {fm} fail_mod 				{-> New as_op.fm(fail_mod)}
+		| {fd} fail_div 				{-> New as_op.fd(fail_div)}
+		| {ref} refusal					{-> New as_op.ref(refusal)}		
+		;
 //---------------------------------------------------------------------------------------------------------------------------------------------------				
 /*******************************************************************
  * Abstract Syntax Tree                                            *
@@ -523,7 +532,7 @@ types  			=  {dtype} [typedef]:types
 type_exp 		=  {dotted}[type_exp0]:type_exp+
 				  |{par} [type_exp_list]:type_exp+
 				  |{set} [set]:exp
-				  |{id} id lambda?
+				  |{id} id arguments*
 				  ;
 				  
 parameters 		= {parameters} [pattern_list]:pattern+;
@@ -548,7 +557,7 @@ pattern 		=  {double} [double_list]:pattern+
 				  |{true} true
 				  |{false} false
 				  ;
-exp 			=  {function} id parameters [proc1]:exp
+exp 			=  {function} id parameters+ [proc1]:exp
 				  |{pattern} [pattern1]:pattern [proc1]:exp
 				  |{hide} [proc1]:exp b_slash [proc2]:exp
 				  |{ileave} [proc2]:exp i_leaving [proc3]:exp
@@ -601,41 +610,41 @@ exp 			=  {function} id parameters [proc1]:exp
 
 //Sequences			  				  				  				  
 				  |{empty_seq} seq_open seq_close
-				  |{expl_seq} seq_open arguments seq_close
+				  |{expl_seq} seq_open expressions seq_close
 				  |{ranged_seq} seq_open [lval]:exp [rval]:exp seq_close
 				  |{infinite_seq} seq_open [val_exp]:exp seq_close
-				  |{compr_seq} seq_open arguments stmts seq_close
+				  |{compr_seq} seq_open expressions stmts seq_close
 				  |{ranged_compr_seq} seq_open [lval]:exp [rval]:exp stmts seq_close
 				  |{infinite_compr_seq} seq_open [val_exp]:exp stmts seq_close
 //Sets				  
 				  |{empty_set} brace_l brace_r
-				  |{set} brace_l arguments brace_r
+				  |{set} brace_l expressions brace_r
 				  |{ranged_set} brace_l [lval]:exp [rval]:exp brace_r
 				  |{infinite_set} brace_l [val_exp]:exp brace_r
-				  |{compr_set} brace_l arguments stmts brace_r
+				  |{compr_set} brace_l expressions stmts brace_r
 				  |{ranged_compr_set} brace_l [lval]:exp [rval]:exp stmts brace_r
 				  |{infinite_compr_set} brace_l[val_exp]:exp stmts brace_r
-				  |{enumerated_set} brace_l arguments brace_r
-				  |{enumerated_compr_set} brace_l arguments stmts brace_r
+				  |{enumerated_set} brace_l expressions brace_r
+				  |{enumerated_compr_set} brace_l expressions stmts brace_r
 //Maps
 				  |{map} par_l [map_list]:exp+ par_r
 				  |{empty_map} empty_map
 //Atoms
-				  |{tuple} tuple lambda?
-				  |{parenthesis} par_l [proc1]:exp par_r lambda?
+				  |{tuple} tuple arguments*
+				  |{parenthesis} par_l [proc1]:exp par_r arguments*
 				  |{string} string
 				  |{char} char
 				  |{wildcard} wildcard
 				  |{number}	number
 				  |{true} true
 				  |{false} false
-				  |{id} id lambda?
+				  |{id} id arguments*
 				  ;
 				  
 id				=  {identifier} identifier; 					  
-tuple 			=  {tuple} par_l [proc1]:exp comma [arguments_list]:exp+ par_r;
-lambda 			=  {lambda} [arguments_list]:exp+;
-arguments 		=  {arg_list} [arguments_list]:exp+;
+tuple 			=  {tuple} par_l [proc1]:exp comma [expression_list]:exp+ par_r;
+arguments 		=  {arg_list} [expressions]:expressions;
+expressions 	=  {expression_list} [expression_list]:exp+;
 					
 link_comp 		=  {link_comp}[lc_list]:exp+ stmts?;
 rename_comp 	=  {rename_comp} [proc10]:exp [op_start]:dbracket_l [rc_list]:exp+ stmts? [op_end]:dbracket_r;
@@ -652,6 +661,7 @@ assertion 		=  {mod} assert [lproc]:exp [rproc]:exp
 				  |{fm} assert [lproc]:exp [rproc]:exp
 				  |{fd} assert [lproc]:exp [rproc]:exp
 				  |{ref} assert [lproc]:exp [rproc]:exp
+				  |{tauprio} assert [lproc]:exp as_op [mproc]:exp [rproc]:exp
 				  |{ltl} assert [proc1]:exp string
 				  |{ctl} assert [proc1]:exp string
 				  |{deadlock} assert [proc1]:exp model?
@@ -659,3 +669,10 @@ assertion 		=  {mod} assert [lproc]:exp [rproc]:exp
 				  |{deterministic} assert [proc1]:exp model?
 				  |{hastrace} assert [lproc]:exp model? [rproc]:exp
 				  ;
+				  
+				
+as_op =   {tm} tra_mod 					
+		| {fm} fail_mod
+		| {fd} fail_div
+		| {ref} refusal
+		;

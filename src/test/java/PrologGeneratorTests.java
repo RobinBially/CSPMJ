@@ -8,6 +8,48 @@ import org.junit.Ignore;
 public class PrologGeneratorTests 
 {
 	@Test
+	public void TauPrio() throws Exception
+	{
+	  check(
+				"assert 1 [T= 2 :[tau priority 1]"
+				+"\nassert 1 [FD= 2 :[tau priority 1]"
+				+"\nassert 1 [F= 2 :[tau priority 1]"
+				+"\nassert 1 [R= 2 :[tau priority 1]"
+			,
+				"'assertTauPrio'('False','int'(1),'TauTrace','int'(2),'int'(1),'no_loc_info_available')."
+				+"\n'assertTauPrio'('False','int'(1),'TauFailureDivergence','int'(2),'int'(1),'no_loc_info_available')."
+				+"\n'assertTauPrio'('False','int'(1),'TauFailure','int'(2),'int'(1),'no_loc_info_available')."
+				+"\n'assertTauPrio'('False','int'(1),'TauRefusalTesting','int'(2),'int'(1),'no_loc_info_available')."
+			);
+	}
+	
+	@Test
+	public void Curry() throws Exception
+	{
+		check(
+					"nocurry(1) = nocurry(2)"
+					+"\nnocurry(1,2) = nocurry(2,1)"
+					+"\ncurry(1)(2) = 1"
+					+"\n1 = curry(1)(2)"
+					+"\n1 = (1)(2)(3)"
+					+"\n1 = (1,2)(3,4)(5,6)"
+					+"\nchannel c: {1}.curry(1)(2)"
+
+				,
+					"'agent'('nocurry'('int'(1)),'agent_call'('no_loc_info_available','nocurry',['int'(2)]),'no_loc_info_available')."
+					+"\n'agent'('nocurry'('int'(1),'int'(2)),'agent_call'('no_loc_info_available','nocurry',['int'(2),'int'(1)]),'no_loc_info_available')."
+					+"\n'agent_curry'('curry'(['int'(1)],['int'(2)]),'int'(1),'no_loc_info_available')."
+					+"\n'bindval'('int'(1),'agent_call_curry'('curry',[['int'(1)],['int'(2)]]),'no_loc_info_available')."
+					+"\n'bindval'('int'(1),'agent_call_curry'('int'(1),[['int'(2)],['int'(3)]]),'no_loc_info_available')."
+					+"\n'bindval'('int'(1),'agent_call_curry'('tupleExp'(['int'(1),'int'(2)]),[['int'(3),'int'(4)],['int'(5),'int'(6)]]),'no_loc_info_available')."
+					+"\n'channel'('c','type'('dotTupleType'(['setExp'('rangeEnum'(['int'(1)])),'agent_call_curry'('curry',[['int'(1)],['int'(2)]])])))."
+					+"\n'symbol'('nocurry','nocurry','no_loc_info_available','Function or Process')."
+					+"\n'symbol'('curry','curry','no_loc_info_available','Function or Process')."
+					+"\n'symbol'('c','c','no_loc_info_available','Channel')."
+			 );
+	}
+	
+	@Test
 	public void CommentsAndPragmas() throws Exception
 	{
 			check( 

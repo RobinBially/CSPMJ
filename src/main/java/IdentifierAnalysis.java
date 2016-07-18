@@ -230,9 +230,12 @@ public class IdentifierAnalysis extends DepthFirstAdapter
 				right.put(letWithinDepth,temp);
 			}
         }
-        if(node.getLambda() != null)
         {
-            node.getLambda().apply(this);
+            List<PArguments> copy = new ArrayList<PArguments>(node.getArguments());
+            for(PArguments e : copy)
+            {
+                e.apply(this);
+            }
         }
         outAIdTypeExp(node);
     }
@@ -247,6 +250,7 @@ public class IdentifierAnalysis extends DepthFirstAdapter
 		currentParams.clear();
 		pendingId = new ArrayList<String>();
 		currentLeft = true;
+
 		
         if(node.getId() != null)
         {
@@ -254,11 +258,14 @@ public class IdentifierAnalysis extends DepthFirstAdapter
         }
 		String str = node.getId().toString().replaceAll(" ","");
 
-		
-        if(node.getParameters() != null)
         {
+            List<PParameters> copy = new ArrayList<PParameters>(node.getParameters());
 			currentInParameters = true;
-            node.getParameters().apply(this);
+            for(PParameters e : copy)
+            {			
+                e.apply(this);
+            }
+			currentInParameters = false;
 			if(left.get(letWithinDepth) == null)
 			{
 				left.put(letWithinDepth,new ArrayList<String>());
@@ -276,12 +283,9 @@ public class IdentifierAnalysis extends DepthFirstAdapter
 				ArrayList<String> temp = left.get(letWithinDepth);
 				temp.add(str+"()");
 				left.put(letWithinDepth,temp);
-			}								//Functions can occur multiple times
-			currentInParameters = false;
-        }
-		
-		currentLeft = false;
-		
+			}
+        }		
+		currentLeft = false;	
         if(node.getProc1() != null)
         {
             node.getProc1().apply(this);
@@ -394,9 +398,9 @@ public class IdentifierAnalysis extends DepthFirstAdapter
         inAComprSeqExp(node);
 		
 		currentInComprArgs += 1;
-        if(node.getArguments() != null)
+        if(node.getExpressions() != null)
         {
-            node.getArguments().apply(this);
+            node.getExpressions().apply(this);
         }
 		currentInComprArgs -= 1;
 		
@@ -540,9 +544,9 @@ public class IdentifierAnalysis extends DepthFirstAdapter
     {
         inAComprSetExp(node);
 		currentInComprArgs += 1;
-        if(node.getArguments() != null)
+        if(node.getExpressions() != null)
         {
-            node.getArguments().apply(this);
+            node.getExpressions().apply(this);
         }
 		currentInComprArgs -= 1;
         if(node.getStmts() != null)
@@ -681,9 +685,9 @@ public class IdentifierAnalysis extends DepthFirstAdapter
     {
         inAEnumeratedComprSetExp(node);
 		currentInComprArgs += 1;
-        if(node.getArguments() != null)
+        if(node.getExpressions() != null)
         {
-            node.getArguments().apply(this);
+            node.getExpressions().apply(this);
         }
 		currentInComprArgs -= 1;
         if(node.getStmts() != null)
@@ -1062,9 +1066,12 @@ public class IdentifierAnalysis extends DepthFirstAdapter
 				right.put(letWithinDepth,temp);
 			}
         }
-        if(node.getLambda() != null)
         {
-            node.getLambda().apply(this);
+            List<PArguments> copy = new ArrayList<PArguments>(node.getArguments());
+            for(PArguments e : copy)
+            {
+                e.apply(this);
+            }
         }
         outAIdExp(node);
     }

@@ -367,23 +367,46 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseAIdTypeExp(AIdTypeExp node)
     {
         inAIdTypeExp(node);
+		List<PArguments> copy = new ArrayList<PArguments>(node.getArguments());
 		String str = node.getId().toString().replace(" ","");
-        if(node.getId() != null)
+		
+        if(copy.size()>1)
         {
-            node.getId().apply(this);
+			p.openTerm("agent_call_curry");
         }
-        if(node.getLambda() != null)
+        else if(copy.size()>0)
         {
 			p.openTerm("agent_call");
 			printSrcLoc(node.getId());
         }
 		
+        if(node.getId() != null)
+        {
+            node.getId().apply(this);
+        }
+		
 		printSymbol(str,node.getId());
 		
-			
-        if(node.getLambda() != null)
         {
-            node.getLambda().apply(this);
+            if(copy.size()>1) //f(1)(1) has size 2
+			{
+				p.openList();
+				for(PArguments e : copy)
+				{
+					e.apply(this);
+				}
+				p.closeList();
+			}
+			else if(copy.size() == 1)
+			{
+				for(PArguments e : copy)
+				{
+					e.apply(this);
+
+				}		
+			}
+			
+			if(copy.size()>0)
 			p.closeTerm();
         }
 		
@@ -410,6 +433,10 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseAFunctionExp(AFunctionExp node)
     {
         inAFunctionExp(node);
+		List<PParameters> copy = new ArrayList<PParameters>(node.getParameters());
+		if(copy.size()>1)
+		p.openTerm("agent_curry");
+		else
 		p.openTerm("agent");
         if(node.getId() != null)
         {
@@ -425,11 +452,27 @@ public class PrologGenerator extends DepthFirstAdapter
 			}				
         }
 		tree.newLeaf();
-        if(node.getParameters() != null)
         {
-			currentInParams += 1;
-            node.getParameters().apply(this);
-			currentInParams -= 1;
+			if(copy.size()>1)
+			{
+				for(PParameters e : copy)
+				{
+					p.openList();
+					currentInParams += 1;
+					e.apply(this);
+					currentInParams -= 1;
+					p.closeList();
+				}
+			}
+			else
+			{
+				for(PParameters e : copy)
+				{
+					currentInParams += 1;
+					e.apply(this);
+					currentInParams -= 1;
+				}				
+			}
 			p.closeTerm();
         }
         if(node.getProc1() != null)
@@ -1798,32 +1841,28 @@ public class PrologGenerator extends DepthFirstAdapter
 		if(patternRequired)
 		{
 			p.openTerm("listPat");
-			p.openList();
-			if(node.getArguments() != null)
+			if(node.getExpressions() != null)
 			{
-				node.getArguments().apply(this);
+				node.getExpressions().apply(this);
 			}
-			p.closeList();
 			p.closeTerm();
 		}
 		else
 		{
 			p.openTerm("listExp");
 			p.openTerm("rangeEnum");
-			p.openList();
 			if(node.getSeqOpen() != null)
 			{
 				node.getSeqOpen().apply(this);
 			}
-			if(node.getArguments() != null)
+			if(node.getExpressions() != null)
 			{
-				node.getArguments().apply(this);
+				node.getExpressions().apply(this);
 			}
 			if(node.getSeqClose() != null)
 			{
 				node.getSeqClose().apply(this);
 			}
-			p.closeList();
 			p.closeTerm();
 			p.closeTerm();
 		}
@@ -1918,32 +1957,28 @@ public class PrologGenerator extends DepthFirstAdapter
 		if(patternRequired)
 		{
 			p.openTerm("singleSetPat");
-			p.openList();
-			if(node.getArguments() != null)
+			if(node.getExpressions() != null)
 			{
-				node.getArguments().apply(this);
+				node.getExpressions().apply(this);
 			}
-			p.closeList();
 			p.closeTerm();
 		}
 		else
 		{
 			p.openTerm("setExp");
 			p.openTerm("rangeEnum");
-			p.openList();
 			if(node.getBraceL() != null)
 			{
 				node.getBraceL().apply(this);
 			}
-			if(node.getArguments() != null)
+			if(node.getExpressions() != null)
 			{
-				node.getArguments().apply(this);
+				node.getExpressions().apply(this);
 			}
 			if(node.getBraceR() != null)
 			{
 				node.getBraceR().apply(this);
 			}
-			p.closeList();
 			p.closeTerm();
 			p.closeTerm();
 		}
@@ -2005,20 +2040,18 @@ public class PrologGenerator extends DepthFirstAdapter
     {
         inAEnumeratedSetExp(node);
 		p.openTerm("closure");
-		p.openList();
         if(node.getBraceL() != null)
         {
             node.getBraceL().apply(this);
         }
-        if(node.getArguments() != null)
-        {
-            node.getArguments().apply(this);
-        }
+		if(node.getExpressions() != null)
+		{
+			node.getExpressions().apply(this);
+		}
         if(node.getBraceR() != null)
         {
             node.getBraceR().apply(this);
         }
-		p.closeList();
 		p.closeTerm();
         outAEnumeratedSetExp(node);
     }
@@ -2125,17 +2158,15 @@ public class PrologGenerator extends DepthFirstAdapter
 		tree.newLeaf();
 
 		p.openTerm("listExp");
-		p.openTerm("rangeEnum");
-		p.openList();		
+		p.openTerm("rangeEnum");		
         if(node.getSeqOpen() != null)
         {
             node.getSeqOpen().apply(this);
         }
-        if(node.getArguments() != null)
-        {
-            node.getArguments().apply(this);
-        }
-		p.closeList();
+		if(node.getExpressions() != null)
+		{
+			node.getExpressions().apply(this);
+		}
 		p.closeTerm();
         if(node.getStmts() != null)
         {
@@ -2227,16 +2258,14 @@ public class PrologGenerator extends DepthFirstAdapter
 		
 		p.openTerm("setExp");
 		p.openTerm("rangeEnum");
-		p.openList();
         if(node.getBraceL() != null)
         {
             node.getBraceL().apply(this);
         }
-        if(node.getArguments() != null)
-        {
-            node.getArguments().apply(this);
-        }
-		p.closeList();
+		if(node.getExpressions() != null)
+		{
+			node.getExpressions().apply(this);
+		}
 		p.closeTerm();
         if(node.getStmts() != null)
         {
@@ -2334,12 +2363,10 @@ public class PrologGenerator extends DepthFirstAdapter
         {
             node.getStmts().apply(this);
         }
-		p.openList();
-        if(node.getArguments() != null)
-        {
-            node.getArguments().apply(this);
-        }
-		p.closeList();
+		if(node.getExpressions() != null)
+		{
+			node.getExpressions().apply(this);
+		}
         if(node.getBraceR() != null)
         {
             node.getBraceR().apply(this);
@@ -2397,11 +2424,17 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseATupleExp(ATupleExp node)
     {
         inATupleExp(node);
-		if(node.getLambda() != null)
-		{
+		List<PArguments> copy = new ArrayList<PArguments>(node.getArguments());
+        if(copy.size()>1)
+        {
+			p.openTerm("agent_call_curry");
+        }
+        else if(copy.size()>0)
+        {
 			p.openTerm("agent_call");
-			printSrcLoc(node.getTuple());		
-		}
+			printSrcLoc(node.getTuple());
+        }
+
         if(node.getTuple() != null)
         {
 			if(patternRequired)
@@ -2419,13 +2452,27 @@ public class PrologGenerator extends DepthFirstAdapter
 				p.closeTerm();
 			}
         }
-        if(node.getLambda() != null)
         {
-			p.openList();
-            node.getLambda().apply(this);
-			p.closeList();
+            if(copy.size()>1) //f(1)(1) has size 2
+			{
+				p.openList();
+				for(PArguments e : copy)
+				{
+					e.apply(this);
+				}
+				p.closeList();
+			}
+			else if(copy.size() == 1)
+			{
+				for(PArguments e : copy)
+				{
+					e.apply(this);
+				}		
+			}
+			
+			if(copy.size()>0)
 			p.closeTerm();
-        }
+		}
         outATupleExp(node);
     }
 	
@@ -2444,7 +2491,7 @@ public class PrologGenerator extends DepthFirstAdapter
 				node.getProc1().apply(this);
 			}
 			{
-				List<PExp> copy = new ArrayList<PExp>(node.getArgumentsList());
+				List<PExp> copy = new ArrayList<PExp>(node.getExpressionList());
 				for(PExp e : copy)
 				{
 					e.apply(this);
@@ -2461,7 +2508,7 @@ public class PrologGenerator extends DepthFirstAdapter
 				tree.returnToParent();
 			}
 			{
-				List<PExp> copy = new ArrayList<PExp>(node.getArgumentsList());
+				List<PExp> copy = new ArrayList<PExp>(node.getExpressionList());
 				for(PExp e : copy)
 				{
 					tree.newLeaf();
@@ -2482,11 +2529,17 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseAParenthesisExp(AParenthesisExp node)
     {
         inAParenthesisExp(node);
-		if(node.getLambda() != null)
-		{
+		List<PArguments> copy = new ArrayList<PArguments>(node.getArguments());
+        if(copy.size()>1)
+        {
+			p.openTerm("agent_call_curry");
+        }
+        else if(copy.size()>0)
+        {
 			p.openTerm("agent_call");
-			printSrcLoc(node.getParL());		
-		}
+			printSrcLoc(node.getParL(),node.getParR());
+        }
+
         if(node.getParL() != null)
         {
             node.getParL().apply(this);
@@ -2508,21 +2561,48 @@ public class PrologGenerator extends DepthFirstAdapter
         {
             node.getParR().apply(this);
         }
-        if(node.getLambda() != null)
         {
-            node.getLambda().apply(this);
+            if(copy.size()>1) //f(1)(1) has size 2
+			{
+				p.openList();
+				for(PArguments e : copy)
+				{
+					e.apply(this);
+				}
+				p.closeList();
+			}
+			else if(copy.size() == 1)
+			{
+				for(PArguments e : copy)
+				{
+					e.apply(this);
+				}		
+			}
+			
+			if(copy.size()>0)
 			p.closeTerm();
-        }
+		}
         outAParenthesisExp(node);
     }
 	
     @Override
-    public void caseALambdaLambda(ALambdaLambda node)
+    public void caseAArgListArguments(AArgListArguments node)
     {
-        inALambdaLambda(node);
+        inAArgListArguments(node);
+        if(node.getExpressions() != null)
         {
+            node.getExpressions().apply(this);
+        }
+        outAArgListArguments(node);
+    }
+	
+    @Override
+    public void caseAExpressionListExpressions(AExpressionListExpressions node)
+    {
+        inAExpressionListExpressions(node);
+        {
+            List<PExp> copy = new ArrayList<PExp>(node.getExpressionList());
 			p.openList();
-            List<PExp> copy = new ArrayList<PExp>(node.getArgumentsList());
             for(PExp e : copy)
             {
 				tree.newLeaf();
@@ -2531,8 +2611,8 @@ public class PrologGenerator extends DepthFirstAdapter
             }
 			p.closeList();
         }
-        outALambdaLambda(node);
-    }
+        outAExpressionListExpressions(node);
+    }	
 //***************************************************************************************************************************************************
 //Atoms       
  
@@ -2619,12 +2699,17 @@ public class PrologGenerator extends DepthFirstAdapter
     public void caseAIdExp(AIdExp node)
     {
         inAIdExp(node);
-		if(node.getLambda() != null)
-		{
+		List<PArguments> copy = new ArrayList<PArguments>(node.getArguments());
+		String str = node.getId().toString().replace(" ","");
+        if(copy.size()>1)
+        {
+			p.openTerm("agent_call_curry");
+        }
+        else if(copy.size()>0)
+        {
 			p.openTerm("agent_call");
 			printSrcLoc(node.getId());
-		}
-		String str = node.getId().toString().replace(" ","");
+        }
         if(node.getId() != null)
         {
             node.getId().apply(this);
@@ -2639,10 +2724,26 @@ public class PrologGenerator extends DepthFirstAdapter
 		{
 			printSymbol(str,node.getId());
 			//Search and print!
-		}
-		if(node.getLambda() != null)
-		{
-			node.getLambda().apply(this);
+		}	
+        {
+            if(copy.size()>1) //f(1)(1) has size 2
+			{
+				p.openList();
+				for(PArguments e : copy)
+				{
+					e.apply(this);
+				}
+				p.closeList();
+			}
+			else if(copy.size() == 1)
+			{
+				for(PArguments e : copy)
+				{
+					e.apply(this);
+				}		
+			}
+			
+			if(copy.size()>0)
 			p.closeTerm();
 		}
         outAIdExp(node);
@@ -2802,6 +2903,45 @@ public class PrologGenerator extends DepthFirstAdapter
 		printSrcLoc(node);
 		p.closeTerm();
         outARefAssertion(node);
+    }
+	
+    @Override
+    public void caseATauprioAssertion(ATauprioAssertion node)
+    {
+        inATauprioAssertion(node);
+		p.openTerm("assertTauPrio");
+		if(node.getAssert().getText().equals("assert"))
+		p.printAtom("False");
+		else
+		p.printAtom("True");
+        if(node.getLproc() != null)
+        {
+            node.getLproc().apply(this);
+        }
+        if(node.getAsOp() != null)
+        {
+            node.getAsOp().apply(this);
+			String op = node.getAsOp().toString();
+			if(op.indexOf("FD") >= 0)
+			p.printAtom("TauFailureDivergence");
+			else if(op.indexOf("F") >= 0)
+			p.printAtom("TauFailure");
+			else if(op.indexOf("T") >= 0)
+			p.printAtom("TauTrace");
+			else if(op.indexOf("R") >= 0)
+			p.printAtom("TauRefusalTesting");
+        }
+        if(node.getMproc() != null)
+        {
+            node.getMproc().apply(this);
+        }
+        if(node.getRproc() != null)
+        {
+            node.getRproc().apply(this);
+        }
+		printSrcLoc(node);
+		p.closeTerm();
+        outATauprioAssertion(node);
     }
 	
     @Override

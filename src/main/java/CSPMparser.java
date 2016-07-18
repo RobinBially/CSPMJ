@@ -15,6 +15,8 @@ import CSPMparser.node.*;
 
 public class CSPMparser
 {
+	private String versionNum;
+	private String versionString;
 	private String newstream;
 	private String currentFile;
 	private int exceptionCounter;
@@ -23,6 +25,7 @@ public class CSPMparser
 
 	public CSPMparser()
 	{
+		setVersion("0 62 160718");
 		exceptionCounter = 0;
 		commentMap = new HashMap<Integer,Character>();
 		commentList = new ArrayList<CommentInfo>();
@@ -262,7 +265,7 @@ public class CSPMparser
 			{
 				writer.println(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
 				+"\n:- dynamic module/4."
-				+"\n'parserVersionStr'('CSPMJ V0.61')."
+				+"\n'parserVersionStr'('"+versionString+"')."
 				+"\n'parseResult'('ok','',0,0,0)."
 				+"\n:- dynamic channel/2, bindval/3, agent/3."
 				+"\n:- dynamic agent_curry/3, symbol/4."
@@ -275,8 +278,8 @@ public class CSPMparser
 				+"\n:- dynamic assertModelCheckExt/4, assertModelCheck/3."
 				+"\n:- dynamic assertHasTrace/3, assertHasTraceExt/4"
 				+"\n:- dynamic assertLtl/4, assertCtl/4."
-				+"\n'parserVersionNum'([0,61])."
-				+"\n'parserVersionStr'('CSPMJ V0.61').");
+				+"\n'parserVersionNum'(["+versionNum+"])."
+				+"\n'parserVersionStr'('"+versionString+"').");
 				File file = new File(filename+".pl");	
 				String str = pto.getStringWriter().toString();
 
@@ -293,7 +296,7 @@ public class CSPMparser
 			{
 				writer.print(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
 				+"\n:- dynamic module/4."
-				+"\n'parserVersionStr'('0.61')."
+				+"\n'parserVersionStr'('"+versionString+"')."
 				+"\n'parseResult'('parseError','"+e.getMessage()+"',0,0,0).");
 				writer.close();
 			}
@@ -520,5 +523,26 @@ public class CSPMparser
 			System.out.println("Incorrect input!");
 			System.exit(1);
 		}	
+	}
+	
+	public void setVersion(String s)
+	{
+		String[] subnum = s.split(" ");
+		versionNum = "";
+		versionString = "CSPMJ V";
+		for(int i = 0;i<subnum.length;i++)
+		{
+			if(i<subnum.length-1)
+			versionNum += subnum[i]+",";
+			else
+			versionNum += subnum[i];
+		}
+		for(int j = 0;j<subnum.length;j++)
+		{
+			if(j<subnum.length-1)
+			versionString += subnum[j]+".";
+			else
+			versionString += subnum[j];
+		}
 	}
 }

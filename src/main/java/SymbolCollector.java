@@ -190,9 +190,9 @@ public class SymbolCollector extends DepthFirstAdapter
             node.getStmts().apply(this);
 			inComprGenerator -= 1;
         }
-        if(node.getArguments() != null)
+        if(node.getExpressions() != null)
         {
-            node.getArguments().apply(this);
+            node.getExpressions().apply(this);
         }
 		tree.returnToParent();
         outAComprSeqExp(node);
@@ -254,9 +254,9 @@ public class SymbolCollector extends DepthFirstAdapter
             node.getStmts().apply(this);
 			inComprGenerator -= 1;
         }
-        if(node.getArguments() != null)
+        if(node.getExpressions() != null)
         {
-            node.getArguments().apply(this);
+            node.getExpressions().apply(this);
         }
 		tree.returnToParent();
         outAComprSetExp(node);
@@ -318,9 +318,9 @@ public class SymbolCollector extends DepthFirstAdapter
             node.getStmts().apply(this);
 			inComprGenerator -= 1;
         }
-        if(node.getArguments() != null)
+        if(node.getExpressions() != null)
         {
-            node.getArguments().apply(this);
+            node.getExpressions().apply(this);
         }
 		tree.returnToParent();
         outAEnumeratedComprSetExp(node);
@@ -364,13 +364,16 @@ public class SymbolCollector extends DepthFirstAdapter
 			addSymbol(str,"Function or Process", node.getId());
         }
 		
-		tree.newLeaf();		
-        if(node.getParameters() != null)
+		tree.newLeaf();	
         {
-			currentInParams += 1;
-            node.getParameters().apply(this);
-			currentInParams -= 1;
-        }		
+            List<PParameters> copy = new ArrayList<PParameters>(node.getParameters());
+            for(PParameters e : copy)
+            {
+				currentInParams += 1;
+                e.apply(this);
+				currentInParams -= 1;
+            }
+        }	
         if(node.getProc1() != null)
         {
             node.getProc1().apply(this);
@@ -489,16 +492,17 @@ public class SymbolCollector extends DepthFirstAdapter
         if(node.getId() != null)
         {
             node.getId().apply(this);
-        }
-		
+        }	
 		if(patternRequired)
 		{
 			addSymbol(str, "Ident (Prolog Variable)", node.getId());			
 		}
-
-        if(node.getLambda() != null)
-        {			
-            node.getLambda().apply(this);
+        {
+            List<PArguments> copy = new ArrayList<PArguments>(node.getArguments());
+            for(PArguments e : copy)
+            {
+                e.apply(this);
+            }
         }
         outAIdExp(node);
     }
@@ -511,11 +515,13 @@ public class SymbolCollector extends DepthFirstAdapter
         if(node.getId() != null)
         {
             node.getId().apply(this);
-        }	
-			
-        if(node.getLambda() != null)
-        {			
-            node.getLambda().apply(this);
+        }			
+        {
+            List<PArguments> copy = new ArrayList<PArguments>(node.getArguments());
+            for(PArguments e : copy)
+            {
+                e.apply(this);
+            }
         }
         outAIdTypeExp(node);
     }
@@ -576,9 +582,12 @@ public class SymbolCollector extends DepthFirstAdapter
         {
             node.getTuple().apply(this);
         }
-        if(node.getLambda() != null)
         {
-            node.getLambda().apply(this);
+            List<PArguments> copy = new ArrayList<PArguments>(node.getArguments());
+            for(PArguments e : copy)
+            {
+                e.apply(this);
+            }
         }
         outATupleExp(node);
     }
@@ -586,22 +595,37 @@ public class SymbolCollector extends DepthFirstAdapter
     @Override
     public void caseATupleTuple(ATupleTuple node)
     {
-        inATupleTuple(node);
-		
-		tree.newLeaf();		
-		if(node.getProc1() != null)
+        inATupleTuple(node);		
+		if(patternRequired)
 		{
-			node.getProc1().apply(this);
-		}		
-		tree.returnToParent();
-		
-		{
-			List<PExp> copy = new ArrayList<PExp>(node.getArgumentsList());
-			for(PExp e : copy)
+			if(node.getProc1() != null)
+			{
+				node.getProc1().apply(this);
+			}
+			{
+				List<PExp> copy = new ArrayList<PExp>(node.getExpressionList());
+				for(PExp e : copy)
+				{
+					e.apply(this);
+				}
+			}
+		}
+		else
+        {
+			if(node.getProc1() != null)
 			{
 				tree.newLeaf();
-				e.apply(this);
+				node.getProc1().apply(this);
 				tree.returnToParent();
+			}
+			{
+				List<PExp> copy = new ArrayList<PExp>(node.getExpressionList());
+				for(PExp e : copy)
+				{
+					tree.newLeaf();
+					e.apply(this);
+					tree.returnToParent();
+				}
 			}
 		}
         outATupleTuple(node);
@@ -611,26 +635,46 @@ public class SymbolCollector extends DepthFirstAdapter
     public void caseAParenthesisExp(AParenthesisExp node)
     {
         inAParenthesisExp(node);
-		tree.newLeaf();
         if(node.getProc1() != null)
         {
-            node.getProc1().apply(this);
+			if(patternRequired)
+			{
+				node.getProc1().apply(this);
+			}
+			else
+			{
+				tree.newLeaf();
+				node.getProc1().apply(this);
+				tree.returnToParent();
+			}
         }
-		tree.returnToParent();
-
-        if(node.getLambda() != null)
         {
-            node.getLambda().apply(this);
+            List<PArguments> copy = new ArrayList<PArguments>(node.getArguments());
+            for(PArguments e : copy)
+            {
+                e.apply(this);
+            }
         }
         outAParenthesisExp(node);
     }
 	
     @Override
-    public void caseALambdaLambda(ALambdaLambda node)
+    public void caseAArgListArguments(AArgListArguments node)
     {
-        inALambdaLambda(node);
+        inAArgListArguments(node);
+        if(node.getExpressions() != null)
         {
-            List<PExp> copy = new ArrayList<PExp>(node.getArgumentsList());
+            node.getExpressions().apply(this);
+        }
+        outAArgListArguments(node);
+    }
+	
+    @Override
+    public void caseAExpressionListExpressions(AExpressionListExpressions node)
+    {
+        inAExpressionListExpressions(node);
+        {
+            List<PExp> copy = new ArrayList<PExp>(node.getExpressionList());
             for(PExp e : copy)
             {
 				tree.newLeaf();
@@ -638,8 +682,8 @@ public class SymbolCollector extends DepthFirstAdapter
 				tree.returnToParent();
             }
         }
-        outALambdaLambda(node);
-    }
+        outAExpressionListExpressions(node);
+    }	
 //***************************************************************************************************************************************************
 //Transparent
 
