@@ -152,7 +152,10 @@ public class PrologTermOutput
 
 	}
 
-
+	public void appendTerm(String s)
+	{
+		out.write(s);
+	}
 
 	public void emptyList()
 	{

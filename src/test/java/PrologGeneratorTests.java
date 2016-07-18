@@ -8,6 +8,33 @@ import org.junit.Ignore;
 public class PrologGeneratorTests 
 {
 	@Test
+	public void CommentsAndPragmas() throws Exception
+	{
+			check( 
+						"{-" 
+						+"\nThis is a"
+						+"\nmultiline comment"
+						+"\n-}"
+						+"\n{-# assert_ltl \"formula\" #-}"
+						+"\n{-# assert_ltl \"formula\" \"comment\\r\\nwith newline\" #-}"
+						+"\n{-# assert_ctl \"formula\" #-}"
+						+"\n{-# assert_ctl \"formula\" \"comment\" #-}"
+						+"\n-- This is a line comment"
+					,
+						"'pragma'('assert_ltl \"formula\"')."
+						+"\n'pragma'('assert_ltl \"formula\" \"comment\\r\\nwith newline\"')."
+						+"\n'pragma'('assert_ctl \"formula\"')."
+						+"\n'pragma'('assert_ctl \"formula\" \"comment\"')."
+						+"\n'comment'('blockComment'('{-\\nThis is a\\nmultiline comment\\n-}'),'no_loc_info_available')."
+						+"\n'comment'('pragmaComment'('{-# assert_ltl \"formula\" #-}'),'no_loc_info_available')."
+						+"\n'comment'('pragmaComment'('{-# assert_ltl \"formula\" \"comment\\r\\nwith newline\" #-}'),'no_loc_info_available')."
+						+"\n'comment'('pragmaComment'('{-# assert_ctl \"formula\" #-}'),'no_loc_info_available')."
+						+"\n'comment'('pragmaComment'('{-# assert_ctl \"formula\" \"comment\" #-}'),'no_loc_info_available')."
+						+"\n'comment'('lineComment'('-- This is a line comment','no_loc_info_available'))."
+					);
+	}
+	
+	@Test
 	public void PatternsInComprehensions() throws Exception
 	{
 		check(
@@ -193,7 +220,7 @@ public class PrologGeneratorTests
 	}
 	
 	@Test
-	public void easyNumeration() throws Exception
+	public void EasyNumeration() throws Exception
 	{
 		check(
 					"a = 1"
@@ -458,7 +485,7 @@ public class PrologGeneratorTests
 			);
 	}
 	@Test
-	public void redefineBuiltins() throws Exception
+	public void RedefineBuiltins() throws Exception
 	{
 		check("STOP = 1\nSKIP = 1"
 		,
@@ -468,7 +495,7 @@ public class PrologGeneratorTests
 		);
 	}
 	@Test
-	public void callSingleBuiltin() throws Exception
+	public void CallSingleBuiltin() throws Exception
 	{
 		check("P=STOP",
 		
@@ -478,7 +505,7 @@ public class PrologGeneratorTests
 	}
 	
 	@Test
-	public void callBuiltinsMultipleTimes() throws Exception 
+	public void CallBuiltinsMultipleTimes() throws Exception 
 	{
 		check( 		"P = STOP"
 					+"\nQ = STOP"
@@ -499,7 +526,7 @@ public class PrologGeneratorTests
 	}
 	
 	@Test
-	public void expressionsNewlinesBetween() throws Exception
+	public void ExpressionsNewlinesBetween() throws Exception
 	{
 	  check(
 				"b= 2 \n a = true \n       and     \n b==1"
@@ -642,7 +669,7 @@ public class PrologGeneratorTests
 	}
 	
 	@Test
-	public void letWithinDifficult() throws Exception
+	public void LetWithinDifficult() throws Exception
 	{
 	  check(
 				"k = let\nI(a) = 1\nI(a) = let\nI(a) = a\nwithin 8\nI(a) = 3\nwithin 9"

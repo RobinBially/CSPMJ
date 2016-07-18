@@ -63,6 +63,30 @@ public class PrologGenerator extends DepthFirstAdapter
 				currentInChannel = false;
             }
         }
+		//print pragmas
+		for(CommentInfo cinfo : commentList)
+		{
+			if(!cinfo.formula.equals(""))
+			{
+				String tempFormula = cinfo.formula;
+				tempFormula = tempFormula.replaceAll("\n","\\\\n");
+				tempFormula = tempFormula.replaceAll("\r","\\\\r");
+				String tempCom = cinfo.pragmaComment;
+				tempCom = tempCom.replaceAll("\n","\\\\n");
+				tempCom = tempCom.replaceAll("\r","\\\\r");
+				
+				p.appendTerm("'pragma'(");
+				if(cinfo.isLTL)
+				p.appendTerm("'assert_ltl \""+tempFormula+"\"");
+				else
+				p.appendTerm("'assert_ctl \""+tempFormula+"\"");	
+				if(!tempCom.equals(""))
+				p.appendTerm(" \""+tempCom+"\"')");
+				else
+				p.appendTerm("')");
+				p.fullstop();
+			}
+		}
 		//print comments		
 		for(CommentInfo cinfo : commentList)
 		{
@@ -70,17 +94,27 @@ public class PrologGenerator extends DepthFirstAdapter
 			{
 				String comment = cinfo.comment;
 				p.openTerm("comment");
+				if(cinfo.formula.equals(""))
 				p.openTerm("blockComment");
+				else
+				p.openTerm("pragmaComment");
 				comment = comment.replaceAll("\n","\\\\n");
 				comment = comment.replaceAll("\r","\\\\r");
 				p.printAtom(comment);
-				p.openTerm("src_position");
-				p.printNumber(cinfo.startLine);
-				p.printNumber(cinfo.startColumn);
-				p.printNumber(cinfo.offset);
-				p.printNumber(cinfo.len);
 				p.closeTerm();
-				p.closeTerm();
+				if(printSrcLoc)
+				{
+					p.openTerm("src_position");
+					p.printNumber(cinfo.startLine);
+					p.printNumber(cinfo.startColumn);
+					p.printNumber(cinfo.offset);
+					p.printNumber(cinfo.len);
+					p.closeTerm();
+				}
+				else
+				{
+					p.printAtom("no_loc_info_available");
+				}
 				p.closeTerm();
 			}
 			else
@@ -88,12 +122,19 @@ public class PrologGenerator extends DepthFirstAdapter
 				p.openTerm("comment");
 				p.openTerm("lineComment");
 				p.printAtom(cinfo.comment);
-				p.openTerm("src_position");
-				p.printNumber(cinfo.startLine);
-				p.printNumber(cinfo.startColumn);
-				p.printNumber(cinfo.offset);
-				p.printNumber(cinfo.len);
-				p.closeTerm();
+				if(printSrcLoc)
+				{
+					p.openTerm("src_position");
+					p.printNumber(cinfo.startLine);
+					p.printNumber(cinfo.startColumn);
+					p.printNumber(cinfo.offset);
+					p.printNumber(cinfo.len);
+					p.closeTerm();
+				}
+				else
+				{
+					p.printAtom("no_loc_info_available");
+				}
 				p.closeTerm();
 				p.closeTerm();				
 			}

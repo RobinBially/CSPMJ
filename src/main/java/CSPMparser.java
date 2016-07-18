@@ -90,6 +90,7 @@ public class CSPMparser
 					newstream = saveComments(newstream);
 					
 					TriangleBracketSubstitution tbs = new TriangleBracketSubstitution(newstream);
+					if(!newstream.equals(""))
 					newstream = tbs.findTriangles();
 
 					StringReader sr = new StringReader(newstream);
@@ -143,7 +144,9 @@ public class CSPMparser
 		newstream = includeFile(newstream);
 		newstream = saveComments(newstream);
 		TriangleBracketSubstitution tbs = new TriangleBracketSubstitution(newstream);
+		if(!newstream.equals(""))
 		newstream = tbs.findTriangles();
+	
 		StringReader sr = new StringReader(newstream);
 		BufferedReader br = new BufferedReader(sr); 
 		Lexer l = new LexHelper(new PushbackReader(br,100000));
@@ -156,8 +159,7 @@ public class CSPMparser
 						
 			TreeLogicChecker tlc = new TreeLogicChecker();
 			tree.apply(tlc);
-			System.out.println("\nYour CSPM-File has been successfully parsed.\n"
-			+"Checking Identifier occurrences...");
+
 			IdentifierAnalysis ia = new IdentifierAnalysis();
 			tree.apply(ia);
 			
@@ -199,10 +201,11 @@ public class CSPMparser
 			newstream = saveComments(newstream);
 			
 			TriangleBracketSubstitution tbs = new TriangleBracketSubstitution(newstream);
+			if(!newstream.equals(""))
 			newstream = tbs.findTriangles();
 			
 			//System.out.println(newstream);
-			
+
 			StringReader sr = new StringReader(newstream);
 			BufferedReader br = new BufferedReader(sr); 
 			Lexer l = new LexHelper(new PushbackReader(br,100000));
