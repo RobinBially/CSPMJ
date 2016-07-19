@@ -1,4 +1,13 @@
-A(x) = 1
-B(x) = 2+x
-x = 3
-C = x
+--A(x) = 1
+--B(x) = 2+x
+--x = 3
+--C = x
+
+
+nocurry(1) = nocurry(2)
+nocurry(1,2) = nocurry(2,1)
+curry(1)(2) = 1
+1 = curry(1)(2)
+1 = (1)(2)(3)
+1 = (1,2)(3,4)(5,6)
+channel c: {1}.curry(1)(2)

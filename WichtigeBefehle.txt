@@ -17,6 +17,7 @@ ________________________________________________________________________________
 *********
 
 cspmf-windows.exe translate test.csp --prologOut=test.csp.pl
+cspmf-windows.exe translate test.csp --prologOutNormalised=test.csp.pl
 
 _________________________________________________________________________________________
 

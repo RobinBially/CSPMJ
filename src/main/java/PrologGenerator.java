@@ -206,8 +206,11 @@ public class PrologGenerator extends DepthFirstAdapter
 		p.openTerm("nameType");
         if(node.getId() != null)
         {
-            node.getId().apply(this);		
+            node.getId().apply(this);	
+			if(renamingActivated)
 			p.printAtom(getSymbol(node.getId()));
+			else
+			p.printAtom(getNameFromReference(getSymbol(node.getId())));	
         }
         if(node.getTypeExp() != null)
         {
@@ -226,7 +229,10 @@ public class PrologGenerator extends DepthFirstAdapter
         if(node.getId() != null)
         {
             node.getId().apply(this);
+			if(renamingActivated)
 			p.printAtom(getSymbol(node.getId()));
+			else
+			p.printAtom(getNameFromReference(getSymbol(node.getId())));	
         }
 		p.openList();
         {
@@ -257,8 +263,11 @@ public class PrologGenerator extends DepthFirstAdapter
         if(node.getClauseName() != null)
         {
             node.getClauseName().apply(this);
-			if(!inSubtypeDef)//In datatype, it defines a new constructor. In subtype, it looks for the reference of a existing constructor	
-				p.printAtom(getSymbol(node.getClauseName()));		
+			if(!inSubtypeDef)//In datatype, it defines a new constructor. In subtype, it looks for the reference of a existing constructor
+				if(renamingActivated)
+				p.printAtom(getSymbol(node.getClauseName()));
+				else
+				p.printAtom(getNameFromReference(getSymbol(node.getClauseName())));					
 			else
 				printSymbol(node.getClauseName().toString().replace(" ",""),node.getClauseName());
         }
@@ -292,7 +301,12 @@ public class PrologGenerator extends DepthFirstAdapter
 			for(int i = 0;i<nodeList.size();i++)
 			{
 				p.openTerm("channel");
+				
+				if(renamingActivated)
 				p.printAtom(getSymbol(nodeList.get(i)));
+				else
+				p.printAtom(getNameFromReference(getSymbol(nodeList.get(i))));	
+			
 				p.openTerm("type");
 				node.getChanType().apply(this);
 				p.closeTerm();
@@ -306,7 +320,10 @@ public class PrologGenerator extends DepthFirstAdapter
 			for(int i = 0;i<nodeList.size();i++)
 			{
 				p.openTerm("channel");
+				if(renamingActivated)
 				p.printAtom(getSymbol(nodeList.get(i)));
+				else
+				p.printAtom(getNameFromReference(getSymbol(nodeList.get(i))));	
 				p.openTerm("type");
 				p.printAtom("dotUnitType");
 				p.closeTerm();
@@ -447,12 +464,18 @@ public class PrologGenerator extends DepthFirstAdapter
             node.getId().apply(this);
 			String str = node.getId().toString().replace(" ","");
 			if(getSymbol(node.getId()).equals(""))//Redefinition of Function!
-			{
+			{				
+				if(renamingActivated)
 				p.openTerm(findInSymbols(str));
+				else
+				p.openTerm(str);	
 			}
 			else
 			{
-				p.openTerm(getSymbol(node.getId()));	
+				if(renamingActivated)
+				p.openTerm(getSymbol(node.getId()));
+				else
+				p.openTerm(getNameFromReference(getSymbol(node.getId())));				
 			}				
         }
 		tree.newLeaf();
@@ -521,9 +544,19 @@ public class PrologGenerator extends DepthFirstAdapter
         }
 		
 		if(getSymbol(node.getId()).startsWith("_"))
+		{
+			if(renamingActivated)
 			p.printVariable(getSymbol(node.getId()));
+			else
+			p.printVariable("_"+getNameFromReference(getSymbol(node.getId())));
+		}
 		else
+		{
+			if(renamingActivated)
 			p.printAtom(getSymbol(node.getId()));
+			else
+			p.printAtom(getNameFromReference(getSymbol(node.getId())));
+		}
 		
 			//Add to blocks
 			tree.addSymbol(str,getSymbol(node.getId()));				
@@ -2721,7 +2754,11 @@ public class PrologGenerator extends DepthFirstAdapter
 		if(patternRequired)
 		{	
 			//Add to blocks and print
+			if(renamingActivated)
 			p.printVariable(getSymbol(node.getId()));
+			else
+			p.printVariable("_"+getNameFromReference(getSymbol(node.getId())));
+		
 			tree.addSymbol(str,getSymbol(node.getId()));
 		}
 		else
@@ -3134,7 +3171,10 @@ public class PrologGenerator extends DepthFirstAdapter
             for(PId e : copy)
             {
                 e.apply(this);
+				if(renamingActivated)
 				p.printAtom(getSymbol(e));
+				else
+				p.printAtom(getNameFromReference(getSymbol(e)));
             }
 			p.closeList();
 			p.closeTerm();
@@ -3163,22 +3203,9 @@ public class PrologGenerator extends DepthFirstAdapter
 	{
 		for(int i = 0; i<symbols.size();i++)
 		{
-			if(renamingActivated)
+			if(symbols.get(i).node == n)
 			{
-				if(symbols.get(i).node == n)
-				{
-					return symbols.get(i).symbolReference;
-				}
-			}
-			else
-			{
-				if(symbols.get(i).node == n)
-				{
-					if(symbols.get(i).symbolReference.startsWith("_"))
-					return "_"+symbols.get(i).symbolName;
-					else
-					return symbols.get(i).symbolName;
-				}				
+				return symbols.get(i).symbolReference;
 			}
 		}
 		return "";
@@ -3193,35 +3220,13 @@ public class PrologGenerator extends DepthFirstAdapter
 		{
 			if(tree.isDefined(str))
 			{
-				if(renamingActivated)
-				{
 					reference = tree.getSymbol(str);
 					break;
-				}
-				else
-				{
-					if(tree.getSymbol(str).startsWith("_"))
-					reference = "_"+str;
-					else
-					reference = str;
-					break;					
-				}
 			}
 			else if(!findInSymbols(str).equals(""))
 			{
-				if(renamingActivated)
-				{
 					reference = findInSymbols(str);
 					break;
-				}
-				else
-				{
-					if(findInSymbols(str).startsWith("_"))
-					reference = "_"+str;
-					else
-					reference = str;		
-					break;
-				}
 			}
 			else
 			{			
@@ -3232,6 +3237,10 @@ public class PrologGenerator extends DepthFirstAdapter
 			
 		if(getInfoFromReference(reference).equals("Ident (Groundrep.)"))
 		{
+			if(!renamingActivated)
+			{
+				reference = getNameFromReference(reference);		
+			}	
 			p.openTerm("val_of");
 			p.printAtom(reference);
 			printSrcLoc(getNodeFromReference(reference));
@@ -3239,6 +3248,10 @@ public class PrologGenerator extends DepthFirstAdapter
 		}
 		else if(reference.startsWith("_"))
 		{
+			if(!renamingActivated)
+			{
+				reference = "_"+getNameFromReference(reference);
+			}
 			p.printVariable(reference);
 		}
 		else if (reference.equals("") && isBuiltin(str))
@@ -3249,6 +3262,10 @@ public class PrologGenerator extends DepthFirstAdapter
 		}
 		else if (!reference.equals(""))
 		{
+			if(!renamingActivated)
+			{
+				reference = getNameFromReference(reference);
+			}
 			p.printAtom(reference);
 		}
 		
@@ -3282,6 +3299,16 @@ public class PrologGenerator extends DepthFirstAdapter
 		{
 			if(symbols.get(i).symbolReference.equals(str))
 			return symbols.get(i).node;
+		}	
+		return null;
+	}
+
+	public String getNameFromReference(String ref)
+	{
+		for(int i = 0; i< symbols.size();i++)
+		{
+			if(symbols.get(i).symbolReference.equals(ref))
+			return symbols.get(i).symbolName;
 		}	
 		return null;
 	}

@@ -1,5 +1,14 @@
 import static org.junit.Assert.*;
-
+import java.io.*;
+import java.*;
+import java.util.*;
+import java.lang.*;
+import java.util.regex.*;
+import java.lang.Character;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import org.junit.Test;
 import org.junit.Ignore;
 
@@ -7,6 +16,24 @@ import org.junit.Ignore;
 
 public class PrologGeneratorTests 
 {
+
+	@Test
+	public void EasyCspmfComparison() throws Exception
+	{
+		String test = 	"nocurry(1) = nocurry(2)"
+						+"\nnocurry(1,2) = nocurry(2,1)"
+						+"\ncurry(1)(2) = 1"
+						+"\n1 = curry(1)(2)"
+						+"\n1 = (1)(2)(3)"
+						+"\n1 = (1,2)(3,4)(5,6)"
+						+"\nchannel c: {1}.curry(1)(2)"	;
+		String compiled = "";
+		try
+		{
+		checkCSPMF(test,cspmfCompileToProlog(test));
+		}catch(Exception e){}
+	}
+	
 	@Test
 	public void TauPrio() throws Exception
 	{
@@ -829,6 +856,48 @@ public class PrologGeneratorTests
 		assertEquals(expected, actual);
 	}
 	
+	public void checkCSPMF(final String input, final String expected)
+	{
+		String actual;
+		try 
+		{
+			actual = parseStringWithoutRenaming(input);
+		} 
+		catch (CSPMparserException e) 
+		{
+			actual = "";
+		}
+		System.out.println(expected+"\n"+actual);
+		assertEquals(expected, actual);		
+	}
+
+	public String cspmfCompileToProlog(String input) throws Exception
+	{
+		String output = "";
+		
+		PrintWriter writer = new PrintWriter("cspmfIN.temp", "UTF-8");
+		writer.println(input);
+		writer.close();		
+		
+		String[] command ={"cmd"};
+		Process p = Runtime.getRuntime().exec(command);
+		new Thread(new SyncPipe(p.getErrorStream(), System.err)).start();
+		new Thread(new SyncPipe(p.getInputStream(), System.out)).start();
+		PrintWriter stdin = new PrintWriter(p.getOutputStream());
+		stdin.println("cspmf.exe translate cspmfIN.temp --prologOutNormalised=cspmfOUT.temp");
+		stdin.close();
+		int returnCode = p.waitFor();
+		System.out.println("Return code = " + returnCode);
+		
+		output = getStringFromFile("cspmfOUT.temp");
+		output = output.replace("\r","");
+		
+		Files.delete(Paths.get("cspmfOUT.temp"));
+		Files.delete(Paths.get("cspmfIN.temp"));
+		
+		return output;
+	}
+	
 	private void checkParserError(final String input) 
 	{
 		boolean exception_occurred = false;
@@ -848,6 +917,24 @@ public class PrologGeneratorTests
 		CSPMparser parser = new CSPMparser();
 		return parser.parseString(input,true);
 	}
+	
+	private String parseStringWithoutRenaming(final String input) throws CSPMparserException 
+	{
+		CSPMparser parser = new CSPMparser();
+		return parser.parseString(input,false);
+	}
 
-
+	public String getStringFromFile(String fp)
+	{
+		try 
+		{	
+			byte[] encoded = Files.readAllBytes(Paths.get(fp));
+			String file_content = new String(encoded, StandardCharsets.UTF_8);
+			return file_content;
+		}
+		catch(Exception e) 		
+		{
+			throw new RuntimeException("Your File has not been converted to a String.");
+		}
+	}
 }

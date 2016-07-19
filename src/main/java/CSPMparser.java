@@ -25,7 +25,7 @@ public class CSPMparser
 
 	public CSPMparser()
 	{
-		setVersion("0 62 160718");
+		setVersion("0 63 160719");
 		exceptionCounter = 0;
 		commentMap = new HashMap<Integer,Character>();
 		commentList = new ArrayList<CommentInfo>();
@@ -125,6 +125,7 @@ public class CSPMparser
 		{			
 			String s = getStringFromFile(inputFile);
 			parsingRoutine(s,true,true,true,inputFile,outputFile);
+		//	parsingRoutine(s,true,false,false,inputFile,outputFile);
 		} 	
 		catch(Exception e) 
 		{
@@ -469,7 +470,7 @@ public class CSPMparser
 			versionString += subnum[j];
 		}
 	}
-
+	
 	public static void main(String arguments[]) 
 	{		
 		CSPMparser cspm = new CSPMparser();
