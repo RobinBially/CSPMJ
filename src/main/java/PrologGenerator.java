@@ -848,13 +848,13 @@ public class PrologGenerator extends DepthFirstAdapter
     {
         inAExceptExp(node);
 		p.openTerm("exception");
-        if(node.getProc3() != null)
-        {
-            node.getProc3().apply(this);
-        }
         if(node.getDotOp() != null)
         {
             node.getDotOp().apply(this);
+        }
+        if(node.getProc3() != null)
+        {
+            node.getProc3().apply(this);
         }
         if(node.getProc4() != null)
         {
@@ -870,13 +870,13 @@ public class PrologGenerator extends DepthFirstAdapter
     {
         inAGenParExp(node);
 		p.openTerm("sharing");
-        if(node.getProc3() != null)
-        {
-            node.getProc3().apply(this);
-        }
         if(node.getDotOp() != null)
         {
             node.getDotOp().apply(this);
+        }
+        if(node.getProc3() != null)
+        {
+            node.getProc3().apply(this);
         }
         if(node.getProc4() != null)
         {
@@ -892,13 +892,13 @@ public class PrologGenerator extends DepthFirstAdapter
     {
         inAAlphParExp(node);
 		p.openTerm("aParallel");
-        if(node.getProc3() != null)
-        {
-            node.getProc3().apply(this);
-        }
         if(node.getDotOpl() != null)
         {
             node.getDotOpl().apply(this);
+        }
+        if(node.getProc3() != null)
+        {
+            node.getProc3().apply(this);
         }
         if(node.getDotOpr() != null)
         {

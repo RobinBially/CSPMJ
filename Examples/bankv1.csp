@@ -136,7 +136,7 @@ CUST = enterBank?i -> (report.fail -> CUST [] report.success ->
 
 SPEC2 = NEWSPEC(0)
 
- NEWSPEC(num) = (num < maxLimit & enterBank?cc) 
+ NEWSPEC(num) = num < maxLimit & enterBank?cc 
  -> ((report.success 
  -> NEWSPEC(num+1) |~| report.fail 
  -> NEWSPEC(num)) [] num > 0 & (|~| cc :CUSTOMER @ leaveBank. cc)) 

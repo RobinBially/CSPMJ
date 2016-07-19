@@ -17,26 +17,154 @@ import org.junit.Ignore;
 public class PrologGeneratorTests 
 {
 	@Test
+	public void CompareProcessOperatorsToCspmf() throws Exception
+	{
+		System.out.println("\n\nCompareProcessOperatorsToCspmf\n\n");
+		String test = 	
+					//	"J = 1 \\ 2"		cspmf does not escape
+						"\nK = 1 ||| 2"
+						+"\nL = 2 [|3|> 4"
+						+"\nM = 2 [|3|] 4"
+						+"\nN = 2 [3||4] 5"
+						+"\nO = 2 [3<->4] 5"
+						+"\nP = 2 [3<->4,6<->7] 5"
+						+"\nQ = 2 |~| 3"
+						+"\nR = 2 [] 3"
+					//	+"\nS = 2 [+ 3 +] 4" not supported by cspmf
+					//	+"\nT = 2 /\\ 3"	 cspmf does not escape
+					//	+"\nU = 2 /+ 1 +\\ 3" not supported by cspmf
+						+"\nV = 2 [> 3"
+						+"\nW = 2 ; 3"
+						+"\nX = 2 & 3"
+						+"\nY = 1 -> 5"
+						+"\nn = [] true @ 1"
+						+"\no = |~| 1:2 @ 1"
+						+"\np = ||| 1:2,true @ 2"
+						+"\nq = || 1 @ [true] 1"
+						+"\nr = ; 1 @ 2"
+						+"\ns = [|true|] 1 @ 2"
+						+"\nt = [1<->2] true @ true";
+					//	+"\nu = [+1+] true @ true"; not supported by cspmf
+		try
+		{
+		checkCSPMF(test,cspmfCompileToProlog(test));
+		}catch(Exception e){throw e;}					
+	}
+	
+	@Test
+	public void CompareExpressionOperatorsToCspmf() throws Exception
+	{
+		System.out.println("\n\nCompareExpressionOperatorsToCspmf\n\n");
+		String test = 
+						"v = -(1^2)^2"
+						+"\nw = 0-1+2*3/4%-5"
+						+"\nx = #1"
+						+"\nz = true or false and not true"
+						+"\nu = -1+2";
+		try
+		{
+		checkCSPMF(test,cspmfCompileToProlog(test));
+		}catch(Exception e){throw e;}					
+	}	
+	
+	@Test
+	public void CompareAssertionsToCspmf() throws Exception
+	{
+		System.out.println("\n\nCompareAssertionsToCspmf\n\n");
+		String test = 
+					"assert 1 [T= 1"
+					+"\nassert 1 [F= 1"
+					+"\nassert 1 [FD= 1"
+					+"\nassert not 1->2 [R= 2"
+					+"\nassert 1 |= LTL: \"true\""
+					+"\nassert 1 |= CTL: \"true\""
+					+"\nassert 1 :[deadlock free]"
+					+"\nassert 1 :[deadlock free [F]]"
+					+"\nassert 1 :[deadlock free [FD]]"
+					+"\nassert 1 :[deadlock free [T]]"
+					+"\nassert 1 :[divergence free]"
+					+"\nassert 1 :[divergence free [F]]"
+					+"\nassert 1 :[divergence free [FD]]"
+					+"\nassert 1 :[divergence free [T]]"
+					+"\nassert 1 :[livelock free]"
+					+"\nassert 1 :[livelock free [F]]"
+					+"\nassert 1 :[livelock free [FD]]"
+					+"\nassert 1 :[livelock free [T]]"
+					+"\nassert 1 :[deterministic]"
+					+"\nassert 1 :[deterministic [T]]"
+					+"\nassert 1 :[deterministic [F]]"
+					+"\nassert 1 :[deterministic [FD]]";
+		try
+		{
+		checkCSPMF(test,cspmfCompileToProlog(test));
+		}catch(Exception e){throw e;}					
+	}	
+	
+	
+	@Test
+	public void CompareComplexComprehensionsToCspmf() throws Exception
+	{
+		System.out.println("\n\nCompareComplexComprehensionsToCspmf\n\n");
+		String test = 
+					"A(x) = {x+{x|x<-1}|x<-1,x<-2,x} + x"
+					+"\nE(x) = {let x = 1"
+					+"\n1 = {x|1}"
+					+"\nwithin 2 |x<-1,let 1 = x within 2}"
+					+"\nF = {1|x<-1,x,x<-2,x}";
+		try
+		{
+		checkCSPMF(test,cspmfCompileToProlog(test));
+		}catch(Exception e){throw e;}					
+	}
+	
+	@Test
+	public void ComparePatternsInComprehensionsToCspmf() throws Exception
+	{
+		System.out.println("\n\nComparePatternsInComprehensionsToCspmf\n\n");
+		String test = 
+				"{} = 2"
+				+"\n{1} = 1"
+				+"\n_ = 3"
+				+"\n<> = 3"
+				+"\n<1,2> = 5"
+				+"\n1 = {1|_<-2}"
+				+"\n1 = {1|{}<-2}"
+				+"\n1 = {1|{1}<-2}"
+				+"\n1 = {1|<><-2}"
+				+"\n1 = {1|<1,2,3><-2}"
+				+"\n1 = {1|(x,y)<-2,x}"
+				+"\n1 = {1|(x)<-2,x}"
+				+"\n1 = {1|(a.b^c@@(d),e)<-2,a,b,c,d,e}";
+		try
+		{
+		checkCSPMF(test,cspmfCompileToProlog(test));
+		}catch(Exception e){throw e;}					
+	}
+	
+	
+	@Test
 	public void ComparePrecedenceToCspmf() throws Exception
 	{
+		System.out.println("\n\nComparePrecedenceToCspmf\n\n");
 		String test = "A = 2 -> [] 1 @  1"
 						+"\nB = [] 1 @  1 -> 2"
-						+"\nC = \1@1 -> 1"
-						+"\nD = 1 -> \1@1"
+						+"\nC = \\1@1 -> 1"
+						+"\nD = 1 -> \\1@1"
 						+"\nE = let 1=1 within 1->1"
 						+"\nF = 1 -> let 1=1 within 1"
-						+"\nG = let 1=1 within \1@1"
-						+"\nH = \1@let 1=1 within 1"
+						+"\nG = let 1=1 within \\1@1"
+						+"\nH = \\1@let 1=1 within 1"
 						+"\nI = 1?1.2.3:{1}.1 -> 1";
 		try
 		{
 		checkCSPMF(test,cspmfCompileToProlog(test));
-		}catch(Exception e){}					
+		}catch(Exception e){throw e;}					
 	}
 	
 	@Test
 	public void CompareCurryToCspmf() throws Exception
 	{
+		System.out.println("\n\nCompareCurryToCspmf\n\n");
 		String test = 	"nocurry(1) = nocurry(2)"
 						+"\nnocurry(1,2) = nocurry(2,1)"
 						+"\ncurry(1)(2) = 1"
@@ -47,7 +175,7 @@ public class PrologGeneratorTests
 		try
 		{
 		checkCSPMF(test,cspmfCompileToProlog(test));
-		}catch(Exception e){}
+		}catch(Exception e){throw e;}
 	}
 	
 	@Test
@@ -704,9 +832,9 @@ public class PrologGeneratorTests
 				,
 				"'bindval'('J','\\'('int'(1),'int'(2),'src_span_operator'('no_loc_info_available','no_loc_info_available')),'no_loc_info_available')."
 				+"\n'bindval'('K','|||'('int'(1),'int'(2),'src_span_operator'('no_loc_info_available','no_loc_info_available')),'no_loc_info_available')."
-				+"\n'bindval'('L','exception'('int'(2),'int'(3),'int'(4),'no_loc_info_available'),'no_loc_info_available')."
-				+"\n'bindval'('M','sharing'('int'(2),'int'(3),'int'(4),'no_loc_info_available'),'no_loc_info_available')."
-				+"\n'bindval'('N','aParallel'('int'(2),'int'(3),'int'(4),'int'(5),'no_loc_info_available'),'no_loc_info_available')."
+				+"\n'bindval'('L','exception'('int'(3),'int'(2),'int'(4),'no_loc_info_available'),'no_loc_info_available')."
+				+"\n'bindval'('M','sharing'('int'(3),'int'(2),'int'(4),'no_loc_info_available'),'no_loc_info_available')."
+				+"\n'bindval'('N','aParallel'('int'(3),'int'(2),'int'(4),'int'(5),'no_loc_info_available'),'no_loc_info_available')."
 				+"\n'bindval'('O','lParallel'('linkList'(['link'('int'(3),'int'(4))]),'int'(2),'int'(5),'no_loc_info_available'),'no_loc_info_available')."
 				+"\n'bindval'('P','lParallel'('linkList'(['link'('int'(3),'int'(4)),'link'('int'(6),'int'(7))]),'int'(2),'int'(5),'no_loc_info_available'),'no_loc_info_available')."
 				+"\n'bindval'('Q','|~|'('int'(2),'int'(3),'src_span_operator'('no_loc_info_available','no_loc_info_available')),'no_loc_info_available')."
@@ -903,7 +1031,7 @@ public class PrologGeneratorTests
 		stdin.println("cspmf.exe translate cspmfIN.temp --prologOutNormalised=cspmfOUT.temp");
 		stdin.close();
 		int returnCode = p.waitFor();
-		System.out.println("Return code = " + returnCode);
+		//System.out.println("Return code = " + returnCode);
 		
 		output = getStringFromFile("cspmfOUT.temp");
 		output = output.replace("\r","");
