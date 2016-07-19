@@ -16,9 +16,26 @@ import org.junit.Ignore;
 
 public class PrologGeneratorTests 
 {
-
 	@Test
-	public void EasyCspmfComparison() throws Exception
+	public void ComparePrecedenceToCspmf() throws Exception
+	{
+		String test = "A = 2 -> [] 1 @  1"
+						+"\nB = [] 1 @  1 -> 2"
+						+"\nC = \1@1 -> 1"
+						+"\nD = 1 -> \1@1"
+						+"\nE = let 1=1 within 1->1"
+						+"\nF = 1 -> let 1=1 within 1"
+						+"\nG = let 1=1 within \1@1"
+						+"\nH = \1@let 1=1 within 1"
+						+"\nI = 1?1.2.3:{1}.1 -> 1";
+		try
+		{
+		checkCSPMF(test,cspmfCompileToProlog(test));
+		}catch(Exception e){}					
+	}
+	
+	@Test
+	public void CompareCurryToCspmf() throws Exception
 	{
 		String test = 	"nocurry(1) = nocurry(2)"
 						+"\nnocurry(1,2) = nocurry(2,1)"
@@ -26,8 +43,7 @@ public class PrologGeneratorTests
 						+"\n1 = curry(1)(2)"
 						+"\n1 = (1)(2)(3)"
 						+"\n1 = (1,2)(3,4)(5,6)"
-						+"\nchannel c: {1}.curry(1)(2)"	;
-		String compiled = "";
+						+"\nchannel c: {1}.curry(1)(2)";
 		try
 		{
 		checkCSPMF(test,cspmfCompileToProlog(test));

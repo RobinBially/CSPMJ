@@ -1,13 +1,9 @@
---A(x) = 1
---B(x) = 2+x
---x = 3
---C = x
-
-
-nocurry(1) = nocurry(2)
-nocurry(1,2) = nocurry(2,1)
-curry(1)(2) = 1
-1 = curry(1)(2)
-1 = (1)(2)(3)
-1 = (1,2)(3,4)(5,6)
-channel c: {1}.curry(1)(2)
+A = 2 -> [] 1 @  1
+B = [] 1 @  1 -> 2
+C = \1@1 -> 1
+D = 1 -> \1@1 
+E = let 1=1 within 1->1
+F = 1 -> let 1=1 within 1
+G = let 1=1 within \1@1
+H = \1@let 1=1 within 1
+I = 1?1.2.3:{1}.1 -> 1

@@ -21,7 +21,6 @@ public class PrologGenerator extends DepthFirstAdapter
 	private HashMap<Integer,HashMap<String,String>> generatorArgs;
 	private int currentInPredicate;	
 	private BlockTree tree;	
-	private int leftFromPrefix;		
 	private boolean printSrcLoc;
 	private boolean patternRequired;	
 	private ArrayList<CommentInfo> commentList;
@@ -34,7 +33,6 @@ public class PrologGenerator extends DepthFirstAdapter
 		generatorArgs = new HashMap<Integer,HashMap<String,String>>();	
 		expectingPattern = false;
 		inSubtypeDef = false;
-		leftFromPrefix = 0;
 		currentInChannel = false;
 		p = pto;
 		currentInParams = 0;
@@ -854,9 +852,9 @@ public class PrologGenerator extends DepthFirstAdapter
         {
             node.getProc3().apply(this);
         }
-        if(node.getEvent() != null)
+        if(node.getDotOp() != null)
         {
-            node.getEvent().apply(this);
+            node.getDotOp().apply(this);
         }
         if(node.getProc4() != null)
         {
@@ -876,9 +874,9 @@ public class PrologGenerator extends DepthFirstAdapter
         {
             node.getProc3().apply(this);
         }
-        if(node.getEvent() != null)
+        if(node.getDotOp() != null)
         {
-            node.getEvent().apply(this);
+            node.getDotOp().apply(this);
         }
         if(node.getProc4() != null)
         {
@@ -898,13 +896,13 @@ public class PrologGenerator extends DepthFirstAdapter
         {
             node.getProc3().apply(this);
         }
-        if(node.getEventl() != null)
+        if(node.getDotOpl() != null)
         {
-            node.getEventl().apply(this);
+            node.getDotOpl().apply(this);
         }
-        if(node.getEventr() != null)
+        if(node.getDotOpr() != null)
         {
-            node.getEventr().apply(this);
+            node.getDotOpr().apply(this);
         }
         if(node.getProc4() != null)
         {
@@ -997,9 +995,9 @@ public class PrologGenerator extends DepthFirstAdapter
         {
             node.getProc5().apply(this);
         }
-        if(node.getEvent() != null)
+        if(node.getDotOp() != null)
         {
-            node.getEvent().apply(this);
+            node.getDotOp().apply(this);
         }
         if(node.getProc6() != null)
         {
@@ -1044,9 +1042,9 @@ public class PrologGenerator extends DepthFirstAdapter
         {
             node.getProc6().apply(this);
         }
-        if(node.getEvent() != null)
+        if(node.getDotOp() != null)
         {
-            node.getEvent().apply(this);
+            node.getDotOp().apply(this);
         }
         if(node.getProc7() != null)
         {
@@ -1129,12 +1127,10 @@ public class PrologGenerator extends DepthFirstAdapter
     {
         inAPrefixExp(node);
 		p.openTerm("prefix");
-		leftFromPrefix += 1;
         if(node.getEvent() != null)
         {
             node.getEvent().apply(this);
         }
-		leftFromPrefix -= 1;
         if(node.getPrefix() != null)
         {
             node.getPrefix().apply(this);
@@ -1316,9 +1312,9 @@ public class PrologGenerator extends DepthFirstAdapter
             node.getStmts().apply(this);
         }
 		p.openTerm("pair");
-        if(node.getEvent() != null)
+        if(node.getDotOp() != null)
         {
-            node.getEvent().apply(this);
+            node.getDotOp().apply(this);
         }
 		if(node.getProc9() != null)
         {
@@ -1379,9 +1375,9 @@ public class PrologGenerator extends DepthFirstAdapter
     {
         inASyncParRepExp(node);
 		p.openTerm("procRepSyncParallel");
-        if(node.getEvent() != null)
+        if(node.getDotOp() != null)
         {
-            node.getEvent().apply(this);
+            node.getDotOp().apply(this);
         }
         if(node.getStmts() != null)
         {
@@ -1449,7 +1445,7 @@ public class PrologGenerator extends DepthFirstAdapter
 			}
 			p.closeList();
 		}
-		else if(leftFromPrefix > 0)
+		else
 		{
 			printSrcLoc(node.getDpattern());
 			p.openList();

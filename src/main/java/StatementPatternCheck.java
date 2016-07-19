@@ -60,9 +60,9 @@ public class StatementPatternCheck extends DepthFirstAdapter
         {
             node.getProc3().apply(this);
         }
-        if(node.getEvent() != null)
+        if(node.getDotOp() != null)
         {
-            node.getEvent().apply(this);
+            node.getDotOp().apply(this);
         }
         if(node.getProc4() != null)
         {
@@ -83,9 +83,9 @@ public class StatementPatternCheck extends DepthFirstAdapter
         {
             node.getProc3().apply(this);
         }
-        if(node.getEvent() != null)
+        if(node.getDotOp() != null)
         {
-            node.getEvent().apply(this);
+            node.getDotOp().apply(this);
         }
         if(node.getProc4() != null)
         {
@@ -106,13 +106,13 @@ public class StatementPatternCheck extends DepthFirstAdapter
         {
             node.getProc3().apply(this);
         }
-        if(node.getEventl() != null)
+        if(node.getDotOpl() != null)
         {
-            node.getEventl().apply(this);
+            node.getDotOpl().apply(this);
         }
-        if(node.getEventr() != null)
+        if(node.getDotOpr() != null)
         {
-            node.getEventr().apply(this);
+            node.getDotOpr().apply(this);
         }
         if(node.getProc4() != null)
         {
@@ -195,9 +195,9 @@ public class StatementPatternCheck extends DepthFirstAdapter
         {
             node.getProc5().apply(this);
         }
-        if(node.getEvent() != null)
+        if(node.getDotOp() != null)
         {
-            node.getEvent().apply(this);
+            node.getDotOp().apply(this);
         }
         if(node.getProc6() != null)
         {
@@ -238,9 +238,9 @@ public class StatementPatternCheck extends DepthFirstAdapter
         {
             node.getProc6().apply(this);
         }
-        if(node.getEvent() != null)
+        if(node.getDotOp() != null)
         {
-            node.getEvent().apply(this);
+            node.getDotOp().apply(this);
         }
         if(node.getProc7() != null)
         {
@@ -499,9 +499,9 @@ public class StatementPatternCheck extends DepthFirstAdapter
         {
             node.getStmts().apply(this);
         }
-        if(node.getEvent() != null)
+        if(node.getDotOp() != null)
         {
-            node.getEvent().apply(this);
+            node.getDotOp().apply(this);
         }
 		if(node.getProc9() != null)
         {
@@ -565,9 +565,9 @@ public class StatementPatternCheck extends DepthFirstAdapter
 		{
 			throw new RuntimeException("Expecting pattern (Replicated Operators are not allowed).");
 		}
-        if(node.getEvent() != null)
+        if(node.getDotOp() != null)
         {
-            node.getEvent().apply(this);
+            node.getDotOp().apply(this);
         }
         if(node.getStmts() != null)
         {
