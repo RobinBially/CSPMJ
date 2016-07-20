@@ -204,7 +204,7 @@ public class PrologGenerator extends DepthFirstAdapter
 		p.openTerm("nameType");
         if(node.getId() != null)
         {
-            node.getId().apply(this);	
+            node.getId().apply(this);			
 			if(renamingActivated)
 			p.printAtom(getSymbol(node.getId()));
 			else
@@ -1182,11 +1182,12 @@ public class PrologGenerator extends DepthFirstAdapter
                 e.apply(this);
             }
 			p.closeList();
-        }		
+        }			
         if(node.getProc9() != null)
         {
             node.getProc9().apply(this);
         }
+
 		tree.returnToParent();
 		p.closeTerm();
         outALetWithinExp(node);
@@ -2300,6 +2301,7 @@ public class PrologGenerator extends DepthFirstAdapter
 			node.getExpressions().apply(this);
 		}
 		p.closeTerm();
+
         if(node.getStmts() != null)
         {
             node.getStmts().apply(this);
@@ -3209,8 +3211,7 @@ public class PrologGenerator extends DepthFirstAdapter
 
 	public void printSymbol(String str, Node n)
 	{
-		String reference = "";				
-		//System.out.println("a search"+tree.tree+" "+tree.getCurrentBlockNumber()+"\n"+tree.blockStructure);		
+		String reference = "";						
 		int saveCurrentBlockNumber = tree.getCurrentBlockNumber();	
 		while(true)
 		{
@@ -3255,6 +3256,10 @@ public class PrologGenerator extends DepthFirstAdapter
 			p.printAtom(str);
 			SymInfo si = new SymInfo(n,"BuiltIn primitive",tree.getCurrentBlockNumber(),str,str);
 			symbols.add(si);
+		}
+		else if(reference.equals(""))
+		{
+			throw new RuntimeException("'Unbound Identifier "+str+"'"+getErrorLoc(n));
 		}
 		else if (!reference.equals(""))
 		{
@@ -3373,6 +3378,11 @@ public class PrologGenerator extends DepthFirstAdapter
     	}
     }
 	
+	public String getErrorLoc(Node node)
+	{
+		String s = ","+node.getStartPos().getLine()+","+node.getStartPos().getPos();
+		return s;
+	}
 	
     public void printSrcLoc(Node startNode, Node endNode) 
     {

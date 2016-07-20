@@ -5,16 +5,13 @@ import CSPMparser.node.*;
 import java.util.*;
 import java.io.*;
 
-
-
-
 public class SymbolCollector extends DepthFirstAdapter
 {	
 	private boolean patternRequired;
 	private int currentInParams;
 	private boolean inSubtypeDef;
 	private int groundrep;
-	private int inComprGenerator;			
+	private int inComprGenerator;
 	
 	private BlockTree tree;
 	
@@ -184,15 +181,15 @@ public class SymbolCollector extends DepthFirstAdapter
         inAComprSeqExp(node);
 		tree.newLeaf();
 
+        if(node.getExpressions() != null)
+        {
+            node.getExpressions().apply(this);
+        }
         if(node.getStmts() != null)
         {
 			inComprGenerator += 1;
             node.getStmts().apply(this);
 			inComprGenerator -= 1;
-        }
-        if(node.getExpressions() != null)
-        {
-            node.getExpressions().apply(this);
         }
 		tree.returnToParent();
         outAComprSeqExp(node);
@@ -204,12 +201,6 @@ public class SymbolCollector extends DepthFirstAdapter
         inARangedComprSeqExp(node);
 		tree.newLeaf();
 
-        if(node.getStmts() != null)
-        {
-			inComprGenerator += 1;
-            node.getStmts().apply(this);
-			inComprGenerator -= 1;
-        }
         if(node.getLval() != null)
         {
             node.getLval().apply(this);
@@ -217,6 +208,12 @@ public class SymbolCollector extends DepthFirstAdapter
         if(node.getRval() != null)
         {
             node.getRval().apply(this);
+        }
+        if(node.getStmts() != null)
+        {
+			inComprGenerator += 1;
+            node.getStmts().apply(this);
+			inComprGenerator -= 1;
         }
 		tree.returnToParent();
         outARangedComprSeqExp(node);
@@ -228,15 +225,15 @@ public class SymbolCollector extends DepthFirstAdapter
         inAInfiniteComprSeqExp(node);
 		tree.newLeaf();
 
+        if(node.getValExp() != null)
+        {
+            node.getValExp().apply(this);
+        }
         if(node.getStmts() != null)
         {
 			inComprGenerator += 1;
             node.getStmts().apply(this);
 			inComprGenerator -= 1;
-        }
-        if(node.getValExp() != null)
-        {
-            node.getValExp().apply(this);
         }
 		tree.returnToParent();
         outAInfiniteComprSeqExp(node);
@@ -248,15 +245,15 @@ public class SymbolCollector extends DepthFirstAdapter
         inAComprSetExp(node);
 		tree.newLeaf();
 
+        if(node.getExpressions() != null)
+        {
+            node.getExpressions().apply(this);
+        }
         if(node.getStmts() != null)
         {
 			inComprGenerator += 1;
             node.getStmts().apply(this);
 			inComprGenerator -= 1;
-        }
-        if(node.getExpressions() != null)
-        {
-            node.getExpressions().apply(this);
         }
 		tree.returnToParent();
         outAComprSetExp(node);
@@ -268,12 +265,6 @@ public class SymbolCollector extends DepthFirstAdapter
         inARangedComprSetExp(node);
 		tree.newLeaf();
 
-        if(node.getStmts() != null)
-        {
-			inComprGenerator += 1;
-            node.getStmts().apply(this);
-			inComprGenerator -= 1;
-        }
         if(node.getLval() != null)
         {
             node.getLval().apply(this);
@@ -281,6 +272,12 @@ public class SymbolCollector extends DepthFirstAdapter
         if(node.getRval() != null)
         {
             node.getRval().apply(this);
+        }
+        if(node.getStmts() != null)
+        {
+			inComprGenerator += 1;
+            node.getStmts().apply(this);
+			inComprGenerator -= 1;
         }
 		tree.returnToParent();
         outARangedComprSetExp(node);
@@ -292,15 +289,15 @@ public class SymbolCollector extends DepthFirstAdapter
         inAInfiniteComprSetExp(node);
 		tree.newLeaf();
 
+        if(node.getValExp() != null)
+        {
+            node.getValExp().apply(this);
+        }
         if(node.getStmts() != null)
         {
 			inComprGenerator += 1;
             node.getStmts().apply(this);
 			inComprGenerator -= 1;
-        }
-        if(node.getValExp() != null)
-        {
-            node.getValExp().apply(this);
         }
 		tree.returnToParent();
         outAInfiniteComprSetExp(node);

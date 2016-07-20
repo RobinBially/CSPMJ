@@ -19,6 +19,7 @@ public class BlockTree
 	public void newLeaf()
 	{
 		blockCounter++;
+		//System.out.println("New Number is"+ blockCounter);
 		blockStructure.put(blockCounter,currentBlockNumber);
 		currentBlockNumber = blockCounter;
 	}
@@ -28,6 +29,7 @@ public class BlockTree
 		if(blockStructure.get(currentBlockNumber) != null)
 		{
 			currentBlockNumber = blockStructure.get(currentBlockNumber);
+			//System.out.println("Previous number was"+ currentBlockNumber);
 			return true;
 		}
 		else

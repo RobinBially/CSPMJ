@@ -162,8 +162,8 @@ public class CSPMparser
 			
 			System.out.println("Checking unbound and renamed identifiers.");
 
-			IdentifierAnalysis ia = new IdentifierAnalysis();
-			tree.apply(ia);
+	//		IdentifierAnalysis ia = new IdentifierAnalysis();
+	//		tree.apply(ia);
 			
 			System.out.println("No unbound identifiers were found.\nYour File has been parsed successfully.");	
 			
@@ -263,7 +263,7 @@ public class CSPMparser
 				writer.print(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
 				+"\n:- dynamic module/4."
 				+"\n'parserVersionStr'('"+versionString+"')."
-				+"\n'parseResult'('parseError','"+e.getMessage()+"',0,0,0).");
+				+"\n'parseResult'('parseError',"+e.getMessage()+").");
 				writer.close();
 			}
 

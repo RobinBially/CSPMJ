@@ -403,8 +403,8 @@ public class PrologGeneratorTests
 					+"\nwithin 2 |x<-1,let 1 = x within 2}"
 					+"\nF = {1|x<-1,x,x<-2,x}"
 			 ,
-					"'agent'('A'(_x),'+'('setExp'('rangeEnum'(['+'(_x3,'setExp'('rangeEnum'([_x4]),['comprehensionGenerator'(_x4,'int'(1))]))]),['comprehensionGenerator'(_x2,'int'(1)),'comprehensionGenerator'(_x3,'int'(2)),'comprehensionGuard'(_x3)]),_x),'no_loc_info_available')."
-					+"\n'agent'('E'(_x5),'setExp'('rangeEnum'(['let'(['bindval'('x7','int'(1),'no_loc_info_available'),'bindval'('int'(1),'setExp'('rangeEnum'(['val_of'('x7','no_loc_info_available')]),['comprehensionGuard'('int'(1))]),'no_loc_info_available')],'int'(2))]),['comprehensionGenerator'(_x6,'int'(1)),'comprehensionGuard'('let'(['bindval'('int'(1),_x6,'no_loc_info_available')],'int'(2)))]),'no_loc_info_available')."
+					"'agent'('A'(_x),'+'('setExp'('rangeEnum'(['+'(_x4,'setExp'('rangeEnum'([_x2]),['comprehensionGenerator'(_x2,'int'(1))]))]),['comprehensionGenerator'(_x3,'int'(1)),'comprehensionGenerator'(_x4,'int'(2)),'comprehensionGuard'(_x4)]),_x),'no_loc_info_available')."
+					+"\n'agent'('E'(_x5),'setExp'('rangeEnum'(['let'(['bindval'('x6','int'(1),'no_loc_info_available'),'bindval'('int'(1),'setExp'('rangeEnum'(['val_of'('x6','no_loc_info_available')]),['comprehensionGuard'('int'(1))]),'no_loc_info_available')],'int'(2))]),['comprehensionGenerator'(_x7,'int'(1)),'comprehensionGuard'('let'(['bindval'('int'(1),_x7,'no_loc_info_available')],'int'(2)))]),'no_loc_info_available')."
 					+"\n'bindval'('F','setExp'('rangeEnum'(['int'(1)]),['comprehensionGenerator'(_x8,'int'(1)),'comprehensionGuard'(_x8),'comprehensionGenerator'(_x9,'int'(2)),'comprehensionGuard'(_x9)]),'no_loc_info_available')."
 					+"\n'symbol'('A','A','no_loc_info_available','Function or Process')."
 					+"\n'symbol'('x','x','no_loc_info_available','Ident (Prolog Variable)')."
@@ -413,11 +413,11 @@ public class PrologGeneratorTests
 					+"\n'symbol'('x4','x','no_loc_info_available','Ident (Prolog Variable)')."
 					+"\n'symbol'('E','E','no_loc_info_available','Function or Process')."
 					+"\n'symbol'('x5','x','no_loc_info_available','Ident (Prolog Variable)')."
-					+"\n'symbol'('x6','x','no_loc_info_available','Ident (Prolog Variable)')."
-					+"\n'symbol'('x7','x','no_loc_info_available','Ident (Groundrep.)')."
+					+"\n'symbol'('x6','x','no_loc_info_available','Ident (Groundrep.)')."
+					+"\n'symbol'('x7','x','no_loc_info_available','Ident (Prolog Variable)')."
 					+"\n'symbol'('F','F','no_loc_info_available','Ident (Groundrep.)')."
 					+"\n'symbol'('x8','x','no_loc_info_available','Ident (Prolog Variable)')."
-					+"\n'symbol'('x9','x','no_loc_info_available','Ident (Prolog Variable)')."		 
+					+"\n'symbol'('x9','x','no_loc_info_available','Ident (Prolog Variable)')."	 
 			 );
 	}
 	@Test
