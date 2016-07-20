@@ -8,24 +8,26 @@ import java.io.*;
 public class SymbolCollector extends DepthFirstAdapter
 {	
 	private boolean patternRequired;
-	private int currentInParams;
+	private int expectingPrologVar;
 	private boolean inSubtypeDef;
 	private int groundrep;
 	private int inComprGenerator;
-	
-	private BlockTree tree;
+	private ArrayList<String> renamingArgs;
+	private HashMap<Integer,String> lastFunctionDef; //Save last function definition (String) in scope (Integer) for verticalRenamingAnalysis
+	private ScopeTree tree;
 	
 	ArrayList<SymInfo> symbols;
 
 	public SymbolCollector()
 	{
+		lastFunctionDef = new HashMap<Integer,String>();
 		inSubtypeDef = false;	
 		patternRequired = false;
 		inComprGenerator = 0;
-		currentInParams = 0;
+		expectingPrologVar = 0;
 		groundrep = 0;
-		
-		tree = new BlockTree();
+		renamingArgs = new ArrayList<String>();
+		tree = new ScopeTree();
 		symbols = new ArrayList<SymInfo>();
 
 	}
@@ -40,6 +42,7 @@ public class SymbolCollector extends DepthFirstAdapter
         {
             node.getId().apply(this);
 			String str = node.getId().toString().replace(" ","");
+			lastFunctionDef.put(tree.getCurrentScopeNumber(),str);
 			addSymbol(str, "Nametype", node.getId());
         }
         if(node.getTypeExp() != null)
@@ -64,13 +67,14 @@ public class SymbolCollector extends DepthFirstAdapter
     }
 	
     @Override
-    public void caseATypedefTypes(ATypedefTypes node)
+    public void caseATypedefTypes(ATypedefTypes node) // datatype X = Y  this node defines X
     {
         inATypedefTypes(node);
         if(node.getId() != null)
         {
             node.getId().apply(this);
 			String str = node.getId().toString().replace(" ","");
+			lastFunctionDef.put(tree.getCurrentScopeNumber(),str);
 			addSymbol(str, "Datatype", node.getId());
         }
         {
@@ -84,7 +88,7 @@ public class SymbolCollector extends DepthFirstAdapter
     }
 
     @Override
-    public void caseAClauseTypes(AClauseTypes node)
+    public void caseAClauseTypes(AClauseTypes node) // datatype X = Y  this node defines Y
     {
         inAClauseTypes(node);	
         if(node.getClauseName() != null)
@@ -115,6 +119,7 @@ public class SymbolCollector extends DepthFirstAdapter
             {
                 e.apply(this);
 				String str = e.toString().replace(" ","");
+				lastFunctionDef.put(tree.getCurrentScopeNumber(),str);
 				addSymbol(str, "Channel", e);
             }
         }
@@ -330,14 +335,15 @@ public class SymbolCollector extends DepthFirstAdapter
     {
         inAVarPattern(node);
 		String str = node.getId().toString().replaceAll(" ","");		
-		
 		if(groundrep>0)
 		{
+			lastFunctionDef.put(tree.getCurrentScopeNumber(),str);
 			addSymbol(str, "Ident (Groundrep.)", node.getId());
 		}
-		else if(currentInParams>0)
-		{		
-			//currentParams.add(str);
+		else if(expectingPrologVar>0)
+		{	
+			horizontalRenamingAnalysis(str,node.getId());
+			renamingArgs.add(str);
 			addSymbol(str, "Ident (Prolog Variable)", node.getId());
 		}
 		
@@ -359,6 +365,7 @@ public class SymbolCollector extends DepthFirstAdapter
             node.getId().apply(this);			
 			String str = node.getId().toString().replace(" ","");
 			addSymbol(str,"Function or Process", node.getId());
+			lastFunctionDef.put(tree.getCurrentScopeNumber(),str+"()");
         }
 		
 		tree.newLeaf();	
@@ -366,10 +373,11 @@ public class SymbolCollector extends DepthFirstAdapter
             List<PParameters> copy = new ArrayList<PParameters>(node.getParameters());
             for(PParameters e : copy)
             {
-				currentInParams += 1;
+				expectingPrologVar += 1;
                 e.apply(this);
-				currentInParams -= 1;
+				expectingPrologVar -= 1;
             }
+			renamingArgs.clear();
         }	
         if(node.getProc1() != null)
         {
@@ -405,18 +413,39 @@ public class SymbolCollector extends DepthFirstAdapter
 //Expressions
 
     @Override
+    public void caseAPrefixExp(APrefixExp node)
+    {
+        inAPrefixExp(node);
+        if(node.getEvent() != null)
+        {
+            node.getEvent().apply(this);
+			renamingArgs.clear();
+        }
+        if(node.getPrefix() != null)
+        {
+            node.getPrefix().apply(this);
+        }
+        if(node.getProc9() != null)
+        {
+            node.getProc9().apply(this);
+        }
+        outAPrefixExp(node);
+    }
+	
+    @Override
     public void caseALambdaExp(ALambdaExp node)
     {	
         inALambdaExp(node);
 		tree.newLeaf();
         {
 			List<PPattern> copy = new ArrayList<PPattern>(node.getPatternList());
-			currentInParams +=1;
+			expectingPrologVar +=1;
             for(PPattern e : copy)
             {
                 e.apply(this);
             }
-			currentInParams -=1;
+			expectingPrologVar -=1;
+			renamingArgs.clear();
         }
         if(node.getProc9() != null)
         {
@@ -450,12 +479,12 @@ public class SymbolCollector extends DepthFirstAdapter
     public void caseANondetInputPattern(ANondetInputPattern node)
     {
         inANondetInputPattern(node);
-		currentInParams +=1;
+		expectingPrologVar +=1;
         if(node.getPattern1() != null)
         {
             node.getPattern1().apply(this);
         }
-		currentInParams -=1;
+		expectingPrologVar -=1;
         if(node.getRestriction() != null)
         {
             node.getRestriction().apply(this);
@@ -467,12 +496,12 @@ public class SymbolCollector extends DepthFirstAdapter
     public void caseAInputPattern(AInputPattern node)
     {
         inAInputPattern(node);
-		currentInParams +=1;
+		expectingPrologVar +=1;
         if(node.getPattern1() != null)
         {
             node.getPattern1().apply(this);
         }
-		currentInParams -=1;
+		expectingPrologVar -=1;
         if(node.getRestriction() != null)
         {
             node.getRestriction().apply(this);
@@ -492,6 +521,8 @@ public class SymbolCollector extends DepthFirstAdapter
         }	
 		if(patternRequired)
 		{
+			horizontalRenamingAnalysis(str,node.getId());
+			renamingArgs.add(str);
 			addSymbol(str, "Ident (Prolog Variable)", node.getId());			
 		}
         {
@@ -505,7 +536,7 @@ public class SymbolCollector extends DepthFirstAdapter
     }
 	
     @Override
-    public void caseAIdTypeExp(AIdTypeExp node)
+    public void caseAIdTypeExp(AIdTypeExp node) //This is not the definition side !!!
     {
         inAIdTypeExp(node);
 		String str = node.getId().toString().replace(" ","");
@@ -558,6 +589,7 @@ public class SymbolCollector extends DepthFirstAdapter
             node.getDpattern().apply(this);
         }
 		patternRequired = false;
+		renamingArgs.clear();
         if(node.getGeneratorOp() != null)
         {
             node.getGeneratorOp().apply(this);
@@ -706,13 +738,14 @@ public class SymbolCollector extends DepthFirstAdapter
 
 	public void addSymbol(String name, String info, Node node)
 	{
+		verticalRenamingAnalysis(name,node);
 		boolean set = false;
 		if(info.equals("Function or Process"))
 		{
 			for(int i = 0;i< symbols.size();i++)
 			{
 				if(symbols.get(i).symbolName.equals(name)
-					&& (symbols.get(i).blockNumber == tree.getCurrentBlockNumber())
+					&& (symbols.get(i).scopeNumber == tree.getCurrentScopeNumber())
 					&& (symbols.get(i).symbolInfo.equals("Function or Process")))
 				{
 						// do nothing
@@ -735,25 +768,26 @@ public class SymbolCollector extends DepthFirstAdapter
 			{
 				if(countSymbol == 0)
 				{
-					SymInfo si = new SymInfo(node,info,tree.getCurrentBlockNumber(),name,"_"+name);
+					SymInfo si = new SymInfo(node,info,tree.getCurrentScopeNumber(),name,"_"+name);
 					symbols.add(si);
 				}
 				else
 				{
-					SymInfo si = new SymInfo(node,info,tree.getCurrentBlockNumber(),name,"_"+name+(countSymbol+1));
+					SymInfo si = new SymInfo(node,info,tree.getCurrentScopeNumber(),name,"_"+name+(countSymbol+1));
 					symbols.add(si);
 				}
+
 			}
 			else
 			{
 				if(countSymbol == 0)
 				{
-					SymInfo si = new SymInfo(node,info,tree.getCurrentBlockNumber(),name,name);
+					SymInfo si = new SymInfo(node,info,tree.getCurrentScopeNumber(),name,name);
 					symbols.add(si);
 				}
 				else
 				{
-					SymInfo si = new SymInfo(node,info,tree.getCurrentBlockNumber(),name,name+(countSymbol+1));
+					SymInfo si = new SymInfo(node,info,tree.getCurrentScopeNumber(),name,name+(countSymbol+1));
 					symbols.add(si);			
 				}
 			}
@@ -761,6 +795,44 @@ public class SymbolCollector extends DepthFirstAdapter
 		
 	}
 	
+	public void verticalRenamingAnalysis(String s, Node n)
+	{
+		for(int i=0;i<symbols.size();i++)
+		{
+			  if(   symbols.get(i).symbolName.equals(s)
+					&&(tree.getCurrentScopeNumber() == symbols.get(i).scopeNumber)
+					&&
+					(
+						symbols.get(i).symbolInfo.equals("Ident (Groundrep.)")
+						||
+						(	symbols.get(i).symbolInfo.equals("Function or Process")
+							&& !lastFunctionDef.get(tree.getCurrentScopeNumber()).equals(s+"()")
+							&& !lastFunctionDef.get(tree.getCurrentScopeNumber()).equals("")
+						)					
+					)
+				)		
+				{			
+					throw new RuntimeException("'Redefinition of Identifier "+s+"'"+getErrorLoc(n));	
+				}
+		}
+	}
+	
+	public void horizontalRenamingAnalysis(String s,Node n)
+	{
+
+		if(renamingArgs.contains(s))
+		{
+			throw new RuntimeException("'Redefinition of Identifier "+s+"'"+getErrorLoc(n));
+		}
+		
+	}
+	
+	public String getErrorLoc(Node node)
+	{
+		String s = ","+node.getStartPos().getLine()+","+node.getStartPos().getPos();
+		return s;
+	}
+		
 	public ArrayList<SymInfo> getSymbols()
 	{
 		return symbols;

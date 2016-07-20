@@ -25,7 +25,7 @@ public class CSPMparser
 
 	public CSPMparser()
 	{
-		setVersion("0 63 160719");
+		setVersion("0 64 160720");
 		exceptionCounter = 0;
 		commentMap = new HashMap<Integer,Character>();
 		commentList = new ArrayList<CommentInfo>();
@@ -159,13 +159,6 @@ public class CSPMparser
 			
 			TreeLogicChecker tlc = new TreeLogicChecker();
 			tree.apply(tlc);
-			
-			System.out.println("Checking unbound and renamed identifiers.");
-
-	//		IdentifierAnalysis ia = new IdentifierAnalysis();
-	//		tree.apply(ia);
-			
-			System.out.println("No unbound identifiers were found.\nYour File has been parsed successfully.");	
 			
 			PrologTermOutput pto = new PrologTermOutput();
 			SymbolCollector sc = new SymbolCollector();

@@ -10,15 +10,15 @@ public class SymInfo
 	public String symbolInfo;
 	public String symbolName;
 	public String symbolReference;
-	public int blockNumber;
+	public int scopeNumber;
 	public boolean comprehensionArg;
 	
 	
-	public SymInfo(Node n, String syminf, int bn, String sn, String sr)
+	public SymInfo(Node n, String syminf, int scn, String sn, String sr)
 	{
 		node = n;
 		symbolInfo = syminf;
-		blockNumber = bn;
+		scopeNumber = scn;
 		comprehensionArg = false;
 		symbolName = sn;
 		symbolReference = sr;

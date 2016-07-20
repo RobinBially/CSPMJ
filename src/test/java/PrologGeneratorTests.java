@@ -1019,7 +1019,7 @@ public class PrologGeneratorTests
 	{
 		String output = "";
 		
-		PrintWriter writer = new PrintWriter("cspmfIN.temp", "UTF-8");
+		PrintWriter writer = new PrintWriter("src\\test\\java\\cspmfIN.temp", "UTF-8");
 		writer.println(input);
 		writer.close();		
 		
@@ -1028,16 +1028,15 @@ public class PrologGeneratorTests
 		new Thread(new SyncPipe(p.getErrorStream(), System.err)).start();
 		new Thread(new SyncPipe(p.getInputStream(), System.out)).start();
 		PrintWriter stdin = new PrintWriter(p.getOutputStream());
-		stdin.println("cspmf.exe translate cspmfIN.temp --prologOutNormalised=cspmfOUT.temp");
+		stdin.println("src\\test\\java\\cspmf.exe translate src\\test\\java\\cspmfIN.temp --prologOutNormalised=src\\test\\java\\cspmfOUT.temp");
 		stdin.close();
 		int returnCode = p.waitFor();
-		//System.out.println("Return code = " + returnCode);
 		
-		output = getStringFromFile("cspmfOUT.temp");
+		output = getStringFromFile("src\\test\\java\\cspmfOUT.temp");
 		output = output.replace("\r","");
 		
-		Files.delete(Paths.get("cspmfOUT.temp"));
-		Files.delete(Paths.get("cspmfIN.temp"));
+		Files.delete(Paths.get("src\\test\\java\\cspmfOUT.temp"));
+		Files.delete(Paths.get("src\\test\\java\\cspmfIN.temp"));
 		
 		return output;
 	}

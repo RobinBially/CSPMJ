@@ -20,7 +20,7 @@ public class PrologGenerator extends DepthFirstAdapter
 	private boolean currentInChannel;
 	private HashMap<Integer,HashMap<String,String>> generatorArgs;
 	private int currentInPredicate;	
-	private BlockTree tree;	
+	private ScopeTree tree;	
 	private boolean printSrcLoc;
 	private boolean patternRequired;	
 	private ArrayList<CommentInfo> commentList;
@@ -29,7 +29,7 @@ public class PrologGenerator extends DepthFirstAdapter
 	{
 		assertionNegated = false;
 		currentInPredicate = 0;
-		tree = new BlockTree();
+		tree = new ScopeTree();
 		generatorArgs = new HashMap<Integer,HashMap<String,String>>();	
 		expectingPattern = false;
 		inSubtypeDef = false;
@@ -3212,7 +3212,7 @@ public class PrologGenerator extends DepthFirstAdapter
 	public void printSymbol(String str, Node n)
 	{
 		String reference = "";						
-		int saveCurrentBlockNumber = tree.getCurrentBlockNumber();	
+		int saveCurrentscopeNumber = tree.getCurrentScopeNumber();	
 		while(true)
 		{
 			if(tree.isDefined(str))
@@ -3254,7 +3254,7 @@ public class PrologGenerator extends DepthFirstAdapter
 		else if (reference.equals("") && isBuiltin(str))
 		{
 			p.printAtom(str);
-			SymInfo si = new SymInfo(n,"BuiltIn primitive",tree.getCurrentBlockNumber(),str,str);
+			SymInfo si = new SymInfo(n,"BuiltIn primitive",tree.getCurrentScopeNumber(),str,str);
 			symbols.add(si);
 		}
 		else if(reference.equals(""))
@@ -3270,7 +3270,7 @@ public class PrologGenerator extends DepthFirstAdapter
 			p.printAtom(reference);
 		}
 		
-		tree.setCurrentBlockNumber(saveCurrentBlockNumber);
+		tree.setCurrentScopeNumber(saveCurrentscopeNumber);
 	}
 	
 	public String findInSymbols(String s)
@@ -3278,7 +3278,7 @@ public class PrologGenerator extends DepthFirstAdapter
 		for(int i=symbols.size()-1; i>=0 ; i=i-1)
 		{
 			if(symbols.get(i).symbolName.equals(s)
-			&& symbols.get(i).blockNumber == tree.getCurrentBlockNumber())
+			&& symbols.get(i).scopeNumber == tree.getCurrentScopeNumber())
 			return symbols.get(i).symbolReference;
 		}
 		return "";
