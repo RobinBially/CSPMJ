@@ -18,6 +18,8 @@ public class PerformanceTest
 	public String s;
 	public char[] c;
 	public Process p;
+	public String[] command = {"cmd"};
+	ArrayList<Long> average;
 
 	public PerformanceTest() throws Exception
 	{
@@ -28,6 +30,7 @@ public class PerformanceTest
 			File folder = new File(this.getPath());
 			elapsedTime = 0;
 			startTime = 0;	
+			average = new ArrayList<Long>();
 			generatePerformanceComparison(folder);
 			pw.write(s);
 			pw.close();
@@ -71,23 +74,28 @@ public class PerformanceTest
 	
 	public void cspmfCompile(String filepath) throws Exception
 	{
-			String[] command ={"cmd"};
-			p = Runtime.getRuntime().exec(command);
-			new Thread(new SyncPipe(p.getErrorStream(), System.err)).start();
-			new Thread(new SyncPipe(p.getInputStream(), System.out)).start();			
-			PrintWriter stdin = new PrintWriter(p.getOutputStream());			
-			startTime = System.nanoTime();    
-			stdin.println("src\\test\\java\\cspmf.exe translate "+filepath+" --prologOut=src\\test\\java\\cspmfOUT.temp");
-			stdin.close();
-			p.waitFor();
-			elapsedTime = System.nanoTime() - startTime;
-			p.destroy();			
+			for(int i=0;i<10;i++)
+			{			
+				p = Runtime.getRuntime().exec(command);
+				new Thread(new SyncPipe(p.getErrorStream(), System.err)).start();
+				new Thread(new SyncPipe(p.getInputStream(), System.out)).start();			
+				PrintWriter stdin = new PrintWriter(p.getOutputStream());			
+				startTime = System.nanoTime();    
+				stdin.println("src\\test\\java\\cspmf.exe translate "+filepath+" --prologOut=src\\test\\java\\cspmfOUT.temp");
+				stdin.close();
+				p.waitFor();
+				elapsedTime = System.nanoTime() - startTime;
+				average.add(elapsedTime);
+				p.destroy();	
+			}
+			elapsedTime = getAverage();
 			Files.delete(Paths.get("src\\test\\java\\cspmfOUT.temp"));		
 	}
 	
 	public void cspmjCompile(String filepath) throws Exception
 	{	
-			String[] command ={"cmd"};
+		for(int i=0;i<10;i++)
+		{	
 			p = Runtime.getRuntime().exec(command);
 			new Thread(new SyncPipe(p.getErrorStream(), System.err)).start();
 			new Thread(new SyncPipe(p.getInputStream(), System.out)).start();		
@@ -97,7 +105,10 @@ public class PerformanceTest
 			stdin.close();
 			p.waitFor();
 			elapsedTime = System.nanoTime() - startTime;
+			average.add(elapsedTime);
 			p.destroy();
+		}
+			elapsedTime = getAverage();
 			Files.delete(Paths.get("build\\libs\\cspmjOUT.temp.pl"));
 	}	
 	
@@ -131,6 +142,18 @@ public class PerformanceTest
 			return filename.substring(index + 1);
 		}
 	}	
+	
+	public long getAverage()
+	{
+		long a = 0;
+		for(int i=0;i<average.size();i++)
+		{
+			a += average.get(i);
+		}
+		a = a/average.size();
+		average.clear();
+		return a;
+	}
 	
 	public static void main(String[] args)
 	{
