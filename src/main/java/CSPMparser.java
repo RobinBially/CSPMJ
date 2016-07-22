@@ -68,14 +68,14 @@ public class CSPMparser
 	}
 
 
-	public int parseFilesInFolder(File folder, Boolean show)
+	public int parseFilesInFolder(File folder)
 	{
 		int fileCounter = 0;
 		for (File fileEntry : folder.listFiles()) 
 		{		
 			if (fileEntry.isDirectory())
 			{
-				fileCounter += parseFilesInFolder(fileEntry,show);
+				fileCounter += parseFilesInFolder(fileEntry);
 			} 
 			else if(getExtension(fileEntry.toString()).equals("csp"))
 			{
@@ -485,7 +485,7 @@ public class CSPMparser
 		else if((arguments.length == 1) && (arguments[0].equals("-parseAll")))
 		{
 			File folder = new File(cspm.getPath());
-			int fileCounter = cspm.parseFilesInFolder(folder,false);
+			int fileCounter = cspm.parseFilesInFolder(folder);
 
 			if(fileCounter-cspm.getExceptionCounter() == 0)
 			{
