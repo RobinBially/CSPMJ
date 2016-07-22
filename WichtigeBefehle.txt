@@ -27,7 +27,7 @@ ________________________________________________________________________________
 
 git reset --hard <sha1-commit-id>
 git push -f
-git rm -r --cached .
+git rm -r --cached <dateiname> 		Dateitracking löschen
 git add .
 git commit -m "fixed untracked files"
 git branch -d the_local_branch

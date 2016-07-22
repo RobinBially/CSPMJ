@@ -20,25 +20,23 @@ public class PerformanceTest
 	public Process p;
 	public String[] command = {"cmd"};
 	ArrayList<Long> average;
+	public long totalCspmf;
+	public long totalCspmj;
 
 	public PerformanceTest() throws Exception
 	{
-		try
-		{
-			pw = new PrintWriter(new File("PerformanceTest.txt"));
-			s = "File                                    cspmf time               cspmj time\n\n";
-			File folder = new File(this.getPath());
-			elapsedTime = 0;
-			startTime = 0;	
-			average = new ArrayList<Long>();
-			generatePerformanceComparison(folder);
-			pw.write(s);
-			pw.close();
-		}
-		catch(Exception e)
-		{
-			throw new RuntimeException(e.getMessage());
-		}
+		totalCspmj = 0;
+		totalCspmf = 0;
+		pw = new PrintWriter(new File("PerformanceTest.txt"));
+		s = "File                                    cspmf time (s)           cspmj time (s)\n\n";
+		File folder = new File(this.getPath());
+		elapsedTime = 0;
+		startTime = 0;	
+		average = new ArrayList<Long>();
+		generatePerformanceComparison(folder);
+		s += "TOTAL                                   "+((double)totalCspmf/1000000000.0)+"              "+((double)totalCspmj/1000000000.0);
+		pw.write(s);
+		pw.close();
 	}
 	
 	public void generatePerformanceComparison(File folder) throws Exception
@@ -51,14 +49,15 @@ public class PerformanceTest
 			} 
 			else if(getExtension(fileEntry.toString()).equals("csp"))
 			{	
-				cspmfCompile(fileEntry.toString());			
+				cspmfCompile(fileEntry.toString());		
+				totalCspmf += elapsedTime;
 				c = Paths.get(fileEntry.toString()).getFileName().toString().toCharArray(); //get file name and convert to char
 				for(int i=0;i<40;i++)
 				{
 					if(i<c.length){s+=c[i];}
 					else{s+=" ";}
 				}
-				c =(((double)elapsedTime/1000000000.0)+"s").toCharArray();
+				c =(""+((double)elapsedTime/1000000000.0)).toCharArray();
 				for(int i=0;i<25;i++)
 				{
 					if(i<c.length){s+=c[i];}
@@ -66,7 +65,8 @@ public class PerformanceTest
 				}				
 				
 				cspmjCompile(fileEntry.toString());
-				s+=((double)elapsedTime/1000000000.0)+"s\r\n";	
+				totalCspmj += elapsedTime;
+				s+=((double)elapsedTime/1000000000.0)+"\r\n";	
 			}
 
 		}			
@@ -74,7 +74,7 @@ public class PerformanceTest
 	
 	public void cspmfCompile(String filepath) throws Exception
 	{
-			for(int i=0;i<10;i++)
+			for(int i=0;i<2;i++)
 			{			
 				p = Runtime.getRuntime().exec(command);
 				new Thread(new SyncPipe(p.getErrorStream(), System.err)).start();
@@ -94,7 +94,7 @@ public class PerformanceTest
 	
 	public void cspmjCompile(String filepath) throws Exception
 	{	
-		for(int i=0;i<10;i++)
+		for(int i=0;i<2;i++)
 		{	
 			p = Runtime.getRuntime().exec(command);
 			new Thread(new SyncPipe(p.getErrorStream(), System.err)).start();

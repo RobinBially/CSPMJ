@@ -16,6 +16,9 @@ ltl_ctl/
 build/
 .gradle/
 
+# Test results
+PerformanceTest.txt
+
 # Prolog Files
 *.csp.pl
 *.pl

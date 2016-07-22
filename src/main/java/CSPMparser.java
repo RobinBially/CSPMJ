@@ -79,8 +79,7 @@ public class CSPMparser
 			} 
 			else if(getExtension(fileEntry.toString()).equals("csp"))
 			{
-				fileCounter++;
-				System.out.println("\n\nParsing '"+fileEntry.getName()+"'...");			
+				fileCounter++;			
 				try 
 				{
 					String s = getStringFromFile(fileEntry.toString());
@@ -120,12 +119,10 @@ public class CSPMparser
 
 	public void parseFile(String inputFile, String outputFile)
 	{
-		System.out.println("Parsing '"+inputFile+"'...");
 		try 
 		{			
 			String s = getStringFromFile(inputFile);
 			parsingRoutine(s,true,true,true,inputFile,outputFile);
-		//	parsingRoutine(s,true,false,false,inputFile,outputFile);
 		} 	
 		catch(Exception e) 
 		{
@@ -165,9 +162,7 @@ public class CSPMparser
 			tree.apply(sc);
 			ArrayList<SymInfo> symbols = sc.getSymbols();
 			PrologGenerator pout = new PrologGenerator(pto,symbols,printSrc,renamingActivated,commentList);
-			tree.apply(pout);										
-
-			System.out.println("Generating Prolog-File.");
+			tree.apply(pout);
 			
 			if(createPrologFile)
 			createPrologFile(pto,inputFile,null,outputFile);
@@ -430,7 +425,7 @@ public class CSPMparser
 			File f = new File(path);
 			if(f.exists() && !f.isDirectory()) 
 			{ 
-				System.out.println(path+"\nhas been included successfully.");
+				//System.out.println(path+"\nhas been included successfully.");
 			}
 			else
 			{
