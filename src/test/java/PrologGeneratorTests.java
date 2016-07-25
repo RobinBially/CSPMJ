@@ -975,7 +975,8 @@ public class PrologGeneratorTests
 				+"\nz = true or false and not true"
 		,
 			"'bindval'('v','negate'('^'('^'('int'(1),'int'(2)),'int'(2))),'no_loc_info_available')."
-			+"\n'bindval'('w','+'('-'('int'(0),'int'(1)),'%'('/'('*'('int'(2),'int'(3)),'int'(4)),'int'(-5))),'no_loc_info_available')."
+			+"\n'bindval'('w','+'('-'('int'(0),'int'(1)),'%'('/'('*'('int'(2),'int'(3)),'int'(4)),'int'(-5))),"
+			+"'no_loc_info_available')."
 			+"\n'bindval'('x','#'('int'(1)),'no_loc_info_available')."
 			+"\n'bindval'('z','bool_or'('true','bool_and'('false','bool_not'('true'))),'no_loc_info_available')."
 			+"\n'symbol'('v','v','no_loc_info_available','Ident (Groundrep.)')."

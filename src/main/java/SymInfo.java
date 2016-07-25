@@ -11,15 +11,12 @@ public class SymInfo
 	public String symbolName;
 	public String symbolReference;
 	public int scopeNumber;
-	public boolean comprehensionArg;
-	
-	
+		
 	public SymInfo(Node n, String syminf, int scn, String sn, String sr)
 	{
 		node = n;
 		symbolInfo = syminf;
 		scopeNumber = scn;
-		comprehensionArg = false;
 		symbolName = sn;
 		symbolReference = sr;
 	}

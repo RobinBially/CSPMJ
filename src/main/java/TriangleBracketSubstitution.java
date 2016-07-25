@@ -12,6 +12,13 @@ import CSPMparser.parser.*;
 import CSPMparser.lexer.*;
 import CSPMparser.node.*;
 
+/*	Triangle substitutions:
+	\u00AB = «	seq opening
+	\u00BB = »	seq closing
+	\u00A3 = £	greater
+	\u20AC = €  smaller
+*/
+
 public class TriangleBracketSubstitution
 {
 private String stream;	
@@ -104,10 +111,14 @@ private String white2;
 			//Smaller
 			stream = stream.replaceAll("(\\d|\\w|\\_)"+white+"<","$1$2\u20AC");
 			stream = stream.replaceAll("}"+white+"<","}$1\u20AC");
+			stream = stream.replaceAll("[)]"+white+"<",")$1\u20AC");
+			stream = stream.replaceAll("'"+white+"<","'$1\u20AC");
 			
 			//Greater
 			stream = stream.replaceAll(">"+white+"(\\d|\\w|\\_)","\u00A3$1$2");
 			stream = stream.replaceAll(">"+white+"[{]","\u00A3$1{");
+			stream = stream.replaceAll(">"+white+"[(]","\u00A3$1(");
+			stream = stream.replaceAll(">"+white+"'","\u00A3$1'");
 			
 			//Sequence Closing
 			stream = stream.replaceAll(">"+white+"\\^","\u00BB$1^");
@@ -117,7 +128,7 @@ private String white2;
 			stream = stream.replaceAll(">"+white+"\\$","\u00BB$1\\$");
 			stream = stream.replaceAll(">"+white+"\\!","\u00BB$1!");
 			stream = stream.replaceAll(">"+white+"\\?","\u00BB$1?");					
-			stream = stream.replaceAll(">"+white2+"[=]","\u00BB$1=");
+			stream = stream.replaceAll(">"+white2+"[=]","\u00BB$1="); //List pattern e.g. <1> = 1 must have whitespace between > and =
 			stream = stream.replaceAll(">"+white+"[:]","\u00BB$1:");
 			stream = stream.replaceAll(">"+white+"\\.","\u00BB$1.");
 			stream = stream.replaceAll(">"+white+"\r\n","\u00BB$1\r\n");
@@ -154,7 +165,7 @@ private String white2;
 		stream = stream.replaceAll("\u00B2\u00B1","|>");
 
 				
-		//Spalte stream auf.
+		//Spalte stream auf
 		char[] streamChar = stream.toCharArray();
 		ArrayList<String> strArr = new ArrayList<String>();
 		String temp = "";
@@ -233,7 +244,7 @@ private String white2;
 			
 			if(al.size()>0)
 			{
-				System.out.println("ACHTUNG BRUTE-FORCE!!!");
+				//System.out.println("ACHTUNG BRUTE-FORCE!!!");
 				String addToString = bruteForce(subString, al ,0);
 				if(addToString.equals(""))
 				{
@@ -310,8 +321,6 @@ private String white2;
 			Lexer l = new Lexer(new PushbackReader(br,100000));
 			Parser p = new Parser(l);
 			Start tree = p.parse();
-//			Typechecker ts = new Typechecker();
-//			tree.apply(ts);
 		}
 		catch(Exception e)
 		{
@@ -350,8 +359,6 @@ private String white2;
 			Lexer l = new Lexer(new PushbackReader(br,100000));
 			Parser p = new Parser(l);
 			Start tree = p.parse();
-//			Typechecker ts = new Typechecker();
-//			tree.apply(ts);
 		}
 		catch(Exception e)
 		{
