@@ -8,8 +8,6 @@ import java.nio.file.Paths;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
-
-
 public class PerformanceTest
 {
 	public long elapsedTime = 0;

@@ -16,167 +16,167 @@ import org.junit.Ignore;
 
 public class PrologGeneratorTests 
 {
-	@Test
-	public void CompareProcessOperatorsToCspmf() throws Exception
-	{
-		System.out.println("\n\nCompareProcessOperatorsToCspmf\n\n");
-		String test = 	
-					//	"J = 1 \\ 2"		cspmf does not escape
-						"\nK = 1 ||| 2"
-						+"\nL = 2 [|3|> 4"
-						+"\nM = 2 [|3|] 4"
-						+"\nN = 2 [3||4] 5"
-						+"\nO = 2 [3<->4] 5"
-						+"\nP = 2 [3<->4,6<->7] 5"
-						+"\nQ = 2 |~| 3"
-						+"\nR = 2 [] 3"
-					//	+"\nS = 2 [+ 3 +] 4" not supported by cspmf
-					//	+"\nT = 2 /\\ 3"	 cspmf does not escape
-					//	+"\nU = 2 /+ 1 +\\ 3" not supported by cspmf
-						+"\nV = 2 [> 3"
-						+"\nW = 2 ; 3"
-						+"\nX = 2 & 3"
-						+"\nY = 1 -> 5"
-						+"\nn = [] true @ 1"
-						+"\no = |~| 1:2 @ 1"
-						+"\np = ||| 1:2,true @ 2"
-						+"\nq = || 1 @ [true] 1"
-						+"\nr = ; 1 @ 2"
-						+"\ns = [|true|] 1 @ 2"
-						+"\nt = [1<->2] true @ true";
-					//	+"\nu = [+1+] true @ true"; not supported by cspmf
-		try
-		{
-		checkCSPMF(test,cspmfCompileToProlog(test));
-		}catch(Exception e){throw e;}					
-	}
-	
-	@Test
-	public void CompareExpressionOperatorsToCspmf() throws Exception
-	{
-		System.out.println("\n\nCompareExpressionOperatorsToCspmf\n\n");
-		String test = 
-						"v = -(1^2)^2"
-						+"\nw = 0-1+2*3/4%-5"
-						+"\nx = #1"
-						+"\nz = true or false and not true"
-						+"\nu = -1+2";
-		try
-		{
-		checkCSPMF(test,cspmfCompileToProlog(test));
-		}catch(Exception e){throw e;}					
-	}	
-	
-	@Test
-	public void CompareAssertionsToCspmf() throws Exception
-	{
-		System.out.println("\n\nCompareAssertionsToCspmf\n\n");
-		String test = 
-					"assert 1 [T= 1"
-					+"\nassert 1 [F= 1"
-					+"\nassert 1 [FD= 1"
-					+"\nassert not 1->2 [R= 2"
-					+"\nassert 1 |= LTL: \"true\""
-					+"\nassert 1 |= CTL: \"true\""
-					+"\nassert 1 :[deadlock free]"
-					+"\nassert 1 :[deadlock free [F]]"
-					+"\nassert 1 :[deadlock free [FD]]"
-					+"\nassert 1 :[deadlock free [T]]"
-					+"\nassert 1 :[divergence free]"
-					+"\nassert 1 :[divergence free [F]]"
-					+"\nassert 1 :[divergence free [FD]]"
-					+"\nassert 1 :[divergence free [T]]"
-					+"\nassert 1 :[livelock free]"
-					+"\nassert 1 :[livelock free [F]]"
-					+"\nassert 1 :[livelock free [FD]]"
-					+"\nassert 1 :[livelock free [T]]"
-					+"\nassert 1 :[deterministic]"
-					+"\nassert 1 :[deterministic [T]]"
-					+"\nassert 1 :[deterministic [F]]"
-					+"\nassert 1 :[deterministic [FD]]";
-		try
-		{
-		checkCSPMF(test,cspmfCompileToProlog(test));
-		}catch(Exception e){throw e;}					
-	}	
-	
-	
-	@Test
-	public void CompareComplexComprehensionsToCspmf() throws Exception
-	{
-		System.out.println("\n\nCompareComplexComprehensionsToCspmf\n\n");
-		String test = 
-					"A(x) = {x+{x|x<-1}|x<-1,x<-2,x} + x"
-					+"\nE(x) = {let x = 1"
-					+"\n1 = {x|1}"
-					+"\nwithin 2 |x<-1,let 1 = x within 2}"
-					+"\nF = {1|x<-1,x,x<-2,x}";
-		try
-		{
-		checkCSPMF(test,cspmfCompileToProlog(test));
-		}catch(Exception e){throw e;}					
-	}
-	
-	@Test
-	public void ComparePatternsInComprehensionsToCspmf() throws Exception
-	{
-		System.out.println("\n\nComparePatternsInComprehensionsToCspmf\n\n");
-		String test = 
-				"{} = 2"
-				+"\n{1} = 1"
-				+"\n_ = 3"
-				+"\n<> = 3"
-				+"\n<1,2> = 5"
-				+"\n1 = {1|_<-2}"
-				+"\n1 = {1|{}<-2}"
-				+"\n1 = {1|{1}<-2}"
-				+"\n1 = {1|<><-2}"
-				+"\n1 = {1|<1,2,3><-2}"
-				+"\n1 = {1|(x,y)<-2,x}"
-				+"\n1 = {1|(x)<-2,x}"
-				+"\n1 = {1|(a.b^c@@(d),e)<-2,a,b,c,d,e}";
-		try
-		{
-		checkCSPMF(test,cspmfCompileToProlog(test));
-		}catch(Exception e){throw e;}					
-	}
-	
-	
-	@Test
-	public void ComparePrecedenceToCspmf() throws Exception
-	{
-		System.out.println("\n\nComparePrecedenceToCspmf\n\n");
-		String test = "A = 2 -> [] 1 @  1"
-						+"\nB = [] 1 @  1 -> 2"
-						+"\nC = \\1@1 -> 1"
-						+"\nD = 1 -> \\1@1"
-						+"\nE = let 1=1 within 1->1"
-						+"\nF = 1 -> let 1=1 within 1"
-						+"\nG = let 1=1 within \\1@1"
-						+"\nH = \\1@let 1=1 within 1"
-						+"\nI = 1?1.2.3:{1}.1 -> 1";
-		try
-		{
-		checkCSPMF(test,cspmfCompileToProlog(test));
-		}catch(Exception e){throw e;}					
-	}
-	
-	@Test
-	public void CompareCurryToCspmf() throws Exception
-	{
-		System.out.println("\n\nCompareCurryToCspmf\n\n");
-		String test = 	"nocurry(1) = nocurry(2)"
-						+"\nnocurry(1,2) = nocurry(2,1)"
-						+"\ncurry(1)(2) = 1"
-						+"\n1 = curry(1)(2)"
-						+"\n1 = (1)(2)(3)"
-						+"\n1 = (1,2)(3,4)(5,6)"
-						+"\nchannel c: {1}.curry(1)(2)";
-		try
-		{
-		checkCSPMF(test,cspmfCompileToProlog(test));
-		}catch(Exception e){throw e;}
-	}
+//	@Test
+//	public void CompareProcessOperatorsToCspmf() throws Exception
+//	{
+//		System.out.println("\n\nCompareProcessOperatorsToCspmf\n\n");
+//		String test = 	
+//					//	"J = 1 \\ 2"		cspmf does not escape
+//						"\nK = 1 ||| 2"
+//						+"\nL = 2 [|3|> 4"
+//						+"\nM = 2 [|3|] 4"
+//						+"\nN = 2 [3||4] 5"
+//						+"\nO = 2 [3<->4] 5"
+//						+"\nP = 2 [3<->4,6<->7] 5"
+//						+"\nQ = 2 |~| 3"
+//						+"\nR = 2 [] 3"
+//					//	+"\nS = 2 [+ 3 +] 4" not supported by cspmf
+//					//	+"\nT = 2 /\\ 3"	 cspmf does not escape
+//					//	+"\nU = 2 /+ 1 +\\ 3" not supported by cspmf
+//						+"\nV = 2 [> 3"
+//						+"\nW = 2 ; 3"
+//						+"\nX = 2 & 3"
+//						+"\nY = 1 -> 5"
+//						+"\nn = [] true @ 1"
+//						+"\no = |~| 1:2 @ 1"
+//						+"\np = ||| 1:2,true @ 2"
+//						+"\nq = || 1 @ [true] 1"
+//						+"\nr = ; 1 @ 2"
+//						+"\ns = [|true|] 1 @ 2"
+//						+"\nt = [1<->2] true @ true";
+//					//	+"\nu = [+1+] true @ true"; not supported by cspmf
+//		try
+//		{
+//		checkCSPMF(test,cspmfCompileToProlog(test));
+//		}catch(Exception e){throw e;}					
+//	}
+//	
+//	@Test
+//	public void CompareExpressionOperatorsToCspmf() throws Exception
+//	{
+//		System.out.println("\n\nCompareExpressionOperatorsToCspmf\n\n");
+//		String test = 
+//						"v = -(1^2)^2"
+//						+"\nw = 0-1+2*3/4%-5"
+//						+"\nx = #1"
+//						+"\nz = true or false and not true"
+//						+"\nu = -1+2";
+//		try
+//		{
+//		checkCSPMF(test,cspmfCompileToProlog(test));
+//		}catch(Exception e){throw e;}					
+//	}	
+//	
+//	@Test
+//	public void CompareAssertionsToCspmf() throws Exception
+//	{
+//		System.out.println("\n\nCompareAssertionsToCspmf\n\n");
+//		String test = 
+//					"assert 1 [T= 1"
+//					+"\nassert 1 [F= 1"
+//					+"\nassert 1 [FD= 1"
+//					+"\nassert not 1->2 [R= 2"
+//					+"\nassert 1 |= LTL: \"true\""
+//					+"\nassert 1 |= CTL: \"true\""
+//					+"\nassert 1 :[deadlock free]"
+//					+"\nassert 1 :[deadlock free [F]]"
+//					+"\nassert 1 :[deadlock free [FD]]"
+//					+"\nassert 1 :[deadlock free [T]]"
+//					+"\nassert 1 :[divergence free]"
+//					+"\nassert 1 :[divergence free [F]]"
+//					+"\nassert 1 :[divergence free [FD]]"
+//					+"\nassert 1 :[divergence free [T]]"
+//					+"\nassert 1 :[livelock free]"
+//					+"\nassert 1 :[livelock free [F]]"
+//					+"\nassert 1 :[livelock free [FD]]"
+//					+"\nassert 1 :[livelock free [T]]"
+//					+"\nassert 1 :[deterministic]"
+//					+"\nassert 1 :[deterministic [T]]"
+//					+"\nassert 1 :[deterministic [F]]"
+//					+"\nassert 1 :[deterministic [FD]]";
+//		try
+//		{
+//		checkCSPMF(test,cspmfCompileToProlog(test));
+//		}catch(Exception e){throw e;}					
+//	}	
+//	
+//	
+//	@Test
+//	public void CompareComplexComprehensionsToCspmf() throws Exception
+//	{
+//		System.out.println("\n\nCompareComplexComprehensionsToCspmf\n\n");
+//		String test = 
+//					"A(x) = {x+{x|x<-1}|x<-1,x<-2,x} + x"
+//					+"\nE(x) = {let x = 1"
+//					+"\n1 = {x|1}"
+//					+"\nwithin 2 |x<-1,let 1 = x within 2}"
+//					+"\nF = {1|x<-1,x,x<-2,x}";
+//		try
+//		{
+//		checkCSPMF(test,cspmfCompileToProlog(test));
+//		}catch(Exception e){throw e;}					
+//	}
+//	
+//	@Test
+//	public void ComparePatternsInComprehensionsToCspmf() throws Exception
+//	{
+//		System.out.println("\n\nComparePatternsInComprehensionsToCspmf\n\n");
+//		String test = 
+//				"{} = 2"
+//				+"\n{1} = 1"
+//				+"\n_ = 3"
+//				+"\n<> = 3"
+//				+"\n<1,2> = 5"
+//				+"\n1 = {1|_<-2}"
+//				+"\n1 = {1|{}<-2}"
+//				+"\n1 = {1|{1}<-2}"
+//				+"\n1 = {1|<><-2}"
+//				+"\n1 = {1|<1,2,3><-2}"
+//				+"\n1 = {1|(x,y)<-2,x}"
+//				+"\n1 = {1|(x)<-2,x}"
+//				+"\n1 = {1|(a.b^c@@(d),e)<-2,a,b,c,d,e}";
+//		try
+//		{
+//		checkCSPMF(test,cspmfCompileToProlog(test));
+//		}catch(Exception e){throw e;}					
+//	}
+//	
+//	
+//	@Test
+//	public void ComparePrecedenceToCspmf() throws Exception
+//	{
+//		System.out.println("\n\nComparePrecedenceToCspmf\n\n");
+//		String test = "A = 2 -> [] 1 @  1"
+//						+"\nB = [] 1 @  1 -> 2"
+//						+"\nC = \\1@1 -> 1"
+//						+"\nD = 1 -> \\1@1"
+//						+"\nE = let 1=1 within 1->1"
+//						+"\nF = 1 -> let 1=1 within 1"
+//						+"\nG = let 1=1 within \\1@1"
+//						+"\nH = \\1@let 1=1 within 1"
+//						+"\nI = 1?1.2.3:{1}.1 -> 1";
+//		try
+//		{
+//		checkCSPMF(test,cspmfCompileToProlog(test));
+//		}catch(Exception e){throw e;}					
+//	}
+//	
+//	@Test
+//	public void CompareCurryToCspmf() throws Exception
+//	{
+//		System.out.println("\n\nCompareCurryToCspmf\n\n");
+//		String test = 	"nocurry(1) = nocurry(2)"
+//						+"\nnocurry(1,2) = nocurry(2,1)"
+//						+"\ncurry(1)(2) = 1"
+//						+"\n1 = curry(1)(2)"
+//						+"\n1 = (1)(2)(3)"
+//						+"\n1 = (1,2)(3,4)(5,6)"
+//						+"\nchannel c: {1}.curry(1)(2)";
+//		try
+//		{
+//		checkCSPMF(test,cspmfCompileToProlog(test));
+//		}catch(Exception e){throw e;}
+//	}
 	
 	@Test
 	public void TauPrio() throws Exception
@@ -1001,46 +1001,46 @@ public class PrologGeneratorTests
 		assertEquals(expected, actual);
 	}
 	
-	public void checkCSPMF(final String input, final String expected)
-	{
-		String actual;
-		try 
-		{
-			actual = parseStringWithoutRenaming(input);
-		} 
-		catch (CSPMparserException e) 
-		{
-			actual = "";
-		}
-		System.out.println(expected+"\n"+actual);
-		assertEquals(expected, actual);		
-	}
-
-	public String cspmfCompileToProlog(String input) throws Exception
-	{
-		String output = "";
-		
-		PrintWriter writer = new PrintWriter("src\\test\\java\\cspmfIN.temp", "UTF-8");
-		writer.println(input);
-		writer.close();		
-		
-		String[] command ={"cmd"};
-		Process p = Runtime.getRuntime().exec(command);
-		new Thread(new SyncPipe(p.getErrorStream(), System.err)).start();
-		new Thread(new SyncPipe(p.getInputStream(), System.out)).start();
-		PrintWriter stdin = new PrintWriter(p.getOutputStream());
-		stdin.println("src\\test\\java\\cspmf.exe translate src\\test\\java\\cspmfIN.temp --prologOutNormalised=src\\test\\java\\cspmfOUT.temp");
-		stdin.close();
-		int returnCode = p.waitFor();
-		
-		output = getStringFromFile("src\\test\\java\\cspmfOUT.temp");
-		output = output.replace("\r","");
-		
-		Files.delete(Paths.get("src\\test\\java\\cspmfOUT.temp"));
-		Files.delete(Paths.get("src\\test\\java\\cspmfIN.temp"));
-		
-		return output;
-	}
+//	public void checkCSPMF(final String input, final String expected)
+//	{
+//		String actual;
+//		try 
+//		{
+//			actual = parseStringWithoutRenaming(input);
+//		} 
+//		catch (CSPMparserException e) 
+//		{
+//			actual = "";
+//		}
+//		System.out.println(expected+"\n"+actual);
+//		assertEquals(expected, actual);		
+//	}
+//
+//	public String cspmfCompileToProlog(String input) throws Exception
+//	{
+//		String output = "";
+//		
+//		PrintWriter writer = new PrintWriter("src\\test\\java\\cspmfIN.temp", "UTF-8");
+//		writer.println(input);
+//		writer.close();		
+//		
+//		String[] command ={"cmd"};
+//		Process p = Runtime.getRuntime().exec(command);
+//		new Thread(new SyncPipe(p.getErrorStream(), System.err)).start();
+//		new Thread(new SyncPipe(p.getInputStream(), System.out)).start();
+//		PrintWriter stdin = new PrintWriter(p.getOutputStream());
+//		stdin.println("src\\test\\java\\cspmf.exe translate src\\test\\java\\cspmfIN.temp --prologOutNormalised=src\\test\\java\\cspmfOUT.temp");
+//		stdin.close();
+//		int returnCode = p.waitFor();
+//		
+//		output = getStringFromFile("src\\test\\java\\cspmfOUT.temp");
+//		output = output.replace("\r","");
+//		
+//		Files.delete(Paths.get("src\\test\\java\\cspmfOUT.temp"));
+//		Files.delete(Paths.get("src\\test\\java\\cspmfIN.temp"));
+//		
+//		return output;
+//	}
 	
 	private void checkParserError(final String input) 
 	{
