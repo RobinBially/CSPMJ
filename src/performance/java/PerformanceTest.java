@@ -10,6 +10,7 @@ import java.nio.file.Files;
 
 public class PerformanceTest
 {
+	public int iterations = 1; // How often do you want to parse each File?
 	public long elapsedTime = 0;
 	public long startTime = 0;
 	public PrintWriter pw;
@@ -21,20 +22,24 @@ public class PerformanceTest
 	public long totalCspmf;
 	public long totalCspmj;
 
-	public PerformanceTest() throws Exception
+	public PerformanceTest(String searchLoc, String resultLoc) throws Exception
 	{
 		totalCspmj = 0;
 		totalCspmf = 0;
-		pw = new PrintWriter(new File("PerformanceTest.txt"));
+		pw = new PrintWriter(new File(resultLoc+"/PerformanceResult.txt"));
 		s = "File                                    cspmf time (s)           cspmj time (s)\n\n";
-		File folder = new File(this.getPath());
+		File folder = new File(searchLoc);
 		elapsedTime = 0;
 		startTime = 0;	
 		average = new ArrayList<Long>();
+		System.out.println("Generating performance results. Please wait...");
 		generatePerformanceComparison(folder);
-		s += "TOTAL                                   "+((double)totalCspmf/1000000000.0)+"              "+((double)totalCspmj/1000000000.0);
+		String tcf = String.valueOf(((double)totalCspmf/1000000000.0)).substring(0,5);
+		String tcj = String.valueOf(((double)totalCspmj/1000000000.0)).substring(0,5);
+		s += "TOTAL                                   "+tcf+"                   "+tcj;
 		pw.write(s);
 		pw.close();
+		System.out.println("Your performance results have been created succesfully!");
 	}
 	
 	public void generatePerformanceComparison(File folder) throws Exception
@@ -55,7 +60,7 @@ public class PerformanceTest
 					if(i<c.length){s+=c[i];}
 					else{s+=" ";}
 				}
-				c =(""+((double)elapsedTime/1000000000.0)).toCharArray();
+				c = String.valueOf(((double)elapsedTime/1000000000.0)).substring(0,5).toCharArray();
 				for(int i=0;i<25;i++)
 				{
 					if(i<c.length){s+=c[i];}
@@ -64,7 +69,7 @@ public class PerformanceTest
 				
 				cspmjCompile(fileEntry.toString());
 				totalCspmj += elapsedTime;
-				s+=((double)elapsedTime/1000000000.0)+"\r\n";	
+				s += String.valueOf(((double)elapsedTime/1000000000.0)).substring(0,5)+"\r\n";	
 			}
 
 		}			
@@ -72,15 +77,10 @@ public class PerformanceTest
 	
 	public void cspmfCompile(String filepath) throws Exception
 	{
-			for(int i=0;i<2;i++)
-			{			
-				p = Runtime.getRuntime().exec(command);
-				new Thread(new SyncPipe(p.getErrorStream(), System.err)).start();
-				new Thread(new SyncPipe(p.getInputStream(), System.out)).start();			
-				PrintWriter stdin = new PrintWriter(p.getOutputStream());			
-				startTime = System.nanoTime();    
-				stdin.println("src\\test\\java\\cspmf.exe translate "+filepath+" --prologOut=src\\test\\java\\cspmfOUT.temp");
-				stdin.close();
+			for(int i=0;i<iterations;i++)
+			{	
+				startTime = System.nanoTime(); 
+				p = Runtime.getRuntime().exec("src\\test\\java\\cspmf.exe translate "+filepath+" --prologOut=src\\test\\java\\cspmfOUT.temp");				
 				p.waitFor();
 				elapsedTime = System.nanoTime() - startTime;
 				average.add(elapsedTime);
@@ -92,15 +92,10 @@ public class PerformanceTest
 	
 	public void cspmjCompile(String filepath) throws Exception
 	{	
-		for(int i=0;i<2;i++)
+		for(int i=0;i<iterations;i++)
 		{	
-			p = Runtime.getRuntime().exec(command);
-			new Thread(new SyncPipe(p.getErrorStream(), System.err)).start();
-			new Thread(new SyncPipe(p.getInputStream(), System.out)).start();		
-			PrintWriter stdin = new PrintWriter(p.getOutputStream());		
-			startTime = System.nanoTime();			
-			stdin.println("java -jar build\\libs\\cspmj.jar -parse "+filepath+" --prologOut=build\\libs\\cspmjOUT.temp");
-			stdin.close();
+			startTime = System.nanoTime(); 
+			p = Runtime.getRuntime().exec("java -jar build\\libs\\cspmj.jar -parse "+filepath+" --prologOut=build\\libs\\cspmjOUT.temp");
 			p.waitFor();
 			elapsedTime = System.nanoTime() - startTime;
 			average.add(elapsedTime);
@@ -153,15 +148,16 @@ public class PerformanceTest
 		return a;
 	}
 	
+	
 	public static void main(String[] args)
 	{
 		try
 		{
-			PerformanceTest pt = new PerformanceTest();
+			PerformanceTest pt = new PerformanceTest(args[0],args[1]);
 		}
 		catch(Exception e)
 		{
-			System.out.println(e.getMessage());
+			System.out.println("An Exception was thrown. "+e.getMessage());
 		}
 	}
 }

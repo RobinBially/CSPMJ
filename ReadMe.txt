@@ -24,3 +24,8 @@ java -jar cspmj.jar -parse file-name.csp --prologOut=output-file-name
 or
 
 java -jar cspmj.jar -parseAll
+
+
+Performance Tests:
+
+java -cp build/classes/main PerformanceTest search-path result.txt-path					only Windows is supported currently!

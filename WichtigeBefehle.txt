@@ -4,6 +4,7 @@
 
 java -jar build/libs/cspmj.jar -parse Examples/prologTest.csp
 
+java -cp build/classes/main PerformanceTest C:/Users/Robin/Documents/GitHub/CSPMJ C:/Users/Robin/Documents/GitHub/CSPMJ/src/performance/java
 _________________________________________________________________________________________
 ***********
 * SableCC *

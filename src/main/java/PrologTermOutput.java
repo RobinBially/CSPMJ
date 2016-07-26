@@ -215,7 +215,7 @@ public class PrologTermOutput
 		{
 			throw new IllegalStateException("Number of openTerm and closeTerm do not match. openTerm Counter is "+ termCount);
 		}
-		out.write(".\n");
+		out.write(".\r\n");
 		comma_needed = false;
 	}
 	
