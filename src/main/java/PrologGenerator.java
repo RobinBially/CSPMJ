@@ -52,7 +52,8 @@ public class PrologGenerator extends DepthFirstAdapter
     {
         inADefsStart(node);
         {
-            List<PDef> copy = new ArrayList<PDef>(node.getDef());
+            List<PDef> copy; 
+			copy = new ArrayList<PDef>(node.getDef());
             for(PDef e : copy)
             {
                 e.apply(this);
@@ -434,6 +435,7 @@ public class PrologGenerator extends DepthFirstAdapter
 	
 //***************************************************************************************************************************************************
 //Expressions Left Side	
+
 	@Override
     public void caseAExpressionDef(AExpressionDef node)
     {
@@ -444,7 +446,6 @@ public class PrologGenerator extends DepthFirstAdapter
         }
 		printSrcLoc(node);
 		p.closeTerm();
-	//	currentParams.clear();
         outAExpressionDef(node);
     }
 	
@@ -3259,7 +3260,7 @@ public class PrologGenerator extends DepthFirstAdapter
 		}
 		else if(reference.equals(""))
 		{
-			throw new RuntimeException("'Unbound Identifier "+str+"'"+getErrorLoc(n));
+			throw new UnboundIdentifierException(str,n);
 		}
 		else if (!reference.equals(""))
 		{

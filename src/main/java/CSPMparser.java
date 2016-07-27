@@ -25,7 +25,7 @@ public class CSPMparser
 
 	public CSPMparser()
 	{
-		setVersion("0 64 160720");
+		setVersion("0 65 160727");
 		exceptionCounter = 0;
 		commentMap = new HashMap<Integer,Character>();
 		commentList = new ArrayList<CommentInfo>();
@@ -135,8 +135,13 @@ public class CSPMparser
 	public String parsingRoutine(String newstream, boolean createPrologFile, boolean printSrc, boolean renamingActivated,
 	String inputFile, String outputFile) throws CSPMparserException
 	{
+		if(outputFile.equals(""))
+		outputFile = inputFile;
+		else
+		outputFile = outputFile.substring(12,outputFile.length()); // --prologOut= must disappear
+	
 		try 
-		{		
+		{			
 			newstream = saveComments(newstream);
 			newstream = includeFile(newstream);
 			newstream = saveComments(newstream);
@@ -165,7 +170,7 @@ public class CSPMparser
 			tree.apply(pout);
 			
 			if(createPrologFile)
-			createPrologFile(pto,inputFile,null,outputFile);
+			createPrologFile(pto,outputFile);
 			else
 			return pto.getStringWriter().toString();
 
@@ -174,87 +179,160 @@ public class CSPMparser
 		{
 			System.out.println("An Exception was thrown.");
 			if(createPrologFile)
-			createPrologFile(null,inputFile,e,outputFile);
+			{
+				try
+				{
+					CSPMparserException cmpe = new CSPMparserException(e.getToken(),e.getLocalizedMessage());
+					PrintWriter pw = new PrintWriter(outputFile+".pl", "UTF-8");
+					pw.print(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
+					+"\n:- dynamic module/4."
+					+"\n'parserVersionStr'('"+versionString+"')."
+					+"\n'parseResult'('parseError',"+cmpe.getMessage()+","+cmpe.getTokenLine()+","+cmpe.getTokenColumn()+").");
+					pw.close();
+				}
+				catch(Exception pwe){}
+			}
 			throw new CSPMparserException(e.getToken(),e.getLocalizedMessage());
-		} 
-		catch(LexerException e) 
+		} 			
+		catch(LexerException le)
 		{
 			System.out.println("An Exception was thrown.");
 			if(createPrologFile)
-			createPrologFile(null,inputFile,e,outputFile);			
-			throw new RuntimeException(e.getMessage());
-		} 
-		catch(IOException e) 
+			{
+				try
+				{
+					PrintWriter pw = new PrintWriter(outputFile+".pl", "UTF-8");
+					pw.print(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
+					+"\n:- dynamic module/4."
+					+"\n'parserVersionStr'('"+versionString+"')."
+					+"\n'parseResult'('lexingError',"+le.getMessage()+",0,0).");
+					pw.close();					
+				}
+				catch(Exception pwe){}
+			}			
+		}
+		catch(RenamingException re)
+		{
+			System.out.println("A RenamingException was thrown.");
+			if(createPrologFile)
+			{
+				try
+				{
+					System.out.println("test "+outputFile);
+					PrintWriter pw = new PrintWriter(outputFile+".pl", "UTF-8");				
+					pw.print(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
+					+"\n:- dynamic module/4."
+					+"\n'parserVersionStr'('"+versionString+"')."
+					+"\n'parseResult'('renamingError',"+re.getText()+").");
+					pw.close();
+				}
+				catch(Exception pwe){}
+			}
+		}
+		catch(NoPatternException npe)
 		{
 			System.out.println("An Exception was thrown.");
 			if(createPrologFile)
-			createPrologFile(null,inputFile,e,outputFile);
-			throw new RuntimeException(e.getMessage());
-		}		
-		catch(Exception e) 
+			{
+				try
+				{
+					PrintWriter pw = new PrintWriter(outputFile+".pl", "UTF-8");
+					pw.print(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
+					+"\n:- dynamic module/4."
+					+"\n'parserVersionStr'('"+versionString+"')."
+					+"\n'parseResult'('noPatternError',"+npe.getText()+").");
+					pw.close();
+				}
+				catch(Exception pwe){}
+			}
+		}
+		catch(UnboundIdentifierException uie)
 		{
 			System.out.println("An Exception was thrown.");
 			if(createPrologFile)
-			createPrologFile(null,inputFile,e,outputFile);
-			throw new RuntimeException(e.getMessage());
+			{
+				try
+				{
+					PrintWriter pw = new PrintWriter(outputFile+".pl", "UTF-8");
+					pw.print(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
+					+"\n:- dynamic module/4."
+					+"\n'parserVersionStr'('"+versionString+"')."
+					+"\n'parseResult'("+uie.getText()+").");
+					pw.close();
+				}
+				catch(Exception pwe){}
+			}
+		}
+		catch(TriangleSubstitutionException tse)
+		{
+			System.out.println("An Exception was thrown.");
+			if(createPrologFile)
+			{
+				try
+				{
+					PrintWriter pw = new PrintWriter(outputFile+".pl", "UTF-8");
+					pw.print(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
+					+"\n:- dynamic module/4."
+					+"\n'parserVersionStr'('"+versionString+"')."
+					+"\n'parseResult'('substitutionError',"+tse.getMessage()+").");
+					pw.close();
+				}
+				catch(Exception pwe){}
+			}
+		}	
+		catch(IOException io)
+		{
+			System.out.println("An Exception was thrown.");
+			if(createPrologFile)
+			{
+				try
+				{
+					PrintWriter pw = new PrintWriter(outputFile+".pl", "UTF-8");
+					pw.print(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
+					+"\n:- dynamic module/4."
+					+"\n'parserVersionStr'('"+versionString+"')."
+					+"\n'parseResult'('ioException',"+io.getMessage()+").");
+					pw.close();
+				}
+				catch(Exception pwe){}
+			}			
 		}
 		return "";
 	}
 	
-	public void createPrologFile(PrologTermOutput pto,String filename, Exception e, String outputFile)
+	public void createPrologFile(PrologTermOutput pto, String outputFile)
 	{
 		try
 		{
 			PrintWriter writer;
-			if(outputFile.equals(""))
-			{
-				writer = new PrintWriter(filename+".pl", "UTF-8");
-			}
-			else
-			{
-				String name = outputFile.substring(12,outputFile.length());
-				writer = new PrintWriter(name+".pl", "UTF-8");
-			}
-			if(e == null)
-			{
-				writer.println(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
-				+"\n:- dynamic module/4."
-				+"\n'parserVersionStr'('"+versionString+"')."
-				+"\n'parseResult'('ok','',0,0,0)."
-				+"\n:- dynamic channel/2, bindval/3, agent/3."
-				+"\n:- dynamic agent_curry/3, symbol/4."
-				+"\n:- dynamic dataTypeDef/2, subTypeDef/2, nameType/2."
-				+"\n:- dynamic cspTransparent/1."
-				+"\n:- dynamic cspPrint/1."
-				+"\n:- dynamic pragma/1."
-				+"\n:- dynamic comment/2."
-				+"\n:- dynamic assertBool/1, assertRef/5, assertTauPrio/6."
-				+"\n:- dynamic assertModelCheckExt/4, assertModelCheck/3."
-				+"\n:- dynamic assertHasTrace/3, assertHasTraceExt/4"
-				+"\n:- dynamic assertLtl/4, assertCtl/4."
-				+"\n'parserVersionNum'(["+versionNum+"])."
-				+"\n'parserVersionStr'('"+versionString+"').");
-				File file = new File(filename+".pl");	
-				String str = pto.getStringWriter().toString();
+			writer = new PrintWriter(outputFile+".pl", "UTF-8");
+			
+			writer.println(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
+			+"\n:- dynamic module/4."
+			+"\n'parserVersionStr'('"+versionString+"')."
+			+"\n'parseResult'('ok','',0,0,0)."
+			+"\n:- dynamic channel/2, bindval/3, agent/3."
+			+"\n:- dynamic agent_curry/3, symbol/4."
+			+"\n:- dynamic dataTypeDef/2, subTypeDef/2, nameType/2."
+			+"\n:- dynamic cspTransparent/1."
+			+"\n:- dynamic cspPrint/1."
+			+"\n:- dynamic pragma/1."
+			+"\n:- dynamic comment/2."
+			+"\n:- dynamic assertBool/1, assertRef/5, assertTauPrio/6."
+			+"\n:- dynamic assertModelCheckExt/4, assertModelCheck/3."
+			+"\n:- dynamic assertHasTrace/3, assertHasTraceExt/4"
+			+"\n:- dynamic assertLtl/4, assertCtl/4."
+			+"\n'parserVersionNum'(["+versionNum+"])."
+			+"\n'parserVersionStr'('"+versionString+"').");	
+			
+			String str = pto.getStringWriter().toString();
 
-				while(str.endsWith("\n") || str.endsWith("\r"))
-				{
-					str = str.substring(0,str.length()-1);
-				}
-				writer.print(str);
-				
-				
-				writer.close();
-			}
-			else
+			while(str.endsWith("\n") || str.endsWith("\r"))
 			{
-				writer.print(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
-				+"\n:- dynamic module/4."
-				+"\n'parserVersionStr'('"+versionString+"')."
-				+"\n'parseResult'('parseError',"+e.getMessage()+").");
-				writer.close();
+				str = str.substring(0,str.length()-1);
 			}
-
+			writer.print(str);			
+			writer.close();			
 		}
 		catch(Exception ex)
 		{

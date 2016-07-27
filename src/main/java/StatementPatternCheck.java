@@ -9,6 +9,7 @@ import CSPMparser.node.*;
 public class StatementPatternCheck extends DepthFirstAdapter
 {
 	private int patternRequired = 0;
+	private boolean setPatternRequired = false;
 
     @Override
     public void caseAHideExp(AHideExp node)
@@ -16,7 +17,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inAHideExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (Hide not allowed).");
+			throw new NoPatternException("Expecting pattern (Hide not allowed).",node);
 		}
         if(node.getProc1() != null)
         {
@@ -35,7 +36,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inAIleaveExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (Interleaving not allowed).");
+			throw new NoPatternException("Expecting pattern (Interleaving not allowed).",node);
 		}
         if(node.getProc2() != null)
         {
@@ -54,7 +55,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inAExceptExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (Except not allowed).");
+			throw new NoPatternException("Expecting pattern (Except not allowed).",node);
 		}
         if(node.getProc3() != null)
         {
@@ -77,7 +78,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inAGenParExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (GenPar not allowed).");
+			throw new NoPatternException("Expecting pattern (GenPar not allowed).",node);
 		}
         if(node.getProc3() != null)
         {
@@ -100,7 +101,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inAAlphParExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (AlphPar not allowed).");
+			throw new NoPatternException("Expecting pattern (AlphPar not allowed).",node);
 		}
         if(node.getProc3() != null)
         {
@@ -127,7 +128,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inALinkedParExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (LinkedPar not allowed).");
+			throw new NoPatternException("Expecting pattern (LinkedPar not allowed).",node);
 		}
         if(node.getProc3() != null)
         {
@@ -150,7 +151,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inAIntChoiceExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (Internal Choice not allowed).");
+			throw new NoPatternException("Expecting pattern (Internal Choice not allowed).",node);
 		}
         if(node.getProc4() != null)
         {
@@ -170,7 +171,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inAExtChoiceExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (External Choice not allowed).");
+			throw new NoPatternException("Expecting pattern (External Choice not allowed).",node);
 		}
         if(node.getProc5() != null)
         {
@@ -189,7 +190,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inASyncExtExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (Synchronised External Choice not allowed).");
+			throw new NoPatternException("Expecting pattern (Synchronised External Choice not allowed).",node);
 		}
         if(node.getProc5() != null)
         {
@@ -212,7 +213,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inAInterruptExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (Interrupt not allowed).");
+			throw new NoPatternException("Expecting pattern (Interrupt not allowed).",node);
 		}
         if(node.getProc6() != null)
         {
@@ -232,7 +233,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inASyncInterruptExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (Sync. Interrupt not allowed).");
+			throw new NoPatternException("Expecting pattern (Sync. Interrupt not allowed).",node);
 		}
         if(node.getProc6() != null)
         {
@@ -256,7 +257,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inASlidingChoiceExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (Sliding Choice not allowed).");
+			throw new NoPatternException("Expecting pattern (Sliding Choice not allowed).",node);
 		}
         if(node.getProc7() != null)
         {
@@ -276,7 +277,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inASeqCompositionExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (Sequential Composition not allowed).");
+			throw new NoPatternException("Expecting pattern (Sequential Composition not allowed).",node);
 		}
         if(node.getProc8() != null)
         {
@@ -296,7 +297,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inAGuardExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (Guarded not allowed).");
+			throw new NoPatternException("Expecting pattern (Guarded not allowed).",node);
 		}
         if(node.getDotOp() != null)
         {
@@ -316,7 +317,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inAPrefixExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (Prefix not allowed).");
+			throw new NoPatternException("Expecting pattern (Prefix not allowed).",node);
 		}
         if(node.getEvent() != null)
         {
@@ -335,7 +336,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inALambdaExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (Lambda Terms not allowed).");
+			throw new NoPatternException("Expecting pattern (Lambda Terms not allowed).",node);
 		}
         {
             List<PPattern> copy = new ArrayList<PPattern>(node.getPatternList());
@@ -357,7 +358,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inALetWithinExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (Let-Withins not allowed).");
+			throw new NoPatternException("Expecting pattern (Let-Withins not allowed).",node);
 		}
         {
             List<PDef> copy = new ArrayList<PDef>(node.getDefs());
@@ -379,7 +380,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inAIfElseExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (If-Elses not allowed).");
+			throw new NoPatternException("Expecting pattern (If-Elses not allowed).",node);
 		}
         if(node.getBoolExp() != null)
         {
@@ -402,7 +403,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inAReplicatedExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (Replicated Operators are not allowed).");
+			throw new NoPatternException("Expecting pattern (Replicated Operators are not allowed).",node);
 		}
         if(node.getRep() != null)
         {
@@ -417,7 +418,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inAExtChoiceRepExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (Replicated Operators are not allowed).");
+			throw new NoPatternException("Expecting pattern (Replicated Operators are not allowed).",node);
 		}
         if(node.getStmts() != null)
         {
@@ -436,7 +437,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inAIntChoiceRepExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (Replicated Operators are not allowed).");
+			throw new NoPatternException("Expecting pattern (Replicated Operators are not allowed).",node);
 		}
         if(node.getStmts() != null)
         {
@@ -455,7 +456,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inAILeaveRepExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (Replicated Operators are not allowed).");
+			throw new NoPatternException("Expecting pattern (Replicated Operators are not allowed).",node);
 		}
         if(node.getStmts() != null)
         {
@@ -474,7 +475,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inASeqCompositRepExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (Replicated Operators are not allowed).");
+			throw new NoPatternException("Expecting pattern (Replicated Operators are not allowed).",node);
 		}
         if(node.getStmts() != null)
         {
@@ -493,7 +494,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inAAlphParRepExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (Replicated Operators are not allowed).");
+			throw new NoPatternException("Expecting pattern (Replicated Operators are not allowed).",node);
 		}
         if(node.getStmts() != null)
         {
@@ -516,7 +517,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inASharingRepExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (Replicated Operators are not allowed).");
+			throw new NoPatternException("Expecting pattern (Replicated Operators are not allowed).",node);
 		}
         if(node.getValExp() != null)
         {
@@ -539,7 +540,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inALinkedParRepExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (Replicated Operators are not allowed).");
+			throw new NoPatternException("Expecting pattern (Replicated Operators are not allowed).",node);
 		}
         if(node.getLinkComp() != null)
         {
@@ -563,7 +564,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inASyncParRepExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (Replicated Operators are not allowed).");
+			throw new NoPatternException("Expecting pattern (Replicated Operators are not allowed).",node);
 		}
         if(node.getDotOp() != null)
         {
@@ -586,7 +587,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inARenamingExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (Renaming not allowed).");
+			throw new NoPatternException("Expecting pattern (Renaming not allowed).",node);
 		}
         if(node.getRenameComp() != null)
         {
@@ -601,7 +602,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inAERenamingExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (Renaming not allowed).");
+			throw new NoPatternException("Expecting pattern (Renaming not allowed).",node);
 		}
         if(node.getProc10() != null)
         {
@@ -623,7 +624,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
             List<PPattern> copy = new ArrayList<PPattern>(node.getF1List());
 			if(patternRequired>0 && copy.size()>0)
 			{
-				throw new RuntimeException("Expecting pattern (Events are not allowed).");
+				throw new NoPatternException("Expecting pattern (Events are not allowed).",node);
 			}
             for(PPattern e : copy)
             {
@@ -634,7 +635,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
             List<PPattern> copy = new ArrayList<PPattern>(node.getF2List());
 			if(patternRequired>0 && copy.size()>0)
 			{
-				throw new RuntimeException("Expecting pattern (Events are not allowed).");
+				throw new NoPatternException("Expecting pattern (Events are not allowed).",node);
 			}
             for(PPattern e : copy)
             {
@@ -654,7 +655,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
 			
 			if(patternRequired == 0 && copy.size()>1)
 			{
-				throw new RuntimeException("Patterns are not allowed here.");
+				throw new NoPatternException("Patterns are not allowed here.",node);
 			}
 			
             for(PExp e : copy)
@@ -671,7 +672,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inAOrExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (Or not allowed).");
+			throw new NoPatternException("Expecting pattern (Or not allowed).",node);
 		}
         if(node.getBoolExp() != null)
         {
@@ -690,7 +691,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inAAndExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (And not allowed).");
+			throw new NoPatternException("Expecting pattern (And not allowed).",node);
 		}
         if(node.getBoolExp2() != null)
         {
@@ -709,7 +710,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inANotExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (Not not allowed).");
+			throw new NoPatternException("Expecting pattern (Not not allowed).",node);
 		}
         if(node.getBoolExp3() != null)
         {
@@ -724,7 +725,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inAEqualExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (Equality Ops are not allowed).");
+			throw new NoPatternException("Expecting pattern (Equality Ops are not allowed).",node);
 		}
         if(node.getBoolExp4() != null)
         {
@@ -743,7 +744,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inAOrderingLgeExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (Ordering Ops are not allowed).");
+			throw new NoPatternException("Expecting pattern (Ordering Ops are not allowed).",node);
 		}
         if(node.getBoolExp4() != null)
         {
@@ -762,7 +763,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inAOrderingLessExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (Ordering Ops are not allowed).");
+			throw new NoPatternException("Expecting pattern (Ordering Ops are not allowed).",node);
 		}
         if(node.getBoolExp4() != null)
         {
@@ -781,7 +782,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inAOrderingGreaterExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (Ordering Ops are not allowed).");
+			throw new NoPatternException("Expecting pattern (Ordering Ops are not allowed).",node);
 		}
         if(node.getBoolExp4() != null)
         {
@@ -800,7 +801,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inAAdditionExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (Addition is not allowed).");
+			throw new NoPatternException("Expecting pattern (Addition is not allowed).",node);
 		}
         if(node.getValExp() != null)
         {
@@ -819,7 +820,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inASubtractionExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (Subtraction is not allowed).");
+			throw new NoPatternException("Expecting pattern (Subtraction is not allowed).",node);
 		}
         if(node.getValExp() != null)
         {
@@ -838,7 +839,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inAMultiplicationExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (Mult,Div and Mod not allowed).");
+			throw new NoPatternException("Expecting pattern (Mult,Div and Mod not allowed).",node);
 		}
         if(node.getValExp1() != null)
         {
@@ -857,7 +858,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inAUnMinusExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (Unary Minus not allowed).");
+			throw new NoPatternException("Expecting pattern (Unary Minus not allowed).",node);
 		}
         if(node.getValExp2() != null)
         {
@@ -872,7 +873,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inALengthExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (Length Op. not allowed).");
+			throw new NoPatternException("Expecting pattern (Length Op. not allowed).",node);
 		}
         if(node.getLength() != null)
         {
@@ -887,7 +888,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inARangedSeqExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (Ranged Seq. not allowed).");
+			throw new NoPatternException("Expecting pattern (Ranged Seq. not allowed).",node);
 		}
         if(node.getLval() != null)
         {
@@ -906,7 +907,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inAInfiniteSeqExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (Infinite Seq. not allowed).");
+			throw new NoPatternException("Expecting pattern (Infinite Seq. not allowed).",node);
 		}
         if(node.getValExp() != null)
         {
@@ -921,7 +922,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inAComprSeqExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (Seq Compr. not allowed).");
+			throw new NoPatternException("Expecting pattern (Seq Compr. not allowed).",node);
 		}
         if(node.getExpressions() != null)
         {
@@ -940,7 +941,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inARangedComprSeqExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (Ranged Seq. Compr. not allowed).");
+			throw new NoPatternException("Expecting pattern (Ranged Seq. Compr. not allowed).",node);
 		}
         if(node.getLval() != null)
         {
@@ -963,7 +964,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inAInfiniteComprSeqExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (Inf. Seq. Compr. not allowed).");
+			throw new NoPatternException("Expecting pattern (Inf. Seq. Compr. not allowed).",node);
 		}
         if(node.getValExp() != null)
         {
@@ -987,24 +988,48 @@ public class StatementPatternCheck extends DepthFirstAdapter
     public void caseASetExp(ASetExp node)
     {
         inASetExp(node);
+			
         if(node.getExpressions() != null)
         {
-            node.getExpressions().apply(this);
+			if(patternRequired>0)
+			{
+				setPatternRequired = true;	
+				node.getExpressions().apply(this);
+				setPatternRequired = false;
+			}
+			else
+			{
+				node.getExpressions().apply(this);
+			}
         }
-		if(patternRequired>0 && checkNumberOfArgs(node.getExpressions().toString())>1)
-		{
-			throw new RuntimeException("Expecting pattern (Set patterns must have 1 Element.");
-		}
         outASetExp(node);
     }
-
+	
+    @Override
+    public void caseAExpressionListExpressions(AExpressionListExpressions node)
+    {
+        inAExpressionListExpressions(node);
+        {
+            List<PExp> copy = new ArrayList<PExp>(node.getExpressionList());
+			if(setPatternRequired && copy.size()>1)
+			{
+				throw new NoPatternException("Expecting pattern (Set patterns must have 1 Element.",node);			
+			}
+            for(PExp e : copy)
+            {
+                e.apply(this);
+            }
+        }
+        outAExpressionListExpressions(node);
+    }
+	
     @Override
     public void caseARangedSetExp(ARangedSetExp node)
     {
         inARangedSetExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (Ranged Set not allowed).");
+			throw new NoPatternException("Expecting pattern (Ranged Set not allowed).",node);
 		}
         if(node.getLval() != null)
         {
@@ -1023,7 +1048,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inAInfiniteSetExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (Inf. Set not allowed).");
+			throw new NoPatternException("Expecting pattern (Inf. Set not allowed).",node);
 		}
         if(node.getValExp() != null)
         {
@@ -1038,7 +1063,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inAComprSetExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (Set Compr. not allowed).");
+			throw new NoPatternException("Expecting pattern (Set Compr. not allowed).",node);
 		}
         if(node.getExpressions() != null)
         {
@@ -1057,7 +1082,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inARangedComprSetExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (Ranged Set Compr. not allowed).");
+			throw new NoPatternException("Expecting pattern (Ranged Set Compr. not allowed).",node);
 		}
         if(node.getLval() != null)
         {
@@ -1080,7 +1105,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inAInfiniteComprSetExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (Inf. Set Compr. not allowed).");
+			throw new NoPatternException("Expecting pattern (Inf. Set Compr. not allowed).",node);
 		}
         if(node.getValExp() != null)
         {
@@ -1099,7 +1124,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inAEnumeratedSetExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (Enumerated Set not allowed).");
+			throw new NoPatternException("Expecting pattern (Enumerated Set not allowed).",node);
 		}
         if(node.getExpressions() != null)
         {
@@ -1114,7 +1139,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inAEnumeratedComprSetExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (Enumerated Set Compr. not allowed).");
+			throw new NoPatternException("Expecting pattern (Enumerated Set Compr. not allowed).",node);
 		}
         if(node.getExpressions() != null)
         {
@@ -1133,7 +1158,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inAMapExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (Maps are not allowed).");
+			throw new NoPatternException("Expecting pattern (Maps are not allowed).",node);
 		}
 		List<PExp> copy = new ArrayList<PExp>(node.getMapList());
 		for(PExp e : copy)
@@ -1149,7 +1174,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inAEmptyMapExp(node);
 		if(patternRequired>0)
 		{
-			throw new RuntimeException("Expecting pattern (Maps are not allowed).");
+			throw new NoPatternException("Expecting pattern (Maps are not allowed).",node);
 		}
         if(node.getEmptyMap() != null)
         {
@@ -1165,7 +1190,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
 		List<PArguments> copy = new ArrayList<PArguments>(node.getArguments());
 		if(patternRequired>0 && copy.size()>0)
 		{
-			throw new RuntimeException("Expecting Pattern (Tuple-Pattern does not allow lambda params).");
+			throw new NoPatternException("Expecting Pattern (Tuple-Pattern does not allow lambda params).",node);
 		}
         if(node.getTuple() != null)
         {
@@ -1188,7 +1213,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
 		List<PArguments> copy = new ArrayList<PArguments>(node.getArguments());
 		if(patternRequired>0 && copy.size()>0)
 		{
-			throw new RuntimeException("Expecting Pattern (Parenthesis-Pattern does not allow lambda params).");
+			throw new NoPatternException("Expecting Pattern (Parenthesis-Pattern does not allow lambda params).",node);
 		}
         if(node.getParL() != null)
         {
@@ -1240,7 +1265,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inAWildcardExp(node);
 		if(patternRequired == 0)
 		{
-			throw new RuntimeException("Patterns are not allowed here.");
+			throw new NoPatternException("Patterns are not allowed here.",node);
 		}
         if(node.getWildcard() != null)
         {
@@ -1268,7 +1293,7 @@ public class StatementPatternCheck extends DepthFirstAdapter
 		List<PArguments> copy = new ArrayList<PArguments>(node.getArguments());
 		if(patternRequired>0 && copy.size() >0)
 		{
-			throw new RuntimeException("Expecting Pattern (Var. Pattern does not allow arguments).");
+			throw new NoPatternException("Expecting Pattern (Var. Pattern does not allow arguments).",node);
 		}
         if(node.getId() != null)
         {

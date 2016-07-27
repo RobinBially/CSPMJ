@@ -812,7 +812,7 @@ public class SymbolCollector extends DepthFirstAdapter
 					)
 				)		
 				{			
-					throw new RuntimeException("'Redefinition of Identifier "+s+"'"+getErrorLoc(n));	
+					throw new RenamingException(s,n);	
 				}
 		}
 	}
@@ -822,7 +822,7 @@ public class SymbolCollector extends DepthFirstAdapter
 
 		if(renamingArgs.contains(s))
 		{
-			throw new RuntimeException("'Redefinition of Identifier "+s+"'"+getErrorLoc(n));
+			throw new RenamingException(s,n);	
 		}
 		
 	}
