@@ -16,6 +16,304 @@ import org.junit.Ignore;
 
 public class PrologGeneratorTests 
 {
+
+	@Test
+	public void CompareLambdaToCspmf() throws Exception
+	{
+		System.out.println("\r\n\r\nCompareLambdaToCspmf\r\n\r\n");
+		String test = 	"h = (\\a,b@3)(1)(2)\r\ni(a) = \\b@a+b\r\na = 1";
+		try
+		{
+		checkCSPMF(test,cspmfCompileToProlog(test));
+		}catch(Exception e){throw e;}					
+	}
+
+	@Test
+	public void CompareLetWithinDifficultToCspmf() throws Exception
+	{
+		System.out.println("\r\n\r\nCompareLetWithinDifficultToCspmf\r\n\r\n");
+		String test = 				
+						"k = let\r\nI(a) = 1\r\nI(a) = let\r\nI(a) = a\r\nwithin 8\r\nI(a) = 3\r\nwithin 9"
+						+"\r\nl(x) =  let\r\nu = 1\r\nb(u) = let\r\nc = u\r\nwithin 1\r\nwithin x";
+		try
+		{
+		checkCSPMF(test,cspmfCompileToProlog(test));
+		}catch(Exception e){throw e;}					
+	}
+
+	@Test
+	public void CompareFunctionalToCspmf() throws Exception
+	{
+		System.out.println("\r\n\r\nCompareFunctionalToCspmf\r\n\r\n");
+		String test = 	"A(x) = (1?x->1)(x)+x"
+						+"\r\nA(x) = (1?x->1,x)"
+						+"\r\n1 = ((1)(1))(1)";
+		try
+		{
+		checkCSPMF(test,cspmfCompileToProlog(test));
+		}catch(Exception e){throw e;}					
+	}
+
+	@Test
+	public void CompareFunctionCallsToCspmf() throws Exception
+	{
+		System.out.println("\r\n\r\nCompareFunctionCallsToCspmf\r\n\r\n");
+		String test = 	"A = 1.A(1)";
+		try
+		{
+		checkCSPMF(test,cspmfCompileToProlog(test));
+		}catch(Exception e){throw e;}					
+	}
+
+	@Test
+	public void CompareLetWithinToCspmf() throws Exception
+	{
+		System.out.println("\r\n\r\nCompareLetWithinToCspmf\r\n\r\n");
+		String test = 	
+						"channel a"
+						+"\r\n R(b) = let" 
+									+"\r\n b = a" 
+							  +"\r\n within a-> b "
+						+"\r\n Q = a-> a -> a";
+		try
+		{
+		checkCSPMF(test,cspmfCompileToProlog(test));
+		}catch(Exception e){throw e;}					
+	}
+
+	@Test
+	public void CompareCallSingleBuiltinToCspmf() throws Exception
+	{
+		System.out.println("\r\n\r\nCompareCallSingleBuiltinToCspmf\r\n\r\n");
+		String test = 	"member = 1";
+		try
+		{
+		checkCSPMF(test,cspmfCompileToProlog(test));
+		}catch(Exception e){throw e;}					
+	}
+
+
+	@Test
+	public void CompareRedefineBuiltinsToCspmf() throws Exception
+	{
+		System.out.println("\r\n\r\nCompareRedefineBuiltinsToCspmf\r\n\r\n");
+		String test = 	"member = 1\r\n1 = member";
+		try
+		{
+		checkCSPMF(test,cspmfCompileToProlog(test));
+		}catch(Exception e){throw e;}					
+	}
+	
+	@Test
+	public void CompareMultipleAgentDefsToCspmf() throws Exception
+	{
+		System.out.println("\r\n\r\nCompareMultipleAgentDefsToCspmf\r\n\r\n");
+		String test = 	"a = 1"
+						+"\r\nA = 1"
+						+"\r\nI(a) = A"
+						+"\r\nI(a) = a"
+						+"\r\nI(A) = a"
+						+"\r\nI(A) = A";
+		try
+		{
+		checkCSPMF(test,cspmfCompileToProlog(test));
+		}catch(Exception e){throw e;}					
+	}
+	
+	@Test
+	public void CompareTypeDefsToCspmf() throws Exception	//Bool and Int constant handling different in cspmf
+	{
+		System.out.println("\r\n\r\nCompareTypeDefsToCspmf\r\n\r\n");
+		String test = 	
+						"datatype dt = cn|cn2.{1}"
+						+"\r\nsubtype st = cn"
+						+"\r\nnametype nt = {1}.{1}"
+						+"\r\nchannel c1,c2,c3: {1}.{1}";
+		try
+		{
+		checkCSPMF(test,cspmfCompileToProlog(test));
+		}catch(Exception e){throw e;}					
+	}
+	
+	@Test
+	public void CompareParamNumerationToCspmf() throws Exception
+	{
+		System.out.println("\r\n\r\nCompareParamNumerationToCspmf\r\n\r\n");
+		String test = 	"B(x,y) = x+y"
+						+"\r\nB(x,y) = 5"
+						+"\r\nF(x,y) = (1,2)"
+						+"\r\nG(a) = F(a)"
+						+"\r\ny(_) = 1"	;
+		try
+		{
+		checkCSPMF(test,cspmfCompileToProlog(test));
+		}catch(Exception e){throw e;}					
+	}
+	
+	@Test
+	public void CompareIfThenElseToCspmf() throws Exception
+	{
+		System.out.println("\r\n\r\nCompareIfThenElseToCspmf\r\n\r\n");
+		String test = "m = if true then 1 else 1";
+		try
+		{
+		checkCSPMF(test,cspmfCompileToProlog(test));
+		}catch(Exception e){throw e;}					
+	}
+	
+	@Test
+	public void CompareSetComprehensionsToCspmf() throws Exception
+	{
+		System.out.println("\r\n\r\nCompareSetComprehensionsToCspmf\r\n\r\n");
+		String test = 	"y = 1"
+						+"\r\nA = {x|x<-1,x,y}"
+						+"\r\nB = {x..y|x<-1,x,y}"
+						+"\r\nC = {x..|x<-1,x,y}"
+						+"\r\nD = {|x|x<-1,x,y|}";
+		try
+		{
+		checkCSPMF(test,cspmfCompileToProlog(test));
+		}catch(Exception e){throw e;}					
+	}
+	
+	@Test
+	public void CompareListComprehensionsToCspmf() throws Exception
+	{
+		System.out.println("\r\n\r\nCompareListComprehensionsToCspmf\r\n\r\n");
+		String test = 		"y = 1"
+							+"\r\nA = <x|x<-1,x,y>"
+							+"\r\nB = <x..y|x<-1,x,y>"
+							+"\r\nC = <x..|x<-1,x,y>";
+		try
+		{
+		checkCSPMF(test,cspmfCompileToProlog(test));
+		}catch(Exception e){throw e;}					
+	}
+	
+	@Test
+	public void CompareDifficultComprehensionsToCspmf() throws Exception
+	{
+		System.out.println("\r\n\r\nCompareDifficultComprehensionsToCspmf\r\n\r\n");
+		String test = 		"A = {1|x@@y^a.z<-1}"
+							+"\r\nB = {x|x<-1,{1|x},x<-2}"
+							+"\r\nC = {1|x<-1,x,x<-2,x}";
+		try
+		{
+		checkCSPMF(test,cspmfCompileToProlog(test));
+		}catch(Exception e){throw e;}					
+	}
+
+	@Test
+	public void CompareInputOutputToCspmf() throws Exception
+	{
+		System.out.println("\r\n\r\nCompareInputOutputToCspmf\r\n\r\n");
+		String test = 	"Z = 1?1.2 -> 5"
+						+"\r\na(d) = 1?1.2:1.2 -> 5"
+						+"\r\na(d) = 1"
+					//	+"\r\nb = 1$1.2 -> 5" 		Restricted Input is not supported by cspmf
+					//	+"\r\nc = 1$1.2:1.2 -> 5" 	Restricted Input is not supported by cspmf
+						+"\r\nd = 1!1.2 -> 5"
+						+"\r\ne = 1?1@@2 -> 5"
+						+"\r\nf = 1?1^2 -> 5"
+						+"\r\ng = 1^2"
+						+"\r\nj(y) = 1?y -> y";
+		try
+		{
+		checkCSPMF(test,cspmfCompileToProlog(test));
+		}catch(Exception e){throw e;}					
+	}
+	
+	@Test
+	public void CompareRenamingAndRenamingComprehensionsToCspmf() throws Exception
+	{
+		System.out.println("\r\n\r\nCompareRenamingAndRenamingComprehensionsToCspmf\r\n\r\n");
+		String test =		"d = 1"
+							+"\r\na = 1"
+							+"\r\nA(a) = a[[a <- d,a<-d]]"
+							+"\r\nb = 1"
+							+"\r\nB = b[[b<-d,b<-d|b<-1]]"
+							+"\r\nc = 1"
+							+"\r\nC(c) = c[[c<-d,c<-d|c<-1]]";
+		try
+		{
+		checkCSPMF(test,cspmfCompileToProlog(test));
+		}catch(Exception e){throw e;}					
+	}
+	
+	@Test
+	public void CompareRepWithStatementsToCspmf() throws Exception
+	{
+		System.out.println("\r\n\r\nCompareRepWithStatementsToCspmf\r\n\r\n");
+		String test = "A  = [] x:2,x,x:3,x@x";
+		try
+		{
+		checkCSPMF(test,cspmfCompileToProlog(test));
+		}catch(Exception e){throw e;}					
+	}
+	
+	@Test
+	public void CompareEasyNumerationToCspmf() throws Exception
+	{
+		System.out.println("\r\n\r\nCompareEasyNumerationToCspmf\r\n\r\n");
+		String test = 			"a = 1"
+								+"\r\nx(a) = 1"
+								+"\r\nb(a) = 1"
+								+"\r\nc = 1?d -> d"
+								+"\r\nchannel e: c";
+		try
+		{
+		checkCSPMF(test,cspmfCompileToProlog(test));
+		}catch(Exception e){throw e;}					
+	}
+	
+	@Test
+	public void CompareLinkedListComprehensionToCspmf() throws Exception
+	{
+		System.out.println("\r\n\r\nCompareLinkedListComprehensionToCspmf\r\n\r\n");
+		String test = "B = 1 [2<->3,4<->5|x<-6] 7";
+		try
+		{
+		checkCSPMF(test,cspmfCompileToProlog(test));
+		}catch(Exception e){throw e;}					
+	}
+	
+	@Test
+	public void CompareComplexBuiltinCallInLetWithinToCspmf() throws Exception
+	{
+		System.out.println("\r\n\r\nCompareComplexBuiltinCallInLetWithinToCspmf\r\n\r\n");
+		String test = 	"B  = {member|x<-1}"
+						+"\r\nC = let D = member"
+						+"\r\nmember = 1"
+						+"\r\nwithin 1";
+		try
+		{
+		checkCSPMF(test,cspmfCompileToProlog(test));
+		}catch(Exception e){throw e;}					
+	}
+	
+	@Test
+	public void CompareTransparentFunctionsToCspmf() throws Exception
+	{
+		System.out.println("\r\n\r\nTransparentFunctionsToCspmf\r\n\r\n");
+		String test = 	"transparent f,member"
+						+"\r\nA = f";
+		try
+		{
+		checkCSPMF(test,cspmfCompileToProlog(test));
+		}catch(Exception e){throw e;}					
+	}
+		
+	@Test
+	public void ComparePrintToCspmf() throws Exception
+	{
+		System.out.println("\r\n\r\nComparePrintToCspmf\r\n\r\n");
+		String test = "print 1->2";
+		try
+		{
+		checkCSPMF(test,cspmfCompileToProlog(test));
+		}catch(Exception e){throw e;}					
+	}
+	
 	@Test
 	public void CompareProcessOperatorsToCspmf() throws Exception
 	{
@@ -162,7 +460,7 @@ public class PrologGeneratorTests
 	}
 	
 	@Test
-	public void CompareCurryToCspmf() throws Exception
+	public void CompareCurryToCspmf() throws Exception 
 	{
 		System.out.println("\r\n\r\nCompareCurryToCspmf\r\n\r\n");
 		String test = 	"nocurry(1) = nocurry(2)"
@@ -179,7 +477,7 @@ public class PrologGeneratorTests
 	}
 	
 	@Test
-	public void TauPrio() throws Exception
+	public void TauPrio() throws Exception //
 	{
 	  check(
 				"assert 1 [T= 2 :[tau priority 1]"
@@ -195,7 +493,7 @@ public class PrologGeneratorTests
 	}
 	
 	@Test
-	public void Curry() throws Exception
+	public void Curry() throws Exception //
 	{
 		check(
 					"nocurry(1) = nocurry(2)"
@@ -221,7 +519,7 @@ public class PrologGeneratorTests
 	}
 	
 	@Test
-	public void CommentsAndPragmas() throws Exception
+	public void CommentsAndPragmas() throws Exception //
 	{
 			check( 
 						"{-" 
@@ -248,7 +546,7 @@ public class PrologGeneratorTests
 	}
 	
 	@Test
-	public void PatternsInComprehensions() throws Exception
+	public void PatternsInComprehensions() throws Exception  //
 	{
 		check(
 				"{} = 2"
@@ -290,7 +588,7 @@ public class PrologGeneratorTests
 	}
 	
 	@Test
-	public void PrintExpressions() throws Exception
+	public void PrintExpressions() throws Exception //
 	{
 		check(
 					"print 1->2"
@@ -300,7 +598,7 @@ public class PrologGeneratorTests
 	}	
 	
 	@Test
-	public void TransparentFunctions() throws Exception
+	public void TransparentFunctions() throws Exception //
 	{
 		check(
 					"transparent f,member"
@@ -315,7 +613,7 @@ public class PrologGeneratorTests
 	}
 	
 	@Test
-	public void Assertions() throws Exception
+	public void Assertions() throws Exception //
 	{
 		check(		"assert 1 [T= 1"
 					+"\r\nassert 1 [F= 1"
@@ -374,7 +672,7 @@ public class PrologGeneratorTests
 	}
 	
 	@Test
-	public void ComplexBuiltinCallInLetWithin()
+	public void ComplexBuiltinCallInLetWithin() //
 	{
 	   check(
 				"B  = {member|x<-1}"
@@ -394,7 +692,7 @@ public class PrologGeneratorTests
 	}
 	
 	@Test
-	public void ComplexComprehensionAndLetWithin()
+	public void ComplexComprehensionAndLetWithin() //
 	{
 		check(
 					"A(x) = {x+{x|x<-1}|x<-1,x<-2,x} + x"
@@ -421,7 +719,7 @@ public class PrologGeneratorTests
 			 );
 	}
 	@Test
-	public void LinkedListComprehension() throws Exception
+	public void LinkedListComprehension() throws Exception //
 	{
 	   check(
 				"B = 1 [2<->3,4<->5|x<-6] 7"
@@ -433,7 +731,7 @@ public class PrologGeneratorTests
 	}
 	
 	@Test
-	public void EasyNumeration() throws Exception
+	public void EasyNumeration() throws Exception //
 	{
 		check(
 					"a = 1"
@@ -459,7 +757,7 @@ public class PrologGeneratorTests
 	}
 	
 	@Test
-	public void RepWithStatements() throws Exception
+	public void RepWithStatements() throws Exception //
 	{
 		check( "A  = [] x:2,x,x:3,x@x"
 			 ,
@@ -471,7 +769,7 @@ public class PrologGeneratorTests
 	}
 	
 	@Test
-	public void RenamingAndRenamingComprehensions()
+	public void RenamingAndRenamingComprehensions() //
 	{
 		check(
 					"d = 1"
@@ -505,7 +803,7 @@ public class PrologGeneratorTests
 	}
 	
 	@Test
-	public void DifficultComprehensions() throws Exception
+	public void DifficultComprehensions() throws Exception //
 	{	
 		check(
 				"A = {1|x@@y^a.z<-1}"
@@ -530,7 +828,7 @@ public class PrologGeneratorTests
 	}
 	
 	@Test
-	public void ListComprehensions() throws Exception
+	public void ListComprehensions() throws Exception //
 	{
 		check(
 					"y = 1"
@@ -581,7 +879,7 @@ public class PrologGeneratorTests
 	
 	
 	@Test
-	public void IfThenElse() throws Exception
+	public void IfThenElse() throws Exception //
 	{
 		check("m = if true then 1 else 1"
 		,
@@ -590,7 +888,7 @@ public class PrologGeneratorTests
 		);
 	}
 	@Test
-	public void ParamNumeration() throws Exception
+	public void ParamNumeration() throws Exception //
 	{
 		check(
 				"B(x,y) = SKIP"
@@ -620,7 +918,7 @@ public class PrologGeneratorTests
 	}
 	
 	@Test
-	public void Chars() throws Exception
+	public void Chars() throws Exception //not supported by cspmf
 	{
 		check(
 					"E = 'a'"
@@ -631,7 +929,7 @@ public class PrologGeneratorTests
 	}
 	
 	@Test
-	public void Maps() throws Exception
+	public void Maps() throws Exception //not supported by cspmf
 	{
 		check(
 					"C = (| |)\r\nD = (|1=>2|)"
@@ -644,7 +942,7 @@ public class PrologGeneratorTests
 	}
 	
 	@Test
-	public void TypeDefs() throws Exception
+	public void TypeDefs() throws Exception //
 	{
 		check(	
 				"datatype dt = cn|cn2.Bool"
@@ -672,7 +970,7 @@ public class PrologGeneratorTests
 	}
 	
 	@Test
-	public void MultipleAgentDefs() throws Exception
+	public void MultipleAgentDefs() throws Exception //
 	{
 		check(
 				"a = 1"
@@ -698,7 +996,7 @@ public class PrologGeneratorTests
 			);
 	}
 	@Test
-	public void RedefineBuiltins() throws Exception
+	public void RedefineBuiltins() throws Exception //cspmf comparison not possible
 	{
 		check("STOP = 1\r\nSKIP = 1"
 		,
@@ -708,7 +1006,7 @@ public class PrologGeneratorTests
 		);
 	}
 	@Test
-	public void CallSingleBuiltin() throws Exception
+	public void CallSingleBuiltin() throws Exception //cspmf comparison not possible
 	{
 		check("P=STOP",
 		
@@ -718,7 +1016,7 @@ public class PrologGeneratorTests
 	}
 	
 	@Test
-	public void CallBuiltinsMultipleTimes() throws Exception 
+	public void CallBuiltinsMultipleTimes() throws Exception //cspmf comparison not possible
 	{
 		check( 		"P = STOP"
 					+"\r\nQ = STOP"
@@ -739,7 +1037,7 @@ public class PrologGeneratorTests
 	}
 	
 	@Test
-	public void ExpressionsNewlinesBetween() throws Exception
+	public void ExpressionsNewlinesBetween() throws Exception //
 	{
 	  check(
 				"b= 2 \r\n a = true \r\n       and     \r\n b==1"
@@ -752,7 +1050,7 @@ public class PrologGeneratorTests
 	}
 	
 	@Test
-	public void LetWithinTest() throws Exception
+	public void LetWithinTest() throws Exception //
 	{
 		check(			
 				"channel a"
@@ -775,7 +1073,7 @@ public class PrologGeneratorTests
 	}
 	
 	@Test
-	public void FunctionCalls() throws Exception
+	public void FunctionCalls() throws Exception //
 	{
 		check("A = 1.A(1)",
 		"'bindval'('A','dotTuple'(['int'(1),'agent_call'('no_loc_info_available','val_of'('A','no_loc_info_available'),['int'(1)])]),'no_loc_info_available')."
@@ -784,7 +1082,7 @@ public class PrologGeneratorTests
 	}
 	
 	@Test
-	public void Functional() throws Exception
+	public void Functional() throws Exception //
 	{
 	  check(	
 				"A(x) = (1?x->1)(x)+x"
@@ -803,7 +1101,7 @@ public class PrologGeneratorTests
 	}
 	
 	@Test
-	public void ProcOperators() throws Exception
+	public void ProcOperators() throws Exception //
 	{
 	  check(	"J = 1 \\ 2"
 				+"\r\nK = 1 ||| 2"
@@ -882,7 +1180,7 @@ public class PrologGeneratorTests
 	}
 	
 	@Test
-	public void LetWithinDifficult() throws Exception
+	public void LetWithinDifficult() throws Exception //
 	{
 	  check(
 				"k = let\r\nI(a) = 1\r\nI(a) = let\r\nI(a) = a\r\nwithin 8\r\nI(a) = 3\r\nwithin 9"
@@ -907,7 +1205,7 @@ public class PrologGeneratorTests
 	}
 	
 	@Test
-	public void Lambda() throws Exception
+	public void Lambda() throws Exception //
 	{
 	  check(
 				"h = \\a,b@3\r\ni(a) = \\b@a+b\r\na = 1"
@@ -926,7 +1224,7 @@ public class PrologGeneratorTests
 	}
 	
 	@Test
-	public void InputOutput() throws Exception
+	public void InputOutput() throws Exception //
 	{
 		check(  "Z = 1?1.2 -> 5"
 				+"\r\na(d) = 1?1.2:1.2 -> 5"
@@ -966,7 +1264,7 @@ public class PrologGeneratorTests
 	}
 	
 	@Test
-	public void ExpressionOperators() throws Exception
+	public void ExpressionOperators() throws Exception //
 	{
 		check(
 				"v = -(1^2)^2"
