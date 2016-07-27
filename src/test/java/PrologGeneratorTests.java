@@ -1038,38 +1038,19 @@ public class PrologGeneratorTests
 		}
 		else if(ostype == OsCheck.OSType.MacOS || ostype == OsCheck.OSType.Linux32 || ostype == OsCheck.OSType.Linux64)
 		{
-			PrintWriter writer = new PrintWriter("/src/test/java/cspmfIN.temp", "UTF-8");
+			PrintWriter writer = new PrintWriter("build/classes/main/cspmfIN.temp", "UTF-8");
 			writer.println(input);
-			writer.close();	
-			switch(ostype)
-			{
-				case MacOS: 
-				
-					p = Runtime.getRuntime().exec("/src/test/java/cspmf-leopard64 translate /src/test/java/cspmfIN.temp --prologOutNormalised=/src/test/java/cspmfOUT.temp");
-					p.waitFor();
-					break;
-					
-				case Linux32: 
-			
-					p = Runtime.getRuntime().exec("/src/test/java/cspmf-linux32 translate /src/test/java/cspmfIN.temp --prologOutNormalised=/src/test/java/cspmfOUT.temp");
-					p.waitFor();						
-					break;
-					
-				case Linux64: 
-				
-					p = Runtime.getRuntime().exec("/src/test/java/cspmf-linux64 /src/test/java/cspmfIN.temp --prologOutNormalised=/src/test/java/cspmfOUT.temp");
-					p.waitFor();
-					break;
-			}
-			output = getStringFromFile("/src/test/java/cspmfOUT.temp");				
-			Files.delete(Paths.get("/src/test/java/cspmfOUT.temp"));
-			Files.delete(Paths.get("/src/test/java/cspmfIN.temp"));
+			writer.close();
+			p = Runtime.getRuntime().exec("build/classes/main/cspmf translate build/classes/main/cspmfIN.temp --prologOutNormalised=build/classes/main/cspmfOUT.temp");
+			p.waitFor();
+			output = getStringFromFile("build/classes/main/cspmfOUT.temp");				
+			Files.delete(Paths.get("build/classes/main/cspmfOUT.temp"));
+			Files.delete(Paths.get("build/classes/main/cspmfIN.temp"));
 		}
 		else
 		{
 			throw new RuntimeException("This Operating System is not supported!");
 		}
-	
 		return output;
 	}
 	

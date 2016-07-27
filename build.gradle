@@ -43,19 +43,30 @@ sourceSets {
 }
 
 def download(address,target) {
+    if (!file("$target").exists()) {
         def file = new FileOutputStream(target)
         def out = new BufferedOutputStream(file)
         out << new URL(address).openStream()
         out.close()
+    }
 }
 
-task downloadCSPMFrontend << {
-    def dst_directory = "build/classes/main/cspmf"
+task downloadCSPMFrontend(type: Copy) {
+
+    new File('build/classes/main').mkdirs()
     println "Building cspmf-tool"
+
+    inputs.dir(new File('build/classes/main'))
+
+    def dst_directory = "build/classes/main/cspmf"
     if (Os.isFamily(Os.FAMILY_WINDOWS)) {
         download("https://www3.hhu.de/stups/downloads/cspmf/cspmf-windows.exe",dst_directory + ".exe")
     } else if (Os.isFamily(Os.FAMILY_MAC)) {
         download("https://www3.hhu.de/stups/downloads/cspmf/cspmf-leopard64",dst_directory)
+        exec {
+          executable "chmod"
+          args "+x","$dst_directory"
+        }
     } else if (Os.isFamily(Os.FAMILY_UNIX)) {
         def is64bit = (System.getProperty("os.arch").indexOf("64") != -1)
         if((System.getProperty("os.arch").indexOf("64") != -1)) {
@@ -63,13 +74,11 @@ task downloadCSPMFrontend << {
         } else {
             download("https://www3.hhu.de/stups/downloads/cspmf/cspmf-linux32",dst_directory)
         }
+        exec {
+          executable "chmod"
+          args "+x","$dst_directory"
+        }
     }
-}
-
-task downloadCoverageCSPMFrontend(dependsOn: downloadCSPMFrontend)
-
-task compilePerformanceTests(type: JavaCompile) {
-
 }
 
 task genLtlParser(type:JavaExec) {
@@ -117,9 +126,7 @@ jar {
 }
 
 compileJava {
- dependsOn = ['genLtlParser','genCtlParser','genCSPMparser'] 
+ dependsOn = ['genLtlParser','genCtlParser','genCSPMparser', 'downloadCSPMFrontend']
 }
-
-build.finalizedBy('downloadCoverageCSPMFrontend')
 
 sourceSets.test.runtimeClasspath += files(sourceSets.main.java.srcDirs)
