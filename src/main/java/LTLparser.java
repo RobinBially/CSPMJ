@@ -21,7 +21,7 @@ public class LTLparser
 		ltlstr = s;
 	}
 	
-	public void checkLTL()
+	public void checkLTL() throws TreeLogicException
 	{
 		try
 		{	
@@ -40,8 +40,7 @@ public class LTLparser
 		}
 		catch(Exception e)
 		{
-			throw new RuntimeException(e.getMessage()
-								+"\nYour LTL Formula is wrong:\n"+ltlstr);
+			throw new TreeLogicException(ltlstr,"LTL");
 		}
 	}
 

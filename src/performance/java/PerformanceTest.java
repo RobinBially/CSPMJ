@@ -27,7 +27,7 @@ public class PerformanceTest
 		totalCspmj = 0;
 		totalCspmf = 0;
 		pw = new PrintWriter(new File(resultLoc+"/PerformanceResult.txt"));
-		s = "File                                    cspmf time (s)           cspmj time (s)\n\n";
+		s = "file                                    cspmf time (s)    cspmj time (s)    factor (s)\n\n";
 		File folder = new File(searchLoc);
 		elapsedTime = 0;
 		startTime = 0;	
@@ -35,8 +35,13 @@ public class PerformanceTest
 		System.out.println("Generating performance results. Please wait...");
 		generatePerformanceComparison(folder);
 		String tcf = String.valueOf(((double)totalCspmf/1000000000.0)).substring(0,5);
-		String tcj = String.valueOf(((double)totalCspmj/1000000000.0)).substring(0,5);
-		s += "TOTAL                                   "+tcf+"                   "+tcj;
+		String tcj = String.valueOf(((double)totalCspmj/1000000000.0)).substring(0,6);
+		String totalFactor = String.valueOf(((double)totalCspmj/1000000000.0)/((double)totalCspmf/1000000000.0)).substring(0,5);
+		parseAll();
+		String parseAllFactor = String.valueOf(((double)elapsedTime/1000000000.0)/((double)totalCspmf/1000000000.0)).substring(0,5);
+		String all = String.valueOf(((double)elapsedTime/1000000000.0)).substring(0,5);
+		s += "TOTAL                                   "+tcf+"            "+tcj+"             "+totalFactor+"\n";
+		s += "ParseAll                                "+tcf+"             "+all+"             "+parseAllFactor;
 		pw.write(s);
 		pw.close();
 		System.out.println("Your performance results have been created succesfully!");
@@ -52,6 +57,8 @@ public class PerformanceTest
 			} 
 			else if(getExtension(fileEntry.toString()).equals("csp"))
 			{	
+				double cspmfTime = 0;
+				double cspmjTime = 0;
 				cspmfCompile(fileEntry.toString());		
 				totalCspmf += elapsedTime;
 				c = Paths.get(fileEntry.toString()).getFileName().toString().toCharArray(); //get file name and convert to char
@@ -60,16 +67,24 @@ public class PerformanceTest
 					if(i<c.length){s+=c[i];}
 					else{s+=" ";}
 				}
+				cspmfTime = (double)elapsedTime/1000000000.0;
 				c = String.valueOf(((double)elapsedTime/1000000000.0)).substring(0,5).toCharArray();
-				for(int i=0;i<25;i++)
+				for(int i=0;i<18;i++)
 				{
 					if(i<c.length){s+=c[i];}
 					else{s+=" ";}
 				}				
 				
 				cspmjCompile(fileEntry.toString());
+				cspmjTime = (double)elapsedTime/1000000000.0;
 				totalCspmj += elapsedTime;
-				s += String.valueOf(((double)elapsedTime/1000000000.0)).substring(0,5)+"\r\n";	
+				c = String.valueOf(((double)elapsedTime/1000000000.0)).substring(0,5).toCharArray();
+				for(int i=0;i<18;i++)
+				{
+					if(i<c.length){s+=c[i];}
+					else{s+=" ";}
+				}		
+				s += String.valueOf(cspmjTime/cspmfTime).substring(0,5)+"\r\n";
 			}
 
 		}			
@@ -80,7 +95,7 @@ public class PerformanceTest
 			for(int i=0;i<iterations;i++)
 			{	
 				startTime = System.nanoTime(); 
-				p = Runtime.getRuntime().exec("src\\test\\java\\cspmf.exe translate "+filepath+" --prologOut=src\\test\\java\\cspmfOUT.temp");				
+				p = Runtime.getRuntime().exec("build\\classes\\main\\cspmf.exe translate "+filepath+" --prologOut=src\\test\\java\\cspmfOUT.temp");				
 				p.waitFor();
 				elapsedTime = System.nanoTime() - startTime;
 				average.add(elapsedTime);
@@ -104,6 +119,15 @@ public class PerformanceTest
 			elapsedTime = getAverage();
 			Files.delete(Paths.get("build\\libs\\cspmjOUT.temp.pl"));
 	}	
+	
+	public void parseAll() throws Exception
+	{
+		startTime = System.nanoTime(); 
+		p = Runtime.getRuntime().exec("java -jar build\\libs\\cspmj.jar -parseAll");
+		p.waitFor();
+		elapsedTime = System.nanoTime() - startTime;
+		p.destroy();
+	}
 	
 	public String getPath()
 	{

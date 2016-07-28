@@ -25,7 +25,7 @@ public class CSPMparser
 
 	public CSPMparser()
 	{
-		setVersion("0 65 160727");
+		setVersion("0 66 160729");
 		exceptionCounter = 0;
 		commentMap = new HashMap<Integer,Character>();
 		commentList = new ArrayList<CommentInfo>();
@@ -149,7 +149,7 @@ public class CSPMparser
 	
 	public String parsingRoutine(String newstream, boolean createPrologFile, boolean printSrc, boolean renamingActivated,
 	String inputFile, String outputFile) throws CSPMparserException,RenamingException,UnboundIdentifierException,NoPatternException,
-	TriangleSubstitutionException,IncludeFileException,LexerException,IOException
+	TriangleSubstitutionException,IncludeFileException,LexerException,IOException,TreeLogicException
 	{
 		if(outputFile.equals(""))
 		outputFile = inputFile;
@@ -318,6 +318,24 @@ public class CSPMparser
 				catch(Exception pwe){}
 			}		
 			throw ife;
+		}
+		catch(TreeLogicException tle)
+		{
+			System.out.println("Your CTL/LTL-Formula was wrong.");
+			if(createPrologFile)
+			{
+				try
+				{
+					PrintWriter pw = new PrintWriter(outputFile+".pl", "UTF-8");
+					pw.print(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
+					+"\n:- dynamic module/4."
+					+"\n'parserVersionStr'('"+versionString+"')."
+					+"\n'parseResult'('treeLogicError',"+tle.getText()+").");
+					pw.close();
+				}
+				catch(Exception pwe){}
+			}		
+			throw tle;
 		}
 		catch(IOException io)// tree = p.parse(); throws this
 		{

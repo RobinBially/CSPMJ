@@ -12,6 +12,7 @@ import ltl_ctl.ctl.ctlparser.lexer.*;
 import ltl_ctl.ctl.ctlparser.node.*;
 
 
+
 public class CTLparser
 {
 	private String ctlstr;
@@ -20,9 +21,8 @@ public class CTLparser
 	{
 		ctlstr = r;
 	}
-	
-	
-	public void checkCTL()
+		
+	public void checkCTL() throws TreeLogicException
 	{
 		try
 		{	
@@ -41,8 +41,7 @@ public class CTLparser
 		}
 		catch(Exception e)
 		{
-			throw new RuntimeException(e.getMessage()
-								+"\nYour CTL Formula is wrong:\n"+ctlstr);
+			throw new TreeLogicException(ctlstr, "CTL");
 		}
 	}
 	
