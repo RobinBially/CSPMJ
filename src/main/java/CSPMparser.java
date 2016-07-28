@@ -123,16 +123,33 @@ public class CSPMparser
 	{
 		try 
 		{			
-			String s = getStringFromFile(inputFile);
+			String s = getStringFromFile(inputFile); //throws fnf
 			parsingRoutine(s,true,true,true,inputFile,outputFile);
 		} 	
-		catch(Exception e) 
-		{}
+		catch(FileNotFoundException fnf) 
+		{
+			if(outputFile.equals(""))
+			outputFile = inputFile;
+			else
+			outputFile = outputFile.substring(12,outputFile.length()); // --prologOut= must disappear	
+			try
+			{
+				PrintWriter pw = new PrintWriter(outputFile+".pl", "UTF-8");
+				pw.print(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
+				+"\n:- dynamic module/4."
+				+"\n'parserVersionStr'('"+versionString+"')."
+				+"\n'parseResult'('fileNotFoundException','"+outputFile+": openFile: does not exist (No such file or directory)',0,0).");
+				pw.close();
+			}
+			catch(Exception pwe){}		
+		}
+		catch(Exception e){}
 	}
 
 	
 	public String parsingRoutine(String newstream, boolean createPrologFile, boolean printSrc, boolean renamingActivated,
-	String inputFile, String outputFile) throws CSPMparserException,Exception
+	String inputFile, String outputFile) throws CSPMparserException,RenamingException,UnboundIdentifierException,NoPatternException,
+	TriangleSubstitutionException,IncludeFileException,LexerException,IOException
 	{
 		if(outputFile.equals(""))
 		outputFile = inputFile;
@@ -302,9 +319,9 @@ public class CSPMparser
 			}		
 			throw ife;
 		}
-		catch(IOException io)
+		catch(IOException io)// tree = p.parse(); throws this
 		{
-			System.out.println("An Exception was thrown.");
+			System.out.println("An IOException was thrown.");
 			if(createPrologFile)
 			{
 				try
@@ -313,7 +330,7 @@ public class CSPMparser
 					pw.print(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
 					+"\n:- dynamic module/4."
 					+"\n'parserVersionStr'('"+versionString+"')."
-					+"\n'parseResult'('ioException',"+io.getMessage()+").");
+					+"\n'parseResult'('ioException','"+io.getMessage()+"',0,0).");
 					pw.close();
 				}
 				catch(Exception pwe){}
@@ -363,17 +380,17 @@ public class CSPMparser
 		}
 	}
 
-	public String getStringFromFile(String fp)
-	{
-		try 
-		{	
+	public String getStringFromFile(String fp) throws FileNotFoundException
+	{	
+		try
+		{
 			byte[] encoded = Files.readAllBytes(Paths.get(fp));
 			String file_content = new String(encoded, StandardCharsets.UTF_8);
 			return file_content;
 		}
-		catch(Exception e) 		
+		catch(IOException io)
 		{
-			throw new RuntimeException("Your File has not been converted to a String.");
+			throw new FileNotFoundException();
 		}
 	}
 	
@@ -523,6 +540,7 @@ public class CSPMparser
 		ArrayList<String> al = new ArrayList<String>();
 		StringBuffer sb = new StringBuffer();
 		String path = "";
+		String str = "";
 		while(matcher.find())
 		{	
 			path = matcher.group(1);
@@ -531,13 +549,13 @@ public class CSPMparser
 			{
 				file = new File(path);
 				Scanner scan = new Scanner(file);
+				str = getStringFromFile(path);
 			}
 			catch(FileNotFoundException fnf)
 			{
 				char[] c = incl.toCharArray(); 
 				throw new IncludeFileException(path, getLineFromPos(matcher.start(),c), getColumnFromPos(matcher.start(),c));
 			}
-			String str = getStringFromFile(path);
 			matcher.appendReplacement(sb,str);	
 		}
 		matcher.appendTail(sb);
