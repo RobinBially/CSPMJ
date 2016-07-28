@@ -995,7 +995,6 @@ public class StatementPatternCheck extends DepthFirstAdapter
 			{
 				setPatternRequired = true;	
 				node.getExpressions().apply(this);
-				setPatternRequired = false;
 			}
 			else
 			{
@@ -1011,9 +1010,12 @@ public class StatementPatternCheck extends DepthFirstAdapter
         inAExpressionListExpressions(node);
         {
             List<PExp> copy = new ArrayList<PExp>(node.getExpressionList());
-			if(setPatternRequired && copy.size()>1)
+			if(setPatternRequired)
 			{
-				throw new NoPatternException("Expecting pattern (Set patterns must have 1 Element.",node);			
+				if(copy.size()>1)
+				throw new NoPatternException("Expecting pattern (Set patterns must have 1 Element.",node);	
+				else
+				setPatternRequired = false;
 			}
             for(PExp e : copy)
             {

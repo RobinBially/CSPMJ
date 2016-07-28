@@ -87,8 +87,8 @@ public class CSPMparser
 				} 	
 				catch(Exception e) 
 				{
+					System.out.println(fileEntry.toString()+" has not been parsed successfully!");
 					exceptionCounter++;
-					System.out.println(e.getMessage());
 				}
 			}
 			commentList.clear();
@@ -108,10 +108,12 @@ public class CSPMparser
 				ret = ret.substring(0,ret.length()-1);
 			}
 		}
-		catch(CSPMparserException e) 
+		catch(CSPMparserException cspme) 
 		{
-			throw e;
+			throw cspme;
 		}
+		catch(Exception e) 
+		{}
 		
 		return ret;
 	}
@@ -125,15 +127,12 @@ public class CSPMparser
 			parsingRoutine(s,true,true,true,inputFile,outputFile);
 		} 	
 		catch(Exception e) 
-		{
-			System.out.println(e.getMessage());
-		}
-
+		{}
 	}
 
 	
 	public String parsingRoutine(String newstream, boolean createPrologFile, boolean printSrc, boolean renamingActivated,
-	String inputFile, String outputFile) throws CSPMparserException
+	String inputFile, String outputFile) throws CSPMparserException,Exception
 	{
 		if(outputFile.equals(""))
 		outputFile = inputFile;
@@ -177,7 +176,7 @@ public class CSPMparser
 		} 
 		catch (ParserException e) 
 		{
-			System.out.println("An Exception was thrown.");
+			System.out.println("A ParserException was thrown.");
 			if(createPrologFile)
 			{
 				try
@@ -196,7 +195,7 @@ public class CSPMparser
 		} 			
 		catch(LexerException le)
 		{
-			System.out.println("An Exception was thrown.");
+			System.out.println("A LexerException was thrown.");
 			if(createPrologFile)
 			{
 				try
@@ -209,7 +208,8 @@ public class CSPMparser
 					pw.close();					
 				}
 				catch(Exception pwe){}
-			}			
+			}	
+			throw le;
 		}
 		catch(RenamingException re)
 		{
@@ -228,10 +228,11 @@ public class CSPMparser
 				}
 				catch(Exception pwe){}
 			}
+			throw re;
 		}
 		catch(NoPatternException npe)
 		{
-			System.out.println("An Exception was thrown.");
+			System.out.println("A NoPatternException was thrown.");
 			if(createPrologFile)
 			{
 				try
@@ -245,10 +246,11 @@ public class CSPMparser
 				}
 				catch(Exception pwe){}
 			}
+			throw npe;
 		}
 		catch(UnboundIdentifierException uie)
 		{
-			System.out.println("An Exception was thrown.");
+			System.out.println("An UnboundIdentifierException was thrown.");
 			if(createPrologFile)
 			{
 				try
@@ -262,10 +264,11 @@ public class CSPMparser
 				}
 				catch(Exception pwe){}
 			}
+			throw uie;
 		}
 		catch(TriangleSubstitutionException tse)
 		{
-			System.out.println("An Exception was thrown.");
+			System.out.println("A TriangleSubstitutionException was thrown.");
 			if(createPrologFile)
 			{
 				try
@@ -279,7 +282,26 @@ public class CSPMparser
 				}
 				catch(Exception pwe){}
 			}
+			throw tse;
 		}	
+		catch(IncludeFileException ife)
+		{
+			System.out.println("A File was not found.");
+			if(createPrologFile)
+			{
+				try
+				{
+					PrintWriter pw = new PrintWriter(outputFile+".pl", "UTF-8");
+					pw.print(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
+					+"\n:- dynamic module/4."
+					+"\n'parserVersionStr'('"+versionString+"')."
+					+"\n'parseResult'('includeError',"+ife.getText()+","+ife.getLine()+","+ife.getColumn()+").");
+					pw.close();
+				}
+				catch(Exception pwe){}
+			}		
+			throw ife;
+		}
 		catch(IOException io)
 		{
 			System.out.println("An Exception was thrown.");
@@ -295,7 +317,8 @@ public class CSPMparser
 					pw.close();
 				}
 				catch(Exception pwe){}
-			}			
+			}		
+			throw io;
 		}
 		return "";
 	}
@@ -310,7 +333,7 @@ public class CSPMparser
 			writer.println(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
 			+"\n:- dynamic module/4."
 			+"\n'parserVersionStr'('"+versionString+"')."
-			+"\n'parseResult'('ok','',0,0,0)."
+			+"\n'parseResult'('ok','',0,0)."
 			+"\n:- dynamic channel/2, bindval/3, agent/3."
 			+"\n:- dynamic agent_curry/3, symbol/4."
 			+"\n:- dynamic dataTypeDef/2, subTypeDef/2, nameType/2."
@@ -357,9 +380,10 @@ public class CSPMparser
 	public int getLineFromPos(int pos, char[] c)
 	{
 		int lineCount = 1;
-		for(int i = 0; i<pos;i++)
+		int i = 0;
+		while(i<pos)
 		{
-			if(c[i] == '\r' && c[i] == '\n')
+			if((c[i] == '\r') && (c[i+1] == '\n'))
 			{
 				lineCount++;
 				i++;
@@ -372,6 +396,7 @@ public class CSPMparser
 			{
 				lineCount++;
 			}
+			i++;
 		}
 		return lineCount;
 	}
@@ -379,9 +404,10 @@ public class CSPMparser
 	public int getColumnFromPos(int pos, char[] c)
 	{
 		int columnCount = 1;
-		for(int i = 0; i<pos;i++)
+		int i = 0;
+		while(i<pos)
 		{
-			if(c[i] == '\r' && c[i] == '\n')
+			if(c[i] == '\r' && c[i+1] == '\n')
 			{
 				columnCount = 1;
 				i++;
@@ -396,8 +422,9 @@ public class CSPMparser
 			}
 			else
 			{
-				columnCount ++;
+				columnCount++;
 			}
+			i++;
 		}
 		return columnCount;	
 	}
@@ -489,7 +516,7 @@ public class CSPMparser
 		return newTS; 
 	}
 	
-	public String includeFile(String incl)
+	public String includeFile(String incl) throws IncludeFileException
 	{
 		Pattern pattern = Pattern.compile("include \"(.*)\"");
 		Matcher matcher = pattern.matcher(incl);
@@ -499,15 +526,16 @@ public class CSPMparser
 		while(matcher.find())
 		{	
 			path = matcher.group(1);
-			
-			File f = new File(path);
-			if(f.exists() && !f.isDirectory()) 
-			{ 
-				//System.out.println(path+"\nhas been included successfully.");
-			}
-			else
+			File file;
+			try
 			{
-				throw new RuntimeException("File "+path+" was not found.");
+				file = new File(path);
+				Scanner scan = new Scanner(file);
+			}
+			catch(FileNotFoundException fnf)
+			{
+				char[] c = incl.toCharArray(); 
+				throw new IncludeFileException(path, getLineFromPos(matcher.start(),c), getColumnFromPos(matcher.start(),c));
 			}
 			String str = getStringFromFile(path);
 			matcher.appendReplacement(sb,str);	
