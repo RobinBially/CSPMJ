@@ -108,7 +108,7 @@ public class PrologGeneratorTests
 	public void CompareRedefineBuiltinsToCspmf() throws Exception
 	{
 		System.out.println("\r\n\r\nCompareRedefineBuiltinsToCspmf\r\n\r\n");
-		String test = 	"member = 1\r\n1 = member";
+		String test = 	"member = 1"+newline+"1 = member";
 		try
 		{
 		checkCSPMF(test,cspmfCompileToProlog(test));
@@ -532,24 +532,29 @@ public class PrologGeneratorTests
 	@Test
 	public void CommentsAndPragmas() throws Exception //
 	{
+			String newlineEscape = "";
+			if(newline.equals("\r\n"))
+			newlineEscape = "\\r\\n";
+			else
+			newlineEscape = "\\n";
 			check( 
 						"{-" 
 						+newline+"This is a"
 						+newline+"multiline comment"
 						+newline+"-}"
 						+newline+"{-# assert_ltl \"formula\" #-}"
-						+newline+"{-# assert_ltl \"formula\" \"comment\r\nwith newline\" #-}"
+						+newline+"{-# assert_ltl \"formula\" \"comment"+newline+"with newline\" #-}"
 						+newline+"{-# assert_ctl \"formula\" #-}"
 						+newline+"{-# assert_ctl \"formula\" \"comment\" #-}"
 						+newline+"-- This is a line comment"
 					,
 						"'pragma'('assert_ltl \"formula\"')."
-						+newline+"'pragma'('assert_ltl \"formula\" \"comment\\r\\nwith newline\"')."
+						+newline+"'pragma'('assert_ltl \"formula\" \"comment"+newlineEscape+"with newline\"')."
 						+newline+"'pragma'('assert_ctl \"formula\"')."
 						+newline+"'pragma'('assert_ctl \"formula\" \"comment\"')."
-						+newline+"'comment'('blockComment'('{-\\r\\nThis is a\\r\\nmultiline comment\\r\\n-}'),'no_loc_info_available')."
+						+newline+"'comment'('blockComment'('{-"+newlineEscape+"This is a"+newlineEscape+"multiline comment"+newlineEscape+"-}'),'no_loc_info_available')."
 						+newline+"'comment'('pragmaComment'('{-# assert_ltl \"formula\" #-}'),'no_loc_info_available')."
-						+newline+"'comment'('pragmaComment'('{-# assert_ltl \"formula\" \"comment\\r\\nwith newline\" #-}'),'no_loc_info_available')."
+						+newline+"'comment'('pragmaComment'('{-# assert_ltl \"formula\" \"comment"+newlineEscape+"with newline\" #-}'),'no_loc_info_available')."
 						+newline+"'comment'('pragmaComment'('{-# assert_ctl \"formula\" #-}'),'no_loc_info_available')."
 						+newline+"'comment'('pragmaComment'('{-# assert_ctl \"formula\" \"comment\" #-}'),'no_loc_info_available')."
 						+newline+"'comment'('lineComment'('-- This is a line comment','no_loc_info_available'))."
@@ -1009,9 +1014,9 @@ public class PrologGeneratorTests
 	@Test
 	public void RedefineBuiltins() throws Exception //cspmf comparison not possible
 	{
-		check("STOP = 1\r\nSKIP = 1"
+		check("STOP = 1"+newline+"SKIP = 1"
 		,
-			"'bindval'('STOP','int'(1),'no_loc_info_available').\r\n'bindval'('SKIP','int'(1),'no_loc_info_available')."
+			"'bindval'('STOP','int'(1),'no_loc_info_available')."+newline+"'bindval'('SKIP','int'(1),'no_loc_info_available')."
 			+newline+"'symbol'('STOP','STOP','no_loc_info_available','Ident (Groundrep.)')."
 			+newline+"'symbol'('SKIP','SKIP','no_loc_info_available','Ident (Groundrep.)')."
 		);

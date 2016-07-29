@@ -37,6 +37,15 @@ public class CSPMparser
 		else
 			newline = "\n";
 	}
+	
+	public CSPMparser(String newline) //This is for PrologGeneratorTests
+	{
+		setVersion("");
+		exceptionCounter = 0;
+		commentMap = new HashMap<Integer,Character>();
+		commentList = new ArrayList<CommentInfo>();
+		this.newline = newline;
+	}
 
 	public int getExceptionCounter()
 	{

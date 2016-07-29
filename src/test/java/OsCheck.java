@@ -38,7 +38,8 @@ public class OsCheck
         detectedOS = OSType.Other;
       }
     }
-	System.out.println("OSNAME "+detectedOS);
+	System.out.println("\nOSNAME "+detectedOS+"\n");
+	
     return detectedOS;
   }
 }
