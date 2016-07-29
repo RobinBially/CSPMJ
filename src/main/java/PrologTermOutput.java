@@ -6,6 +6,7 @@ import java.util.Arrays;
 public class PrologTermOutput
 {
 	private StringWriter out;
+	private String newline = "";
 
 	// comma_needed states if the next term can be printed directly (false) or
 	// if a separating comma is needed first
@@ -24,8 +25,9 @@ public class PrologTermOutput
 	private boolean lazy_parenthesis = false;
 
 	
-	public PrologTermOutput()
+	public PrologTermOutput(String newline)
 	{
+		this.newline = newline;
 		out = new StringWriter();
 		use_indention = false;
 	}
@@ -215,7 +217,7 @@ public class PrologTermOutput
 		{
 			throw new IllegalStateException("Number of openTerm and closeTerm do not match. openTerm Counter is "+ termCount);
 		}
-		out.write(".\r\n");
+		out.write("."+newline);
 		comma_needed = false;
 	}
 	

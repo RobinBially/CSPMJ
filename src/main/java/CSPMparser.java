@@ -15,6 +15,7 @@ import CSPMparser.node.*;
 
 public class CSPMparser
 {
+	private OsCheck.OSType ostype;
 	private String versionNum;
 	private String versionString;
 	private String newstream;
@@ -22,6 +23,7 @@ public class CSPMparser
 	private int exceptionCounter;
 	private ArrayList<CommentInfo> commentList;
 	private HashMap<Integer,Character> commentMap;
+	private String newline;
 
 	public CSPMparser()
 	{
@@ -29,6 +31,11 @@ public class CSPMparser
 		exceptionCounter = 0;
 		commentMap = new HashMap<Integer,Character>();
 		commentList = new ArrayList<CommentInfo>();
+		ostype = OsCheck.getOperatingSystemType();
+		if(ostype == OsCheck.OSType.Windows)
+			newline = "\r\n";
+		else
+			newline = "\n";
 	}
 
 	public int getExceptionCounter()
@@ -178,11 +185,11 @@ public class CSPMparser
 			TreeLogicChecker tlc = new TreeLogicChecker();
 			tree.apply(tlc);
 			
-			PrologTermOutput pto = new PrologTermOutput();
+			PrologTermOutput pto = new PrologTermOutput(newline);
 			SymbolCollector sc = new SymbolCollector();
 			tree.apply(sc);
 			ArrayList<SymInfo> symbols = sc.getSymbols();
-			PrologGenerator pout = new PrologGenerator(pto,symbols,printSrc,renamingActivated,commentList);
+			PrologGenerator pout = new PrologGenerator(pto,symbols,printSrc,renamingActivated,commentList,newline);
 			tree.apply(pout);
 			
 			if(createPrologFile)
@@ -201,9 +208,9 @@ public class CSPMparser
 					CSPMparserException cmpe = new CSPMparserException(e.getToken(),e.getLocalizedMessage());
 					PrintWriter pw = new PrintWriter(outputFile+".pl", "UTF-8");
 					pw.print(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
-					+"\n:- dynamic module/4."
-					+"\n'parserVersionStr'('"+versionString+"')."
-					+"\n'parseResult'('parseError',"+cmpe.getMessage()+","+cmpe.getTokenLine()+","+cmpe.getTokenColumn()+").");
+					+newline+":- dynamic module/4."
+					+newline+"'parserVersionStr'('"+versionString+"')."
+					+newline+"'parseResult'('parseError',"+cmpe.getMessage()+","+cmpe.getTokenLine()+","+cmpe.getTokenColumn()+").");
 					pw.close();
 				}
 				catch(Exception pwe){}
@@ -219,9 +226,9 @@ public class CSPMparser
 				{
 					PrintWriter pw = new PrintWriter(outputFile+".pl", "UTF-8");
 					pw.print(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
-					+"\n:- dynamic module/4."
-					+"\n'parserVersionStr'('"+versionString+"')."
-					+"\n'parseResult'('lexingError',"+le.getMessage()+",0,0).");
+					+newline+":- dynamic module/4."
+					+newline+"'parserVersionStr'('"+versionString+"')."
+					+newline+"'parseResult'('lexingError',"+le.getMessage()+",0,0).");
 					pw.close();					
 				}
 				catch(Exception pwe){}
@@ -238,9 +245,9 @@ public class CSPMparser
 					System.out.println("test "+outputFile);
 					PrintWriter pw = new PrintWriter(outputFile+".pl", "UTF-8");				
 					pw.print(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
-					+"\n:- dynamic module/4."
-					+"\n'parserVersionStr'('"+versionString+"')."
-					+"\n'parseResult'('renamingError',"+re.getText()+").");
+					+newline+":- dynamic module/4."
+					+newline+"'parserVersionStr'('"+versionString+"')."
+					+newline+"'parseResult'('renamingError',"+re.getText()+").");
 					pw.close();
 				}
 				catch(Exception pwe){}
@@ -256,9 +263,9 @@ public class CSPMparser
 				{
 					PrintWriter pw = new PrintWriter(outputFile+".pl", "UTF-8");
 					pw.print(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
-					+"\n:- dynamic module/4."
-					+"\n'parserVersionStr'('"+versionString+"')."
-					+"\n'parseResult'('noPatternError',"+npe.getText()+").");
+					+newline+":- dynamic module/4."
+					+newline+"'parserVersionStr'('"+versionString+"')."
+					+newline+"'parseResult'('noPatternError',"+npe.getText()+").");
 					pw.close();
 				}
 				catch(Exception pwe){}
@@ -274,9 +281,9 @@ public class CSPMparser
 				{
 					PrintWriter pw = new PrintWriter(outputFile+".pl", "UTF-8");
 					pw.print(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
-					+"\n:- dynamic module/4."
-					+"\n'parserVersionStr'('"+versionString+"')."
-					+"\n'parseResult'("+uie.getText()+").");
+					+newline+":- dynamic module/4."
+					+newline+"'parserVersionStr'('"+versionString+"')."
+					+newline+"'parseResult'("+uie.getText()+").");
 					pw.close();
 				}
 				catch(Exception pwe){}
@@ -292,9 +299,9 @@ public class CSPMparser
 				{
 					PrintWriter pw = new PrintWriter(outputFile+".pl", "UTF-8");
 					pw.print(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
-					+"\n:- dynamic module/4."
-					+"\n'parserVersionStr'('"+versionString+"')."
-					+"\n'parseResult'('substitutionError',"+tse.getMessage()+").");
+					+newline+":- dynamic module/4."
+					+newline+"'parserVersionStr'('"+versionString+"')."
+					+newline+"'parseResult'('substitutionError',"+tse.getMessage()+").");
 					pw.close();
 				}
 				catch(Exception pwe){}
@@ -310,9 +317,9 @@ public class CSPMparser
 				{
 					PrintWriter pw = new PrintWriter(outputFile+".pl", "UTF-8");
 					pw.print(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
-					+"\n:- dynamic module/4."
-					+"\n'parserVersionStr'('"+versionString+"')."
-					+"\n'parseResult'('includeError',"+ife.getText()+","+ife.getLine()+","+ife.getColumn()+").");
+					+newline+":- dynamic module/4."
+					+newline+"'parserVersionStr'('"+versionString+"')."
+					+newline+"'parseResult'('includeError',"+ife.getText()+","+ife.getLine()+","+ife.getColumn()+").");
 					pw.close();
 				}
 				catch(Exception pwe){}
@@ -328,9 +335,9 @@ public class CSPMparser
 				{
 					PrintWriter pw = new PrintWriter(outputFile+".pl", "UTF-8");
 					pw.print(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
-					+"\n:- dynamic module/4."
-					+"\n'parserVersionStr'('"+versionString+"')."
-					+"\n'parseResult'('treeLogicError',"+tle.getText()+").");
+					+newline+":- dynamic module/4."
+					+newline+"'parserVersionStr'('"+versionString+"')."
+					+newline+"'parseResult'('treeLogicError',"+tle.getText()+").");
 					pw.close();
 				}
 				catch(Exception pwe){}
@@ -346,9 +353,9 @@ public class CSPMparser
 				{
 					PrintWriter pw = new PrintWriter(outputFile+".pl", "UTF-8");
 					pw.print(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
-					+"\n:- dynamic module/4."
-					+"\n'parserVersionStr'('"+versionString+"')."
-					+"\n'parseResult'('ioException','"+io.getMessage()+"',0,0).");
+					+newline+":- dynamic module/4."
+					+newline+"'parserVersionStr'('"+versionString+"')."
+					+newline+"'parseResult'('ioException','"+io.getMessage()+"',0,0).");
 					pw.close();
 				}
 				catch(Exception pwe){}
@@ -366,22 +373,22 @@ public class CSPMparser
 			writer = new PrintWriter(outputFile+".pl", "UTF-8");
 			
 			writer.println(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
-			+"\n:- dynamic module/4."
-			+"\n'parserVersionStr'('"+versionString+"')."
-			+"\n'parseResult'('ok','',0,0)."
-			+"\n:- dynamic channel/2, bindval/3, agent/3."
-			+"\n:- dynamic agent_curry/3, symbol/4."
-			+"\n:- dynamic dataTypeDef/2, subTypeDef/2, nameType/2."
-			+"\n:- dynamic cspTransparent/1."
-			+"\n:- dynamic cspPrint/1."
-			+"\n:- dynamic pragma/1."
-			+"\n:- dynamic comment/2."
-			+"\n:- dynamic assertBool/1, assertRef/5, assertTauPrio/6."
-			+"\n:- dynamic assertModelCheckExt/4, assertModelCheck/3."
-			+"\n:- dynamic assertHasTrace/3, assertHasTraceExt/4"
-			+"\n:- dynamic assertLtl/4, assertCtl/4."
-			+"\n'parserVersionNum'(["+versionNum+"])."
-			+"\n'parserVersionStr'('"+versionString+"').");	
+			+newline+":- dynamic module/4."
+			+newline+"'parserVersionStr'('"+versionString+"')."
+			+newline+"'parseResult'('ok','',0,0)."
+			+newline+":- dynamic channel/2, bindval/3, agent/3."
+			+newline+":- dynamic agent_curry/3, symbol/4."
+			+newline+":- dynamic dataTypeDef/2, subTypeDef/2, nameType/2."
+			+newline+":- dynamic cspTransparent/1."
+			+newline+":- dynamic cspPrint/1."
+			+newline+":- dynamic pragma/1."
+			+newline+":- dynamic comment/2."
+			+newline+":- dynamic assertBool/1, assertRef/5, assertTauPrio/6."
+			+newline+":- dynamic assertModelCheckExt/4, assertModelCheck/3."
+			+newline+":- dynamic assertHasTrace/3, assertHasTraceExt/4"
+			+newline+":- dynamic assertLtl/4, assertCtl/4."
+			+newline+"'parserVersionNum'(["+versionNum+"])."
+			+newline+"'parserVersionStr'('"+versionString+"').");	
 			
 			String str = pto.getStringWriter().toString();
 

@@ -54,7 +54,7 @@ Tokens
 	chan 			= 'channel';
 	transparent 	= 'transparent';
 	external		= 'external';
-	assert 			= 'assert'| 'assert not';
+	assert 			= 'assert'| 'assert' white 'not';
 	include 		= 'include';
 	print 			= 'print';
 	dl_free 		= 'deadlock free';

@@ -24,9 +24,12 @@ public class PrologGenerator extends DepthFirstAdapter
 	private boolean printSrcLoc;
 	private boolean patternRequired;	
 	private ArrayList<CommentInfo> commentList;
+	private String newline;
 	
-	public PrologGenerator(final PrologTermOutput pto,ArrayList<SymInfo> symbols, boolean printSrcLoc, boolean rna, ArrayList<CommentInfo> commentList) 
+	public PrologGenerator(final PrologTermOutput pto,ArrayList<SymInfo> symbols, boolean printSrcLoc, boolean rna, 
+							ArrayList<CommentInfo> commentList,String newline) 
 	{
+		this.newline = newline;
 		assertionNegated = false;
 		currentInPredicate = 0;
 		tree = new ScopeTree();
