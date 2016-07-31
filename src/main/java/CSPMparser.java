@@ -18,21 +18,20 @@ public class CSPMparser
 	private OsCheck.OSType ostype;
 	private String versionNum;
 	private String versionString;
-	private String newstream;
+	private String cspCode;
 	private String currentFile;
 	private int exceptionCounter;
 	private ArrayList<CommentInfo> commentList;
-	private HashMap<Integer,Character> commentMap;
 	private String newline;
+
 
 	public CSPMparser()
 	{
-		setVersion("0 66 160729");
+		setVersion("0 67 160731");
 		exceptionCounter = 0;
-		commentMap = new HashMap<Integer,Character>();
 		commentList = new ArrayList<CommentInfo>();
 		ostype = OsCheck.getOperatingSystemType();
-		if(ostype == OsCheck.OSType.Windows)
+		if(ostype == OsCheck.OSType.Windows) //Set the platform specific newline character
 			newline = "\r\n";
 		else
 			newline = "\n";
@@ -42,7 +41,6 @@ public class CSPMparser
 	{
 		setVersion("");
 		exceptionCounter = 0;
-		commentMap = new HashMap<Integer,Character>();
 		commentList = new ArrayList<CommentInfo>();
 		this.newline = newline;
 	}
@@ -152,9 +150,9 @@ public class CSPMparser
 			{
 				PrintWriter pw = new PrintWriter(outputFile+".pl", "UTF-8");
 				pw.print(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
-				+"\n:- dynamic module/4."
-				+"\n'parserVersionStr'('"+versionString+"')."
-				+"\n'parseResult'('fileNotFoundException','"+outputFile+": openFile: does not exist (No such file or directory)',0,0).");
+				+newline+":- dynamic module/4."
+				+newline+"'parserVersionStr'('"+versionString+"')."
+				+newline+"'parseResult'('fileNotFoundException','"+outputFile+": openFile: does not exist (No such file or directory)',0,0).");
 				pw.close();
 			}
 			catch(Exception pwe){}		
@@ -163,7 +161,7 @@ public class CSPMparser
 	}
 
 	
-	public String parsingRoutine(String newstream, boolean createPrologFile, boolean printSrc, boolean renamingActivated,
+	public String parsingRoutine(String cspCode, boolean createPrologFile, boolean printSrc, boolean renamingActivated,
 	String inputFile, String outputFile) throws CSPMparserException,RenamingException,UnboundIdentifierException,NoPatternException,
 	TriangleSubstitutionException,IncludeFileException,LexerException,IOException,TreeLogicException
 	{
@@ -173,16 +171,22 @@ public class CSPMparser
 		outputFile = outputFile.substring(12,outputFile.length()); // --prologOut= must disappear
 	
 		try 
-		{			
-			newstream = saveComments(newstream);
-			newstream = includeFile(newstream);
-			newstream = saveComments(newstream);
+		{	
+			String old;
 			
-			TriangleBracketSubstitution tbs = new TriangleBracketSubstitution(newstream);
-			if(!newstream.equals(""))
-			newstream = tbs.findTriangles();
+			do //include files and save comments until there are no more changes
+			{
+				old = cspCode;
+				cspCode = saveComments(cspCode);
+				cspCode = includeFile(cspCode);
+			}			
+			while(!cspCode.equals(old));
+				
+			TriangleBracketSubstitution tbs = new TriangleBracketSubstitution(cspCode);
+			if(!cspCode.equals(""))
+			cspCode = tbs.findTriangles();
 
-			StringReader sr = new StringReader(newstream);
+			StringReader sr = new StringReader(cspCode);
 			BufferedReader br = new BufferedReader(sr); 
 			Lexer l = new LexHelper(new PushbackReader(br,100000));
 			Parser p = new Parser(l);
@@ -200,6 +204,8 @@ public class CSPMparser
 			ArrayList<SymInfo> symbols = sc.getSymbols();
 			PrologGenerator pout = new PrologGenerator(pto,symbols,printSrc,renamingActivated,commentList,newline);
 			tree.apply(pout);
+			
+			commentList.clear(); //Reset comment list for next file if -parseAll was called
 			
 			if(createPrologFile)
 			createPrologFile(pto,outputFile);
@@ -479,7 +485,7 @@ public class CSPMparser
 		}
 		return columnCount;	
 	}
-	//Deletes content in range l-r in Chararray and saves it in commentMap
+	//Deletes content in range l-r in Chararray and saves it in commentList
 	public char[] saveRange(int l, int r, char[] q, boolean isMultiline)
 	{		
 		String temp = "";
@@ -578,11 +584,8 @@ public class CSPMparser
 		while(matcher.find())
 		{	
 			path = matcher.group(1);
-			File file;
 			try
 			{
-				file = new File(path);
-				Scanner scan = new Scanner(file);
 				str = getStringFromFile(path);
 			}
 			catch(FileNotFoundException fnf)
@@ -590,7 +593,7 @@ public class CSPMparser
 				char[] c = incl.toCharArray(); 
 				throw new IncludeFileException(path, getLineFromPos(matcher.start(),c), getColumnFromPos(matcher.start(),c));
 			}
-			matcher.appendReplacement(sb,str);	
+			matcher.appendReplacement(sb,matcher.quoteReplacement(str));
 		}
 		matcher.appendTail(sb);
 		return sb.toString();

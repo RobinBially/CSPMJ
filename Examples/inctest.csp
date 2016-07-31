@@ -1,5 +1,5 @@
-include "C:\Users\Robin\Documents\GitHub\CSPMJ\Examples\tickets.csp"
-include "C:\Users\Robin\Documents\GitHub\CSPMJ\Examples\vm2.csp"
+include "Examples\tickets.csp"
+include "Examples\inctest2.csp"
 
-A = 3
---Dies ist ein zusaetzlicher Testkommentar
+
+-- This includes a file and another file that includes a file.
