@@ -1,4 +1,6 @@
 import java.io.*;
+import java.text.*;
+import java.math.*;
 import java.util.*;
 import java.lang.*;
 import java.util.regex.*;
@@ -34,12 +36,12 @@ public class PerformanceTest
 		average = new ArrayList<Long>();
 		System.out.println("Generating performance results. Please wait...");
 		generatePerformanceComparison(folder);
-		String tcf = String.valueOf(((double)totalCspmf/1000000000.0)).substring(0,5);
-		String tcj = String.valueOf(((double)totalCspmj/1000000000.0)).substring(0,6);
-		String totalFactor = String.valueOf(((double)totalCspmj/1000000000.0)/((double)totalCspmf/1000000000.0)).substring(0,5);
+		double tcf = convert(totalCspmf);
+		double tcj = convert(totalCspmj);
+		double totalFactor = convert(divideLong(totalCspmj,totalCspmf));
 		parseAll();
-		String parseAllFactor = String.valueOf(((double)elapsedTime/1000000000.0)/((double)totalCspmf/1000000000.0)).substring(0,5);
-		String all = String.valueOf(((double)elapsedTime/1000000000.0)).substring(0,5);
+		double parseAllFactor = convert(divideLong(elapsedTime,totalCspmf));
+		double all = convert(elapsedTime);
 		s += "TOTAL                                   "+tcf+"            "+tcj+"             "+totalFactor+"\n";
 		s += "ParseAll                                "+tcf+"             "+all+"             "+parseAllFactor;
 		pw.write(s);
@@ -57,8 +59,8 @@ public class PerformanceTest
 			} 
 			else if(getExtension(fileEntry.toString()).equals("csp"))
 			{	
-				double cspmfTime = 0;
-				double cspmjTime = 0;
+				long cspmfTime = 0;
+				long cspmjTime = 0;
 				cspmfCompile(fileEntry.toString());		
 				totalCspmf += elapsedTime;
 				c = Paths.get(fileEntry.toString()).getFileName().toString().toCharArray(); //get file name and convert to char
@@ -67,8 +69,8 @@ public class PerformanceTest
 					if(i<c.length){s+=c[i];}
 					else{s+=" ";}
 				}
-				cspmfTime = (double)elapsedTime/1000000000.0;
-				c = String.valueOf(((double)elapsedTime/1000000000.0)).substring(0,5).toCharArray();
+				cspmfTime = elapsedTime;
+				c = String.valueOf(convert(elapsedTime)).toCharArray();
 				for(int i=0;i<18;i++)
 				{
 					if(i<c.length){s+=c[i];}
@@ -76,15 +78,15 @@ public class PerformanceTest
 				}				
 				
 				cspmjCompile(fileEntry.toString());
-				cspmjTime = (double)elapsedTime/1000000000.0;
+				cspmjTime = elapsedTime;
 				totalCspmj += elapsedTime;
-				c = String.valueOf(((double)elapsedTime/1000000000.0)).substring(0,5).toCharArray();
+				c = String.valueOf(convert(elapsedTime)).toCharArray();
 				for(int i=0;i<18;i++)
 				{
 					if(i<c.length){s+=c[i];}
 					else{s+=" ";}
 				}		
-				s += String.valueOf(cspmjTime/cspmfTime).substring(0,5)+"\r\n";
+				s += String.valueOf(convert(divideLong(cspmjTime,cspmfTime)))+"\r\n";
 			}
 
 		}			
@@ -171,7 +173,17 @@ public class PerformanceTest
 		average.clear();
 		return a;
 	}
+
+	public double convert(long l)
+	{
+		double d = (double)l/1000000000.0;	
+        return (double)Math.round(d * 1000d) / 1000d;
+	}	
 	
+	public long divideLong(long l1,long l2)
+	{
+		return (long)((double)l1/(double)l2*1000000000.0);
+	}	
 	
 	public static void main(String[] args)
 	{
