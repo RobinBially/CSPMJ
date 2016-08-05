@@ -188,7 +188,13 @@ public class CSPMparser
 
 			StringReader sr = new StringReader(cspCode);
 			BufferedReader br = new BufferedReader(sr); 
+			
+			System.out.println("before lexing: "+cspCode+"\n_________________________________");
+			
 			Lexer l = new LexHelper(new PushbackReader(br,100000));
+			
+			System.out.println("LEXING END");
+			
 			Parser p = new Parser(l);
 			Start tree = p.parse();	
 			
@@ -212,9 +218,11 @@ public class CSPMparser
 			else
 			return pto.getStringWriter().toString();
 
+
 		} 
 		catch (ParserException e) 
 		{
+			System.out.println(e.getMessage());
 			System.out.println("A ParserException was thrown.");
 			if(createPrologFile)
 			{
