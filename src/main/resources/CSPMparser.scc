@@ -38,6 +38,9 @@ Helpers
 	greater 	=	0x00A3;
 	less		=	0x20AC;
 
+States
+  normal, newline;
+
 Tokens
 
 //CSPM command words
@@ -136,18 +139,20 @@ Tokens
 	refusal			= white '[R=' white;	
 	model 			= white ('[T]'|'[F]'|'[FD]') white;	
 	mul_div_mod 	= white '*' white | white '/' white | white '%' white;
-	plus 			= white '+' white;
+	//plus 			= white '+' white;
 	minus		    = '-';
 	wildcard 		= '_';
 //---------------------------------------------------------------------------------------------------------------------------------------------------	
 	/*Strings*/ 
 	number 			= '0' | first_digit digits*;
 	identifier 		= letter letter_digits* '''*;
-	nl				= white eol white;
 	string			= '"' char* '"';
 	char			= ''' char ''';
 	blank			= blank*;
 	
+   nl	= eol;
+   plus = '+';
+
 Ignored Tokens
 	blank;
 	
