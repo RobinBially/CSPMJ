@@ -1,1 +1,5 @@
-assert not 1 |= LTL: "false"
+--A = <3,4><<1,2>
+--B = <3,4><<1,2>
+
+initial(p,n) = if p==1 then <1..n> else <>
+1 = <>

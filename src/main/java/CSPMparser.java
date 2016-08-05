@@ -27,7 +27,7 @@ public class CSPMparser
 
 	public CSPMparser()
 	{
-		setVersion("0 67 160731");
+		setVersion("0 68 160805");
 		exceptionCounter = 0;
 		commentList = new ArrayList<CommentInfo>();
 		ostype = OsCheck.getOperatingSystemType();
@@ -169,7 +169,7 @@ public class CSPMparser
 		outputFile = inputFile;
 		else
 		outputFile = outputFile.substring(12,outputFile.length()); // --prologOut= must disappear
-	
+
 		try 
 		{	
 			String old;
@@ -181,7 +181,7 @@ public class CSPMparser
 				cspCode = includeFile(cspCode);
 			}			
 			while(!cspCode.equals(old));
-				
+
 			TriangleBracketSubstitution tbs = new TriangleBracketSubstitution(cspCode);
 			if(!cspCode.equals(""))
 			cspCode = tbs.findTriangles();

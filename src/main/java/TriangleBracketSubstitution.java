@@ -21,152 +21,379 @@ import CSPMparser.node.*;
 
 public class TriangleBracketSubstitution
 {
-private String stream;	
-private String white;
-private String white2;
-	
+private ArrayList<String> instructions;
+private String stream;
+
+private String[] notEndOfInstruction = {"then","else","and","or","not","let","within",
+",","..",":","=","@","#","\\","||","|-","|","@@","|||","|~|","[]","/\\","[>","(",">=","<=","\u00AB","\u20AC",
+"<","[+","+]","/+","+\\","[[",":[","]:","[|","|]","[","{","&",".",";","->","^","==","!=","[T=","[F=","[FD=",
+"[R=","[T]","[F]","[FD]","*","/","%","/","+"};
+
+private String[] notBeginningOfInstruction = {"then","else","and","or","not","..",":","||","|-","|","@@","|||",
+"|~|","[]","/\\","[>",")",">=","<=","\u00BB","\u00A3",">","[+","+]","/+","+\\","[[",":[","]:","[|","|]","[",
+"]","&",".",";","->","^","==","!=","[T=","[F=","[FD=","[R=","[T]","[F]","[FD]","*","/","%","/","+"};
+
+private String[] priorToOpeningSequence = {"<=","=>","->","<-","if","then","else","==","!=","#","|","@","^",
+"\\","$","!","?",":",".","\r\n","\r","\n","=","(","[","{",",","\u00AB","sof"};
+
+private String[] nextFromClosingSequence = {"=>","<=","<-","->","then","else","==","!=","^","\\","|","@","$",
+"!","?","=",":",".","\r\n","\r","\n","]",")","}",",","\u00BB","eof"};
+
+private String[] nextFromGreater = {"{","(","'","word"};
+private	String[] priorToSmaller = {"}",")","'","word"};
+private	String priorToClosingSequence = "\u00AB";
+
 	public TriangleBracketSubstitution(String s)
 	{
 		stream = s;
-		white = defineWhitespace();
+		//instructions = new ArrayList<String>();
+		//splitIntoInstructions(stream);
 	}
 	
 	public String findTriangles()
-	{	
-		
-		boolean replaceable = true;
-		String old = stream;
-		char[] edges = stream.toCharArray();
-
-		if(edges[0] == '<')
-		{
-			edges[0] = '\u00AB';
-		}
-		if(edges[edges.length-1] == '>')
-		{
-			edges[edges.length-1] = '\u00BB';
-		}
-		stream = new String(edges);
-				
-		//Save triangles that must not be replaced!
-
-		stream = stream.replaceAll("<=>","\u00A2\u00A4\u00A2");
-		stream = stream.replaceAll("<=","\u00A2\u00A4"); //Koennten ersetzt werden 
-		stream = stream.replaceAll("=>","\u00A4\u00A2"); //Siehe smaller greater erste Regel
-		stream = stream.replaceAll("<->","\u00A6\u00A5\u00A6");
-		stream = stream.replaceAll("->","\u00A5\u00A6");
-		stream = stream.replaceAll("<-","\u00A6\u00A5");
-		stream = stream.replaceAll("\\[>","\u00A7\u00A8");
-		stream = stream.replaceAll("<\\|","\u00B1\u00B2");
-		stream = stream.replaceAll("\\|>","\u00B2\u00B1");
-
-		while(replaceable)
+	{
+		char[] c = stream.toCharArray();
+		String old = "";
+		while(!old.equals(new String(c)))
 		{	
-			//Operators
-					
-			stream = stream.replaceAll("\u00A4\u00A2"+white+"<","\u00A4\u00A2$1\u00AB");		
-			stream = stream.replaceAll(">"+white+"\u00A4\u00A2","\u00BB$1\u00A4\u00A2");
-			stream = stream.replaceAll("\u00A2\u00A4"+white+"<","\u00A2\u00A4$1\u00AB");		
-			stream = stream.replaceAll(">"+white+"\u00A2\u00A4","\u00BB$1\u00A2\u00A4");			
-			stream = stream.replaceAll("\u00A5\u00A6"+white+"<","\u00A5\u00A6$1\u00AB");		
-			stream = stream.replaceAll(">"+white+"\u00A5\u00A6","\u00BB$1\u00A5\u00A6");			
-			stream = stream.replaceAll("\u00A6\u00A5"+white+"<","\u00A6\u00A5$1\u00AB");		
-			stream = stream.replaceAll(">"+white+"\u00A6\u00A5","\u00BB$1\u00A6\u00A5");		
-
+			old = new String(c);
+			int i = 0;
 			
-			//Words
-			stream = stream.replaceAll(""+white+"if"+white+"<","$1if$2\u00AB");
-			stream = stream.replaceAll(""+white+"then"+white+"<","$1then$2\u00AB");
-			stream = stream.replaceAll(""+white+"else"+white+"<","$1else$2\u00AB");
-			stream = stream.replaceAll(">"+white+"then"+white+"","\u00BB$1then$2");
-			stream = stream.replaceAll(">"+white+"else"+white+"","\u00BB$1else$2");
+			while(i<c.length)
+			{
 				
-			//Equality
-			stream = stream.replaceAll(">"+white+"[=][=]","\u00BB$1==");
-			stream = stream.replaceAll("[=][=]"+white+"<","==$1\u00AB");
-			stream = stream.replaceAll("[!][=]"+white+"<","!=$1\u00AB");
-			stream = stream.replaceAll(">"+white+"[!][=]","\u00BB$1!=");
-			
-			//Sequence Opening
-			stream = stream.replaceAll("#"+white+"<","#$1\u00AB");
-			stream = stream.replaceAll("\\|"+white+"<","|$1\u00AB");
-			stream = stream.replaceAll("@"+white+"<","@$1\u00AB");			
-			stream = stream.replaceAll("\\^"+white+"<","^$1\u00AB");
-			stream = stream.replaceAll("\\\\"+white+"<","\\\\$1\u00AB");						
-			stream = stream.replaceAll("\\$"+white+"<","\\$$1\u00AB");
-			stream = stream.replaceAll("\\!"+white+"<","!$1\u00AB");
-			stream = stream.replaceAll("\\?"+white+"<","?$1\u00AB");						
-			stream = stream.replaceAll("[:]"+white+"<",":$1\u00AB");
-			stream = stream.replaceAll("\\."+white+"<",".$1\u00AB");
-			stream = stream.replaceAll("\r\n"+white+"<","\r\n$1\u00AB");
-			stream = stream.replaceAll("\r"+white+"<","\n$1\u00AB");
-			stream = stream.replaceAll("\n"+white+"<","\r$1\u00AB");
-			stream = stream.replaceAll("[=]"+white+"<","=$1\u00AB");
-			stream = stream.replaceAll("[(]"+white+"<","($1\u00AB");
-			stream = stream.replaceAll("\\["+white+"<","[$1\u00AB");
-			stream = stream.replaceAll("[{]"+white+"<","{$1\u00AB");
-			stream = stream.replaceAll("[,]"+white+"<",",$1\u00AB");
-			stream = stream.replaceAll("\u00AB"+white+"<","\u00AB$1\u00AB");
-
-			//Smaller
-			stream = stream.replaceAll("(\\d|\\w|\\_)"+white+"<","$1$2\u20AC");
-			stream = stream.replaceAll("}"+white+"<","}$1\u20AC");
-			stream = stream.replaceAll("[)]"+white+"<",")$1\u20AC");
-			stream = stream.replaceAll("'"+white+"<","'$1\u20AC");
-			
-			//Greater
-			stream = stream.replaceAll(">"+white+"(\\d|\\w|\\_)","\u00A3$1$2");
-			stream = stream.replaceAll(">"+white+"[{]","\u00A3$1{");
-			stream = stream.replaceAll(">"+white+"[(]","\u00A3$1(");
-			stream = stream.replaceAll(">"+white+"'","\u00A3$1'");
-			
-			//Sequence Closing
-			stream = stream.replaceAll(">"+white+"\\^","\u00BB$1^");
-			stream = stream.replaceAll(">"+white+"\\\\","\u00BB$1\\\\");
-			stream = stream.replaceAll(">"+white+"\\|","\u00BB$1|");
-			stream = stream.replaceAll(">"+white+"@","\u00BB$1@");			
-			stream = stream.replaceAll(">"+white+"\\$","\u00BB$1\\$");
-			stream = stream.replaceAll(">"+white+"\\!","\u00BB$1!");
-			stream = stream.replaceAll(">"+white+"\\?","\u00BB$1?");					
-			stream = stream.replaceAll(">"+white2+"[=]","\u00BB$1="); //List pattern e.g. <1> = 1 must have whitespace between > and =
-			stream = stream.replaceAll(">"+white+"[:]","\u00BB$1:");
-			stream = stream.replaceAll(">"+white+"\\.","\u00BB$1.");
-			stream = stream.replaceAll(">"+white+"\r\n","\u00BB$1\r\n");
-			stream = stream.replaceAll(">"+white+"\n","\u00BB$1\n");
-			stream = stream.replaceAll(">"+white+"\r","\u00BB$1\r");
-			stream = stream.replaceAll(">"+white+"\\]","\u00BB$1]");
-			stream = stream.replaceAll(">"+white+"[)]","\u00BB$1)");
-			stream = stream.replaceAll(">"+white+"[}]","\u00BB$1}");
-			stream = stream.replaceAll(">"+white+"[,]","\u00BB$1,");
-			stream = stream.replaceAll(">"+white+"\u00BB","\u00BB$1\u00BB");
-			
-			//Empty Sequence
-			stream = stream.replaceAll("<"+white+">","\u00AB\u00BB");
-			
-			if(stream.equals(old))
-			{
-				replaceable = false;
+				if(c[i] == '<')
+				{
+					if((i<c.length-1) && (c[i+1] == '=' || c[i+1] == '-'))
+					{
+						if((i<c.length-2) && (c[i+2] == '>'))
+							i += 2;
+						else
+							i += 1;
+					}
+					else if((i<c.length-1) && (c[i+1] == '|'))
+					{
+						i+= 1;
+					}
+				//*****************************************Start Substitution
+					else if(isOpeningSequence(c,i))
+					{
+						c[i] = '\u00AB';
+					}
+					else if(isSmaller(c,i))
+					{
+						c[i] = '\u20AC';
+					}
+				}
+				//******************************************End Substitution		
+				else if((i<c.length-1)
+						&& (c[i] == '=' || c[i] == '-' ||c[i] == '[' || c[i] == '|') && (c[i+1] == '>'))
+				{
+					i+=1;
+				}
+				//************************************Start Substitution
+				else if(c[i] == '>')
+				{
+					
+					if((i<c.length-1) && (c[i+1] == '='))
+					{
+						i+=1;
+					}
+					else if(isClosingSequence(c,i))
+					{
+						c[i] = '\u00BB';
+					}
+					else if(isGreater(c,i))
+					{
+						c[i] = '\u00A3';
+					}
+				}
+				//************************************End Substitution
+				i++;
 			}
-			else
+		}			
+		String t = new String(c);
+		//String t = prepareBruteForce(c);
+		return t;
+	}
+	
+	public boolean isOpeningSequence(char[] c, int i) 
+	{
+		for(int k = 0;k<priorToOpeningSequence.length;k++)
+		{
+			if(previousIs(c,priorToOpeningSequence[k],i))
+				return true;
+		}
+		return false;
+	}
+	
+	public boolean isClosingSequence(char[] c, int i)
+	{	
+		for(int k = 0;k<nextFromClosingSequence.length;k++)
+		{
+			if(nextIs(c,nextFromClosingSequence[k],i))
 			{
-				old = stream;
+				return true;
+			}
+		}			
+		if(previousIs(c,priorToClosingSequence,i))
+			return true;
+		else
+			return false;
+	}	
+	
+	public boolean isGreater(char[] c, int i)
+	{
+		for(int k = 0;k<nextFromGreater.length;k++)
+		{
+			if(nextIs(c,nextFromGreater[k],i))
+				return true;
+		}
+		return false;
+	}
+	
+	public boolean isSmaller(char[] c, int i)
+	{
+		for(int k = 0;k<priorToSmaller.length;k++)
+		{
+			if(previousIs(c,priorToSmaller[k],i))
+				return true;
+		}
+		return false;
+	}	
+	
+	public boolean nextIs(char[] c, String s, int i) //next token from index i in array c is s
+	{
+		char[] o = s.toCharArray();
+
+		int j;
+		if((s.indexOf("\r") == -1) && (s.indexOf("\n") == -1))
+			j = jumpWhitespaceForward(c,i+1);
+		else 
+			j = i+1;
+		
+		int u = 0;	
+		String buffer = "";
+		
+		if(s.equals("eof")) // Last char in file
+		{
+			if(j == c.length-1)
+				return true;
+			else
+				return false;
+		}
+		else if(s.equals("word"))
+		{		
+			while(j<c.length && c[j] != ' ' && c[j] != '\t' && c[j] != '\r' && c[j] != '\n'
+						&& Pattern.matches("\\w",String.valueOf(c[j])))
+			{
+				buffer += c[j];
+				j++;
+				u++;
+			}
+			if(Pattern.matches("\\w+",buffer))
+				return true;
+			else
+				return false;
+		}
+		else if(s.equals("then") || s.equals("else")) //e.g. "> then "
+		{
+			while(u<o.length && j<c.length)
+			{			
+				if(c[j] == o[u])
+				{
+					u++;
+					j++;
+				}
+				else
+				{
+					return false;
+				}
+			}
+			if(c[j] == ' ' || c[j] == '\t' ||c[j] == '\r' || c[j] == '\n' ) //after then has to be whitespace
+				return true;
+			else 
+				return false;
+		}
+		else
+		{
+			while(u<o.length && j<c.length)
+			{
+				if(c[j] == o[u])
+				{
+					j++;
+					u++;
+				}
+				else
+				{
+					return false;
+				}
+			}
+			if(u == o.length)
+				return true;	
+			else 
+				return false;
+		}
+	}
+	
+	public boolean previousIs(char[] c,String s, int i) //previous token from index i is s
+	{
+		char[] o = s.toCharArray();
+		int j;
+		if((s.indexOf("\r") == -1) && (s.indexOf("\n") == -1))
+			j = jumpWhitespaceBack(c,i-1);
+		else 
+			j = i-1;
+		
+		int u = o.length-1;	
+		String buffer = "";
+		
+		if(s.equals("sof")) //First char in file
+		{
+			if(j == 0)
+				return true;
+			else 
+				return false;
+		}
+		else if(s.equals("word"))
+		{	
+			while(j>=0 && c[j] != ' ' && c[j] != '\t' && c[j] != '\r' && c[j] != '\n' 
+					&& Pattern.matches("\\w",String.valueOf(c[j])))
+			{
+				buffer += c[j];
+				j-=1;
+				u-=1;
+			}
+			if(Pattern.matches("\\w+",buffer))
+				return true;
+			else
+				return false;
+		}
+		else if(s.equals("if") || s.equals("then") || s.equals("else")) //e.g. " if < "
+		{
+			
+			while(u>=0 && j>=0)
+			{
+				if(c[j] == o[u])
+				{
+					u-=1;
+					j-=1;
+				}
+				else
+				{
+					return false;
+				}
+			}
+			if(c[j] == ' ' ||c[j] == '\t' ||c[j] == '\r' ||c[j] == '\n' ) //before if has to be whitespace
+			{
+				return true;
+			}
+			else 
+			{
+				return false;
 			}
 		}
-		
-		//Reiclude saved tokens
-		stream = stream.replaceAll("\u00A2\u00A4\u00A2","<=>");
-		stream = stream.replaceAll("\u00A2\u00A4","<=");
-		stream = stream.replaceAll("\u00A4\u00A2","=>");
-		stream = stream.replaceAll("\u00A6\u00A5\u00A6","<->");
-		stream = stream.replaceAll("\u00A5\u00A6","->");
-		stream = stream.replaceAll("\u00A6\u00A5","<-");
-		stream = stream.replaceAll("\u00A7\u00A8","[>");
-		stream = stream.replaceAll("\u00B1\u00B2","<|");
-		stream = stream.replaceAll("\u00B2\u00B1","|>");
-
-				
-		//Spalte stream auf
-		char[] streamChar = stream.toCharArray();
+		else
+		{
+			while(u>=0 && j>=0)
+			{	
+				if(c[j] == o[u])
+				{
+					j-=1;
+					u-=1;
+				}
+				else
+				{	
+					return false;
+				}
+			}
+			if(u == -1)			
+				return true;		
+			else 			
+				return false;								
+		}
+	}
+	
+	public int jumpWhitespaceForward(char[] c, int i) // return first index from i without whitespace
+	{
+		while(i<c.length)
+		{
+			if(c[i] == ' ' || c[i] == '\t' || c[i] == '\r' || c[i] == '\n')
+			i++;
+			else
+			return i;
+		}
+		return i-1;
+	}
+	
+	public int jumpWhitespaceBack(char[] c, int i) // return first index prior to i without whitespace
+	{
+		while(i>=0)
+		{
+			if(c[i] == ' ' || c[i] == '\t' || c[i] == '\r' || c[i] == '\n')
+			i-= 1;
+			else
+			return i;
+		}
+		return i+1;
+	}	
+	
+	public void splitIntoInstructions(String s)
+	{
+		char[] c = s.toCharArray();
+		String buffer = "";
+		int count = 0;
+		while(count<c.length)
+		{
+			buffer += c[count];
+			if((c[count] == '\r' || c[count] == '\n') && isEndOfInstruction(c,count))
+			{
+				while(c[count] == '\r'||c[count] == '\n'||c[count] == '\t'||c[count] == ' ')
+				{
+					buffer += c[count];
+					count++;
+				}
+				instructions.add(buffer);
+				buffer = "";
+				count -= 1;
+			}
+			if(count == c.length-1)
+			{
+				instructions.add(buffer);
+			}
+			count++;
+		}
+	}
+	
+	public boolean isEndOfInstruction(char[] c, int i)
+	{
+		String buffer = "";
+		int helpIndex = i-6;
+		while(helpIndex<i)
+		{
+			buffer += c[i];
+			helpIndex ++;
+		}
+		for(int j = 0; j<notEndOfInstruction.length;j++)
+		{
+			if(buffer.indexOf(notEndOfInstruction[j]) > -1)
+				return false;
+		}
+		helpIndex = i;
+		while(c[helpIndex] == '\r'||c[helpIndex] == '\n'||c[helpIndex] == '\t'||c[helpIndex] == ' ')
+		{
+			helpIndex++;
+		}
+		for(int k = 0; k<notBeginningOfInstruction.length;k++)
+		{
+			if(buffer.indexOf(notBeginningOfInstruction[k]) > -1)
+				return false;
+		}		
+		return true;		
+	}
+	
+	public String prepareBruteForce(char[] streamChar)
+	{
 		ArrayList<String> strArr = new ArrayList<String>();
 		String temp = "";
 		int o = 0;
@@ -255,12 +482,6 @@ private String white2;
 					lastSuccesful = true;
 					afterBruteForce += addToString+"\r\n";
 				}
-				try
-				{
-					PrintStream p = new PrintStream(System.out, true, "UTF-8");
-					p.print(addToString);
-				}
-				catch(Exception e){}
 					
 			}
 			else
@@ -287,10 +508,8 @@ private String white2;
 			}
 		}		
 		return afterBruteForce;
-
-	}
-
-
+	}	
+	
 	public String bruteForce(String a, ArrayList<Integer> arr, int current)
 	{	
 		String upper = "";
@@ -309,13 +528,7 @@ private String white2;
 				c[arr.get(current)] = '\u00A3'; //GREATER
 			}
 			upper = String.valueOf(c);
-													
-/* 			try{
-				PrintStream out2 = new PrintStream(System.out, true, "UTF-8");
-				out2.println(upper);
-			}
-			catch(Exception e){}
-*/					
+	
 			StringReader sr = new StringReader(upper);
 			BufferedReader br = new BufferedReader(sr); 
 			Lexer l = new Lexer(new PushbackReader(br,100000));
@@ -373,40 +586,4 @@ private String white2;
 		}	
 		return upper+lower;	
 	}
-	
-	
-	public String defineWhitespace()
-	{
-		
-		String whitespace_chars =  ""       /* dummy empty string for homogeneity */
-                        + "\\u0009" // CHARACTER TABULATION
-                        + "\\u000B" // LINE TABULATION
-                        + "\\u000C" // FORM FEED (FF)
-                        + "\\u0020" // SPACE
-                        + "\\u0085" // NEXT LINE (NEL) 
-                        + "\\u00A0" // NO-BREAK SPACE
-                        + "\\u1680" // OGHAM SPACE MARK
-                        + "\\u180E" // MONGOLIAN VOWEL SEPARATOR
-                        + "\\u2000" // EN QUAD 
-                        + "\\u2001" // EM QUAD 
-                        + "\\u2002" // EN SPACE
-                        + "\\u2003" // EM SPACE
-                        + "\\u2004" // THREE-PER-EM SPACE
-                        + "\\u2005" // FOUR-PER-EM SPACE
-                        + "\\u2006" // SIX-PER-EM SPACE
-                        + "\\u2007" // FIGURE SPACE
-                        + "\\u2008" // PUNCTUATION SPACE
-                        + "\\u2009" // THIN SPACE
-                        + "\\u200A" // HAIR SPACE
-                        + "\\u2028" // LINE SEPARATOR
-                        + "\\u2029" // PARAGRAPH SEPARATOR
-                        + "\\u202F" // NARROW NO-BREAK SPACE
-                        + "\\u205F" // MEDIUM MATHEMATICAL SPACE
-                        + "\\u3000" // IDEOGRAPHIC SPACE
-                        ;   
-		String whitespace_charclass = "(["  + whitespace_chars + "]*)"; 
-		white2 = "(["  + whitespace_chars + "]+)";
-		return whitespace_charclass;
-	}
-	
 }
