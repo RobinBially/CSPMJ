@@ -112,8 +112,8 @@ private	String priorToClosingSequence = "\u00AB";
 				i++;
 			}
 		}			
-		//String t = new String(c);
-		String t = prepareBruteForce(c);
+		String t = new String(c);
+		//String t = prepareBruteForce(c);
 		return t;
 	}
 	

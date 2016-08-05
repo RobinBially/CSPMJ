@@ -25,7 +25,7 @@ Helpers
 	no_brace_r = [all - '}'];
 	eol = (cr lf|cr|lf);
 	blank = (' '|tab);
-//	white = (' '|tab|cr|lf)*;
+	white = (' '|tab|cr|lf)*;
 	
 /*	Triangle bracket substitutions:
 	\u00AB = «	seq opening
@@ -57,7 +57,7 @@ Tokens
 	chan 			= 'channel';
 	transparent 	= 'transparent';
 	external		= 'external';
-	assert 			= 'assert'| 'assert' 'not';
+	assert 			= 'assert'| 'assert' white 'not';
 	include 		= 'include';
 	print 			= 'print';
 	dl_free 		= 'deadlock free';

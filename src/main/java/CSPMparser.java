@@ -27,7 +27,7 @@ public class CSPMparser
 
 	public CSPMparser()
 	{
-		setVersion("0 68 160805");
+		setVersion("0 69 160805");
 		exceptionCounter = 0;
 		commentList = new ArrayList<CommentInfo>();
 		ostype = OsCheck.getOperatingSystemType();
@@ -189,11 +189,7 @@ public class CSPMparser
 			StringReader sr = new StringReader(cspCode);
 			BufferedReader br = new BufferedReader(sr); 
 			
-			System.out.println("before lexing: "+cspCode+"\n_________________________________");
-			
 			Lexer l = new LexHelper(new PushbackReader(br,100000));
-			
-			System.out.println("LEXING END");
 			
 			Parser p = new Parser(l);
 			Start tree = p.parse();	
