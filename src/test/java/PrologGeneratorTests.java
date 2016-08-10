@@ -491,10 +491,10 @@ public class PrologGeneratorTests
 	public void TauPrio() throws Exception //
 	{
 	  check(
-				"assert 1 [T= 2 :[tau priority 1]"
-				+newline+"assert 1 [FD= 2 :[tau priority 1]"
-				+newline+"assert 1 [F= 2 :[tau priority 1]"
-				+newline+"assert 1 [R= 2 :[tau priority 1]"
+				"assert 1 [T= 2 :[tau priority]:1"
+				+newline+"assert 1 [FD= 2 :[tau priority]:1"
+				+newline+"assert 1 [F= 2 :[tau priority]:1"
+				+newline+"assert 1 [R= 2 :[tau priority]:1"
 			,
 				"'assertTauPrio'('False','int'(1),'TauTrace','int'(2),'int'(1),'no_loc_info_available')."
 				+newline+"'assertTauPrio'('False','int'(1),'TauFailureDivergence','int'(2),'int'(1),'no_loc_info_available')."
@@ -1057,11 +1057,14 @@ public class PrologGeneratorTests
 	{
 	  check(
 				"b= 2 \r\n a = true \r\n       and     \r\n b==1"
+				+newline+"1= [] s:1 \r\n @ \r\n s -> 1"
 			, 
 				"'bindval'('b','int'(2),'no_loc_info_available')."
 				+newline+"'bindval'('a','bool_and'('true','=='('val_of'('b','no_loc_info_available'),'int'(1))),'no_loc_info_available')."
+				+newline+"'bindval'('int'(1),'repChoice'(['comprehensionGenerator'(_s,'int'(1))],'prefix'('no_loc_info_available',[],_s,'int'(1),'no_loc_info_available'),'no_loc_info_available'),'no_loc_info_available')."
 				+newline+"'symbol'('b','b','no_loc_info_available','Ident (Groundrep.)')."
 				+newline+"'symbol'('a','a','no_loc_info_available','Ident (Groundrep.)')."
+				+newline+"'symbol'('s','s','no_loc_info_available','Ident (Prolog Variable)')."
 			);	
 	}
 	

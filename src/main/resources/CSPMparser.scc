@@ -47,8 +47,8 @@ Tokens
 	ltl				= 'LTL';
 	ctl				= 'CTL';	
 	if 				= 'if';
-	then 			=  'then' ;
-	else 			=  'else' ;
+	then 			= 'then' ;
+	else 			= 'else' ;
 	let 			= 'let' ;
 	within 			= 'within' ;
 	d_type 			= 'datatype';
@@ -69,83 +69,83 @@ Tokens
 	mod_defs		= 'module';	
 	exports			= 'exports';
 	endmodule		= 'endmodule';
-	and 			=  'and' ;
-	or 				=  'or' ;
-	not 			=  'not' ;	
+	and 			= 'and' ;
+	or 				= 'or' ;
+	not 			= 'not' ;	
 	true			= 'true';
 	false			= 'false';
 //---------------------------------------------------------------------------------------------------------------------------------------------------
 	comma 			= ',' ;
 	apo 			= ''';
 	quote			= '"';
-	dotdot 			=  '..' ;
-	ddot 			=  ':' ;
+	dotdot 			= '..' ;
+	ddot 			= ':' ;
 	eq 				= '=' ;
 	at 				= '@' ;
 	hash 			= '#' ;
-	b_slash 		=  '\' ;
+	b_slash 		= '\' ;
 	q_mark 			= '?';
 	excl_mark 		= '!';
 	dollar 			= '$';
-	dpipe 			=  '||' ;
-	pipe_equals		=  '|=' ; 
-	pipe 			=  '|' ;
-	doubleat 		=  '@@' ;
-	i_leaving 		=  '|||' ;
-	i_choice  		=  '|~|' ;
-	e_choice  		=  '[]' ;
-	interrupt 		=  '/\' ;
-	timeout			=  '[>' ;
+	dpipe 			= '||' ;
+	pipe_equals		= '|=' ; 
+	pipe 			= '|' ;
+	doubleat 		= '@@' ;
+	i_leaving 		= '|||' ;
+	i_choice  		= '|~|' ;
+	e_choice  		= '[]' ;
+	interrupt 		= '/\' ;
+	timeout			= '[>' ;
 //---------------------------------------------------------------------------------------------------------------------------------------------------	
 	par_l 			= '(' ;
-	par_r 			=   ')';
+	par_r 			= ')';
 	empty_map 		= '(| |)';
-	lge 			=  '<='  |  '>=' ;
+	lge 			= '<=' | '>=' ;
 	seq_open		= seq_open ;
-	seq_close 		=  seq_close;
-	greater 		=  greater;
+	seq_close 		= seq_close;
+	greater 		= greater;
 	less	 		= less ;		
 	tria_l			= '<' ;
-	tria_r			=  '>';
-	sync_par_l		=  '[+' ;	
-	sync_par_r		=  '+]' ;
-	sync_int_l 		=  '/+' ;
-	sync_int_r		=  '+\' ;
-	dbracket_l 		=  '[[' ;
-	dbracket_r 		=  ']]';
-	dp_bracket_l 	=  ':[' ;
-	dp_bracket_r 	=  ']:' ;
-	bracket_pipe_l	=  '[|' ;
-	bracket_pipe_r	=  '|]' ;
-	bracket_l 		=  '[' ;
-	bracket_r 		=  ']';
+	tria_r			= '>';
+	sync_par_l		= '[+' ;	
+	sync_par_r		= '+]' ;
+	sync_int_l 		= '/+' ;
+	sync_int_r		= '+\' ;
+	dbracket_l 		= '[[' ;
+	dbracket_r 		= ']]';
+	dp_bracket_l 	= ':[' ;
+	dp_bracket_r 	= ']:' ;
+	bracket_pipe_l	= '[|' ;
+	bracket_pipe_r	= '|]' ;
+	bracket_l 		= '[' ;
+	bracket_r 		= ']';
 	brace_l 		= '{' ;
-	brace_r 		=  '}';
+	brace_r 		= '}';
 //---------------------------------------------------------------------------------------------------------------------------------------------------	
-	guard 			=  '&' ;
-	dot 			=  '.' ;
-	semicolon 		=  ';' ;
-	prefix			=  '->' ;
+	guard 			= '&' ;
+	dot 			= '.' ;
+	semicolon 		= ';' ;
+	prefix			= '->' ;
 	arrow_l 		= '<-';
-	cat 			=  '^' ;
+	cat 			= '^' ;
 	d_arr 			= '<->';	
 	equi 			= '<=>';
 	imp_r 			= '=>';
 	imp_l 			= '<=';
-	equal			=  '=='  |  '!=' ;	
-	tra_mod 		=  '[T=' ;
-	fail_mod  		=  '[F=' ;
-	fail_div 		=  '[FD=' ;
-	refusal			=  '[R=' ;	
-	model 			=  ('[T]'|'[F]'|'[FD]') ;	
-	mul_div_mod 	=  '*'  |  '/'  |  '%' ;
-	plus 			=  '+' ;
+	equal			= '=='  |  '!=' ;	
+	tra_mod 		= '[T=' ;
+	fail_mod  		= '[F=' ;
+	fail_div 		= '[FD=' ;
+	refusal			= '[R=' ;	
+	model 			= ('[T]'|'[F]'|'[FD]') ;	
+	mul_div_mod 	= '*'  |  '/'  |  '%' ;
+	plus 			= '+' ;
 	minus		    = '-';
 	wildcard 		= '_';
 //---------------------------------------------------------------------------------------------------------------------------------------------------	
 	/*Strings*/ 
 	number 			= '0' | first_digit digits*;
-	identifier 		=   letter letter_digits* '''*;
+	identifier 		= letter letter_digits* '''*;
 	string			= '"' char* '"';
 	char			= ''' char ''';
 	blank			= blank*;
@@ -483,7 +483,7 @@ assertion = 	 {mod} assert [lproc]:proc1 tra_mod [rproc]:proc1			{-> New asserti
 				|{ltl} assert proc1 pipe_equals ltl ddot string				{-> New assertion.ltl(assert,proc1.exp,string)}
 				|{ctl} assert proc1 pipe_equals ctl ddot string				{-> New assertion.ctl(assert,proc1.exp,string)}
 				|{tau_prio} assert [lproc]:proc1 as_op [mproc]:proc1								
-						dp_bracket_l tau  [rproc]:proc1 bracket_r 		{-> New assertion.tauprio(assert,lproc.exp,as_op,mproc.exp,rproc.exp)}
+						dp_bracket_l tau dp_bracket_r [rproc]:proc1			{-> New assertion.tauprio(assert,lproc.exp,as_op,mproc.exp,rproc.exp)}
 			
 				|{dl_free} assertion_deadlock								{-> assertion_deadlock.assertion}
 				|{div_free} assertion_divergence							{-> assertion_divergence.assertion}

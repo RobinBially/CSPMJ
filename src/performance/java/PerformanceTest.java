@@ -12,15 +12,16 @@ import java.nio.file.Files;
 
 public class PerformanceTest
 {
-	public int iterations = 1; // How often do you want to parse each File?
+	public int iterations = 10; // How often do you want to parse each File?
 	public long elapsedTime = 0;
 	public long startTime = 0;
+	public long endTime = 0;
 	public PrintWriter pw;
 	public String s;
 	public char[] c;
 	public Process p;
 	public String[] command = {"cmd"};
-	ArrayList<Long> average;
+	private ArrayList<Long> average;
 	public long totalCspmf;
 	public long totalCspmj;
 
@@ -29,7 +30,7 @@ public class PerformanceTest
 		totalCspmj = 0;
 		totalCspmf = 0;
 		pw = new PrintWriter(new File(resultLoc+"/PerformanceResult.txt"));
-		s = "file                                    cspmf time (s)    cspmj time (s)    factor (s)\n\n";
+		s = "file                              cspmf time (s)  cspmj time (s)  factor (s)\n\n";
 		File folder = new File(searchLoc);
 		elapsedTime = 0;
 		startTime = 0;	
@@ -38,12 +39,12 @@ public class PerformanceTest
 		generatePerformanceComparison(folder);
 		double tcf = convert(totalCspmf);
 		double tcj = convert(totalCspmj);
-		double totalFactor = convert(divideLong(totalCspmj,totalCspmf));
-		parseAll();
-		double parseAllFactor = convert(divideLong(elapsedTime,totalCspmf));
-		double all = convert(elapsedTime);
-		s += "TOTAL                                   "+tcf+"            "+tcj+"             "+totalFactor+"\n";
-		s += "ParseAll                                "+tcf+"             "+all+"             "+parseAllFactor;
+		double totalFactor = convert(divideLong(totalCspmf,totalCspmj));
+//		parseAll();
+//		double parseAllFactor = convert(divideLong(elapsedTime,totalCspmf));
+//		double all = convert(elapsedTime);
+		s += "TOTAL                             "+tcf+"           "+tcj+"           "+totalFactor+"\n";
+//		s += "ParseAll                                "+tcf+"             "+all+"             "+parseAllFactor;
 		pw.write(s);
 		pw.close();
 		System.out.println("Your performance results have been created succesfully!");
@@ -64,29 +65,28 @@ public class PerformanceTest
 				cspmfCompile(fileEntry.toString());		
 				totalCspmf += elapsedTime;
 				c = Paths.get(fileEntry.toString()).getFileName().toString().toCharArray(); //get file name and convert to char
-				for(int i=0;i<40;i++)
+				for(int i=0;i<34;i++)
 				{
 					if(i<c.length){s+=c[i];}
 					else{s+=" ";}
 				}
 				cspmfTime = elapsedTime;
 				c = String.valueOf(convert(elapsedTime)).toCharArray();
-				for(int i=0;i<18;i++)
+				for(int i=0;i<16;i++)
 				{
 					if(i<c.length){s+=c[i];}
 					else{s+=" ";}
 				}				
-				
 				cspmjCompile(fileEntry.toString());
 				cspmjTime = elapsedTime;
 				totalCspmj += elapsedTime;
 				c = String.valueOf(convert(elapsedTime)).toCharArray();
-				for(int i=0;i<18;i++)
+				for(int i=0;i<16;i++)
 				{
 					if(i<c.length){s+=c[i];}
 					else{s+=" ";}
 				}		
-				s += String.valueOf(convert(divideLong(cspmjTime,cspmfTime)))+"\r\n";
+				s += String.valueOf(convert(divideLong(cspmfTime,cspmjTime)))+"\r\n";
 			}
 
 		}			
@@ -99,9 +99,10 @@ public class PerformanceTest
 				startTime = System.nanoTime(); 
 				p = Runtime.getRuntime().exec("build\\classes\\main\\cspmf.exe translate "+filepath+" --prologOut=src\\test\\java\\cspmfOUT.temp");				
 				p.waitFor();
-				elapsedTime = System.nanoTime() - startTime;
-				average.add(elapsedTime);
-				p.destroy();	
+				endTime = System.nanoTime();
+				elapsedTime = endTime - startTime;
+				p.destroy();
+				average.add(elapsedTime);				
 			}
 			elapsedTime = getAverage();
 			Files.delete(Paths.get("src\\test\\java\\cspmfOUT.temp"));		
@@ -112,24 +113,28 @@ public class PerformanceTest
 		for(int i=0;i<iterations;i++)
 		{	
 			startTime = System.nanoTime(); 
-			p = Runtime.getRuntime().exec("java -jar build\\libs\\cspmj.jar -parse "+filepath+" --prologOut=build\\libs\\cspmjOUT.temp");
-			p.waitFor();
-			elapsedTime = System.nanoTime() - startTime;
-			average.add(elapsedTime);
+			//p = Runtime.getRuntime().exec("java -jar build\\libs\\cspmj.jar -parse "+filepath+" --prologOut=build\\libs\\cspmjOUT.temp");
+			//p = Runtime.getRuntime().exec("java -cp build/classes/main CSPMparser -parse "+filepath+" --prologOut=build\\libs\\cspmjOUT.temp");
+			//p.waitFor();
+			CSPMparser cspmj = new CSPMparser(filepath,"build\\libs\\cspmjOUT.temp");
+			endTime = System.nanoTime();
+			elapsedTime = endTime - startTime;
 			p.destroy();
+			average.add(elapsedTime);
 		}
 			elapsedTime = getAverage();
 			Files.delete(Paths.get("build\\libs\\cspmjOUT.temp.pl"));
 	}	
 	
-	public void parseAll() throws Exception
-	{
-		startTime = System.nanoTime(); 
-		p = Runtime.getRuntime().exec("java -jar build\\libs\\cspmj.jar -parseAll");
-		p.waitFor();
-		elapsedTime = System.nanoTime() - startTime;
-		p.destroy();
-	}
+	// public void parseAll() throws Exception
+	// {
+		// startTime = System.nanoTime(); 
+		// //p = Runtime.getRuntime().exec("java -jar build\\libs\\cspmj.jar -parseAll");
+		// p.waitFor();
+		// endTime = System.nanoTime();
+		// elapsedTime = endTime - startTime;
+		// p.destroy();
+	// }
 	
 	public String getPath()
 	{

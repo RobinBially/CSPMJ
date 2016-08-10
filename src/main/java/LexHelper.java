@@ -10,6 +10,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class LexHelper extends Lexer 
 {
+	private boolean inAssertion = false;
 	private List<IToken> modifiedList = new ArrayList<IToken>();
 	private State helper_state = State.NORMAL;
 	private Token lastNoNewlineToken = null;
@@ -27,7 +28,11 @@ public class LexHelper extends Lexer
 	{
 		if(useFilter)
 		{	
-			if(token instanceof TBlank)
+			if(token instanceof TDet || token instanceof TDlFree || token instanceof TDivFree)
+			{
+				inAssertion = true;
+			}
+			else if(token instanceof TBlank)
 			{
 				token = null;
 			}
@@ -48,7 +53,7 @@ public class LexHelper extends Lexer
 													//absorb whitespace on the right side and add lastNewline to tokenlist(count-1)			 
 					 helper_state = State.NORMAL;
 												
-					 if (instanceOfLeftWhite(token) || instanceOfRightWhite(lastNoNewlineToken)) 
+					 if ((instanceOfLeftWhite(token) || instanceOfRightWhite(lastNoNewlineToken)) && !inAssertion) 
 					 {
 						 //do nothing
 					 }
@@ -61,11 +66,14 @@ public class LexHelper extends Lexer
 						useFilter = true;
 						token = saveToken;
 						saveToken = null;
+						inAssertion = false;
 					 }
 				 } 			 
 				 lastNoNewlineToken = token; //save this non-newline-token		 
 			}
 		}
+		// if(token != null) //Debugging helper
+		// System.out.print(token.getText());
 	}
 	
 	
@@ -82,7 +90,7 @@ public class LexHelper extends Lexer
 				|| t instanceof TILeaving || t instanceof TIChoice || t instanceof TEChoice 
 				|| t instanceof TInterrupt || t instanceof TTimeout || t instanceof TParR || t instanceof TLge 
 				|| t instanceof TSeqClose || t instanceof TGreater || t instanceof TTriaR || t instanceof TSyncParL 
-				|| t instanceof TSyncParR || t instanceof TSyncIntL || t instanceof TSyncIntR 
+				|| t instanceof TSyncParR || t instanceof TSyncIntL || t instanceof TSyncIntR || t instanceof TAt
 				|| t instanceof TDbracketL || t instanceof TDbracketR || t instanceof TDpBracketL 
 				|| t instanceof TDpBracketR || t instanceof TBracketPipeL || t instanceof TBracketPipeR 
 				|| t instanceof TBracketL || t instanceof TBracketR || t instanceof TBraceR || t instanceof TGuard 
@@ -111,7 +119,7 @@ public class LexHelper extends Lexer
 				|| t instanceof TInterrupt || t instanceof TTimeout || t instanceof TParL || t instanceof TLge 
 				|| t instanceof TSeqOpen || t instanceof TLess || t instanceof TTriaL || t instanceof TSyncParL 
 				|| t instanceof TSyncParR || t instanceof TSyncIntL || t instanceof TSyncIntR 
-				|| t instanceof TDbracketL || t instanceof TDpBracketL
+				|| t instanceof TDbracketL || t instanceof TDpBracketL || t instanceof TBracketR
 				|| t instanceof TDpBracketR || t instanceof TBracketPipeL || t instanceof TBracketPipeR 
 				|| t instanceof TBracketL || t instanceof TBraceL || t instanceof TGuard || t instanceof TDot 
 				|| t instanceof TSemicolon || t instanceof TPrefix || t instanceof TCat || t instanceof TEqual 

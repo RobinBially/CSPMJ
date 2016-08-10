@@ -1,6 +1,7 @@
 *********
 * CSPMJ *
 *********
+java -cp build/classes/main CSPMparser -parse Examples/prologTest.csp
 
 java -jar build/libs/cspmj.jar -parse Examples/prologTest.csp
 java -jar build/libs/cspmj.jar -parse Examples/prologTest.csp --prologOut=zHIER.csp

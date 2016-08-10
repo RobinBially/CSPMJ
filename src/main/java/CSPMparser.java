@@ -27,7 +27,7 @@ public class CSPMparser
 
 	public CSPMparser()
 	{
-		setVersion("0 69 160805");
+		setVersion("0 70 160810");
 		exceptionCounter = 0;
 		commentList = new ArrayList<CommentInfo>();
 		ostype = OsCheck.getOperatingSystemType();
@@ -36,6 +36,15 @@ public class CSPMparser
 		else
 			newline = "\n";
 	}
+	
+	public CSPMparser(String inputFile, String outputFile) // This is for PerfocemanceTests
+	{
+		setVersion("0 00 000000");
+		exceptionCounter = 0;
+		commentList = new ArrayList<CommentInfo>();
+		newline = "\r\n";
+		parseFile(inputFile, outputFile);
+	}	
 	
 	public CSPMparser(String newline) //This is for PrologGeneratorTests
 	{
@@ -127,8 +136,7 @@ public class CSPMparser
 			throw cspme;
 		}
 		catch(Exception e) 
-		{}
-		
+		{}	
 		return ret;
 	}
 
@@ -167,8 +175,9 @@ public class CSPMparser
 	{
 		if(outputFile.equals(""))
 		outputFile = inputFile;
-		else
+		else if(outputFile.startsWith("--prologOut="))
 		outputFile = outputFile.substring(12,outputFile.length()); // --prologOut= must disappear
+
 
 		try 
 		{	

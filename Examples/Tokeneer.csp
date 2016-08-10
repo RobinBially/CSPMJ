@@ -1,0 +1,1723 @@
+{-
+--------------------------------------------------
+Domain: Tokeneer (T v1)
+Date: 2009.11.13
+Time: 15:39:51
+--------------------------------------------------
+-}
+
+-- define the integer bounds used in this system
+INT = { -1..3 }
+
+-- define datatypes common to all systems
+datatype MESSAGE = ignored | cannot_happen
+
+-- define a datatype representing the classes used within the system
+datatype CLASS = 
+	Alarm |
+	Door |
+	Door_Controller |
+	TIS_Main |
+	User |
+	User_Panel |
+	SystemB_External
+
+-- define a global type to represent all the instance handles
+datatype INSTANCE = 	
+	-- the instance handles for the Alarm class
+	aIH0 --| aIH1 	
+	
+	-- the instance handles for the Door class
+	| dIH0 --| dIH1 	
+	
+	-- the instance handles for the Door_Controller class
+	| dcIH0 --| dcIH1 	
+	
+	-- the instance handles for the TIS_Main class
+	| tisIH0 | tisIH1 	
+	
+	-- the instance handles for the User class
+	| uIH0 | uIH1 	
+	
+	-- the instance handles for the User_Panel class
+	| upIH0 --| upIH1 	
+	
+	-- the instance handles representing an external source
+	| ext0 
+
+-- define the instance handles for the Alarm class
+Alarm_INSTANCES = {  aIH0 } --, aIH1  }
+
+-- define the instance handles for the Door class
+Door_INSTANCES = {  dIH0 } --, dIH1  }
+
+-- define the instance handles for the Door_Controller class
+Door_Controller_INSTANCES = {  dcIH0 } --, dcIH1  }
+
+-- define the instance handles for the TIS_Main class
+TIS_Main_INSTANCES = {  tisIH0 , tisIH1  }
+
+-- define the instance handles for the User class
+User_INSTANCES = {  uIH0 , uIH1  }
+
+-- define the instance handles for the User_Panel class
+User_Panel_INSTANCES = {  upIH0 } --, upIH1  }
+
+-- define the instance handles for an external source
+SystemB_External_INSTANCES = {  ext0  }
+
+-- define a function to determine the class to which an instance belongs
+classOf(i) = 
+	if member(i, Alarm_INSTANCES) then Alarm
+	else
+	if member(i, Door_INSTANCES) then Door
+	else
+	if member(i, Door_Controller_INSTANCES) then Door_Controller
+	else
+	if member(i, TIS_Main_INSTANCES) then TIS_Main
+	else
+	if member(i, User_INSTANCES) then User
+	else
+	if member(i, User_Panel_INSTANCES) then User_Panel
+	else --member(i, SystemB_External_INSTANCES) then 
+             SystemB_External
+	
+
+-- define a type denoting the names of all actions in the system
+datatype ACTION = 
+	-- state actions
+	DC_OpenAndLockedOK_EntryAction |
+	DC_ClosedAndUnlocked_EntryAction |
+	DC_ClosedAndLocked_EntryAction |
+	DC_OpenAndUnlocked_EntryAction |
+	DC_OpenAndLockedKO_EntryAction |
+	U_In_EntryAction |
+	U_RequestingExit_EntryAction |
+	U_Out_EntryAction |
+	U_RequestingEntry_EntryAction |
+	U_EntryPermittedDoorUnlocked_EntryAction |
+	UP_Quiescent_EntryAction |
+	UP_WaitingEntry_EntryAction |
+	UP_WaitingRemoveTokenSuccess_EntryAction |
+	UP_GotUserToken_EntryAction |
+	UP_WaitingFinger_EntryAction |
+	UP_GotFinger_EntryAction |
+	UP_WaitingUpdateToken_EntryAction |
+	UP_WaitingRemoveTokenFail_EntryAction |
+	UP_UnlockingDoor_EntryAction |
+	UP_DoorUnlocked_EntryAction |		
+	-- initialisation actions
+	init_1User_InitAction |
+	init_2Users_InitAction
+
+-- create channels for integer and boolean local variables
+channel lv_int : INSTANCE.ACTION.INT
+channel lv_bool : INSTANCE.ACTION.Bool
+channel lv_handle : INSTANCE.ACTION.INSTANCE
+
+-- define all the signals used within the state machines
+datatype SIGNALS = 	
+	-- signals of the Door_Controller class
+	  DC1_unlockLatchSignal | DC2_closeDoorSignal  | DC3_openDoorSignal  | DC4_lockLatchSignal  | DC5_timeoutSignal  | DC6_clearAlarmSignal  	
+	-- signals of the User class
+	| U1_requestExitSignal  | U2_exitSignal  | U3_doorIsOpenSignal  |
+	U4_requestEntrySignal  | U5_entryDeniedSignal  |
+	U6_userRefusesEntrySignal  | U7_canEnterSignal | U8_doorUnlockedSignal  	
+	-- signals of the User_Panel class
+	| UP1_entryOKSignal  | UP2_bioCheckNotRequiredSignal  | UP3_readUserTokenSignal  | UP4_readFingerOKSignal  | UP5_bioCheckRequiredSignal  | UP6_validateFingerOKSignal  | UP7_writeUserTokenOKSignal  | UP8_writeUserTokenFailedSignal  | UP9_EntryNotAllowedSignal  | UP10_FailedAccessTokenRemovedSignal  | UP11_unlockDoorSignal  | UP13_resetSignal  | UP14_unlockingDoorCompleteSignal | UP12_unlockedDoorSignal
+
+-- define a function to determine the signals of a given class
+signalsOf(Alarm) = {}
+signalsOf(Door) = {}
+signalsOf(Door_Controller) = { DC1_unlockLatchSignal, DC2_closeDoorSignal, DC3_openDoorSignal, DC4_lockLatchSignal, DC5_timeoutSignal, DC6_clearAlarmSignal }
+signalsOf(TIS_Main) = {}
+signalsOf(User) = { U1_requestExitSignal, U2_exitSignal, U3_doorIsOpenSignal, U4_requestEntrySignal, U5_entryDeniedSignal, U6_userRefusesEntrySignal, U8_doorUnlockedSignal }
+signalsOf(User_Panel) = { UP1_entryOKSignal, UP2_bioCheckNotRequiredSignal, UP3_readUserTokenSignal, UP4_readFingerOKSignal, UP5_bioCheckRequiredSignal, UP6_validateFingerOKSignal, UP7_writeUserTokenOKSignal, UP8_writeUserTokenFailedSignal, UP9_EntryNotAllowedSignal, UP10_FailedAccessTokenRemovedSignal, UP11_unlockDoorSignal, UP13_resetSignal, UP14_unlockingDoorCompleteSignal }
+
+
+{- define channels to allow signals to be generated by processes 
+   and thus added to / removed from the signal processing queues -}
+channel generate  : INSTANCE.INSTANCE.SIGNALS
+channel remove    : INSTANCE.INSTANCE.SIGNALS
+Qevents = {| generate, remove |}
+
+-- define a datatype so that we can report the state of an instance
+datatype STATE = 
+	-- states of the Door_Controller class
+	DC_OpenAndLockedKO | DC_OpenAndUnlocked | DC_ClosedAndLocked | DC_ClosedAndUnlocked | DC_OpenAndLockedOK 
+	-- states of the User class
+	| U_EntryPermittedDoorUnlocked | U_RequestingEntry | U_Out | U_RequestingExit | U_In 
+	-- states of the User_Panel class
+	| UP_DoorUnlocked | UP_UnlockingDoor | UP_WaitingRemoveTokenFail | UP_WaitingUpdateToken | UP_GotFinger | UP_WaitingFinger | UP_GotUserToken | UP_WaitingRemoveTokenSuccess | UP_WaitingEntry | UP_Quiescent 
+
+-- States of the Door_Controller class
+Door_Controller_States = 
+	{ DC_OpenAndLockedKO , DC_OpenAndUnlocked , DC_ClosedAndLocked , DC_ClosedAndUnlocked , DC_OpenAndLockedOK } 
+
+-- States of the User class
+User_States = 
+	{ U_EntryPermittedDoorUnlocked , U_RequestingEntry , U_Out , U_RequestingExit , U_In } 
+
+-- States of the User_Panel class
+User_Panel_States = 
+	{ UP_DoorUnlocked , UP_UnlockingDoor , UP_WaitingRemoveTokenFail , UP_WaitingUpdateToken , UP_GotFinger , UP_WaitingFinger , UP_GotUserToken , UP_WaitingRemoveTokenSuccess , UP_WaitingEntry , UP_Quiescent } 
+
+-- define a channel to record the state of an instance
+channel state : INSTANCE.STATE
+
+-- define a message channel used for certain warnings, e.g., occurrence of an xUML 'Cannot Happen' signal effect
+channel msg : INSTANCE.MESSAGE
+
+--------------------------- *Begin* defining the machine channels -----------------------------------------
+
+-- (Alarm class)
+channel A_create : INSTANCE.Alarm_INSTANCES
+channel A_delete : INSTANCE.Alarm_INSTANCES
+channel A_get_isAlarming : INSTANCE.Alarm_INSTANCES.Bool
+channel A_default_get_isAlarming : INSTANCE.Alarm_INSTANCES.Bool
+channel A_set_isAlarming : INSTANCE.Alarm_INSTANCES.Bool
+channel A_default_set_isAlarming : INSTANCE.Alarm_INSTANCES.Bool
+
+-- (Door class)
+channel D_create : INSTANCE.Door_INSTANCES
+channel D_delete : INSTANCE.Door_INSTANCES
+channel D_get_isOpen : INSTANCE.Door_INSTANCES.Bool
+channel D_default_get_isOpen : INSTANCE.Door_INSTANCES.Bool
+channel D_set_isOpen : INSTANCE.Door_INSTANCES.Bool
+channel D_default_set_isOpen : INSTANCE.Door_INSTANCES.Bool
+channel D_get_isLocked : INSTANCE.Door_INSTANCES.Bool
+channel D_default_get_isLocked : INSTANCE.Door_INSTANCES.Bool
+channel D_set_isLocked : INSTANCE.Door_INSTANCES.Bool
+channel D_default_set_isLocked : INSTANCE.Door_INSTANCES.Bool
+
+-- (Door_Controller class)
+channel DC_create : INSTANCE.Door_Controller_INSTANCES
+channel DC_delete : INSTANCE.Door_Controller_INSTANCES
+
+-- (TIS_Main class)
+channel TIS_create : INSTANCE.TIS_Main_INSTANCES
+channel TIS_delete : INSTANCE.TIS_Main_INSTANCES
+
+-- (User class)
+channel U_create : INSTANCE.User_INSTANCES
+channel U_delete : INSTANCE.User_INSTANCES
+channel U_get_isIn : INSTANCE.User_INSTANCES.Bool
+channel U_default_get_isIn : INSTANCE.User_INSTANCES.Bool
+channel U_set_isIn : INSTANCE.User_INSTANCES.Bool
+channel U_default_set_isIn : INSTANCE.User_INSTANCES.Bool
+
+-- (User_Panel class)
+channel UP_create : INSTANCE.User_Panel_INSTANCES
+channel UP_delete : INSTANCE.User_Panel_INSTANCES
+
+-- define channels for navigating, linking and unlinking relationships
+-- (relationship, R1, 'A End' = Door_Controller, 'B End' = Door)
+channel nav_R1_from_AEnd_DC : INSTANCE.Door_Controller_INSTANCES.Door_INSTANCES.Bool
+channel nav_R1_from_BEnd_D : INSTANCE.Door_INSTANCES.Door_Controller_INSTANCES.Bool
+channel link_R1: INSTANCE.Door_Controller_INSTANCES.Door_INSTANCES
+channel unlink_R1: INSTANCE.Door_Controller_INSTANCES.Door_INSTANCES
+
+-- (relationship, R2, 'A End' = Door_Controller, 'B End' = User)
+channel nav_R2_from_AEnd_DC : INSTANCE.Door_Controller_INSTANCES.Set(User_INSTANCES).Bool
+channel nav_R2_from_BEnd_U : INSTANCE.User_INSTANCES.Door_Controller_INSTANCES.Bool
+channel link_R2: INSTANCE.Door_Controller_INSTANCES.User_INSTANCES
+channel unlink_R2: INSTANCE.Door_Controller_INSTANCES.User_INSTANCES
+
+-- (relationship, R3, 'A End' = Door_Controller, 'B End' = Alarm)
+channel nav_R3_from_AEnd_DC : INSTANCE.Door_Controller_INSTANCES.Alarm_INSTANCES.Bool
+channel nav_R3_from_BEnd_A : INSTANCE.Alarm_INSTANCES.Door_Controller_INSTANCES.Bool
+channel link_R3: INSTANCE.Door_Controller_INSTANCES.Alarm_INSTANCES
+channel unlink_R3: INSTANCE.Door_Controller_INSTANCES.Alarm_INSTANCES
+
+-- (relationship, R4, 'A End' = User, 'B End' = User_Panel)
+channel nav_R4_from_AEnd_U : INSTANCE.User_INSTANCES.User_Panel_INSTANCES.Bool
+channel nav_R4_from_BEnd_UP : INSTANCE.User_Panel_INSTANCES.Set(User_INSTANCES).Bool
+channel link_R4: INSTANCE.User_INSTANCES.User_Panel_INSTANCES
+channel unlink_R4: INSTANCE.User_INSTANCES.User_Panel_INSTANCES
+
+-- (relationship, R5, 'A End' = User_Panel, 'B End' = Door_Controller)
+channel nav_R5_from_AEnd_UP : INSTANCE.User_Panel_INSTANCES.Door_Controller_INSTANCES.Bool
+channel nav_R5_from_BEnd_DC : INSTANCE.Door_Controller_INSTANCES.User_Panel_INSTANCES.Bool
+channel link_R5: INSTANCE.User_Panel_INSTANCES.Door_Controller_INSTANCES
+channel unlink_R5: INSTANCE.User_Panel_INSTANCES.Door_Controller_INSTANCES
+
+-- (relationship, R6, 'A End' = TIS_Main, 'B End' = Door_Controller)
+channel nav_R6_from_AEnd_TIS : INSTANCE.TIS_Main_INSTANCES.Door_Controller_INSTANCES.Bool
+channel nav_R6_from_BEnd_DC : INSTANCE.Door_Controller_INSTANCES.TIS_Main_INSTANCES.Bool
+channel link_R6: INSTANCE.TIS_Main_INSTANCES.Door_Controller_INSTANCES
+channel unlink_R6: INSTANCE.TIS_Main_INSTANCES.Door_Controller_INSTANCES
+
+-- (relationship, R7, 'A End' = User_Panel, 'B End' = TIS_Main)
+channel nav_R7_from_AEnd_UP : INSTANCE.User_Panel_INSTANCES.TIS_Main_INSTANCES.Bool
+channel nav_R7_from_BEnd_TIS : INSTANCE.TIS_Main_INSTANCES.User_Panel_INSTANCES.Bool
+channel link_R7: INSTANCE.User_Panel_INSTANCES.TIS_Main_INSTANCES
+channel unlink_R7: INSTANCE.User_Panel_INSTANCES.TIS_Main_INSTANCES
+
+-- define channels for set restrictions, e.g., find operations
+
+
+--------------------------- *End* defining the machine channels -----------------------------------------
+
+------------------------------------- xUML Class Behaviour -------------------------------------
+---- define processes representing the behaviour of the classes
+
+{- processes for the Alarm class -}
+---- define a process modelling the availability of operations of an instance
+---- (including A_delete, but not A_create)
+A_OPS(ih) = ([] op : Union({ {| A_get_isAlarming.caller.ih | caller <- INSTANCE |},
+                      {| A_set_isAlarming.caller.ih | caller <- INSTANCE |} }) @ op -> A_OPS(ih))
+                      []
+                      (A_delete?_!ih -> STOP)
+aA_OPS(ih) = Union({ {| A_get_isAlarming.caller.ih | caller <- INSTANCE |},
+                      {| A_set_isAlarming.caller.ih | caller <- INSTANCE |}, {| A_delete.caller.ih | caller <- INSTANCE |} })
+		
+---- define a process for the complete behaviour of an instance of Alarm (excluding A_create)
+A_CTRL(ih) = A_OPS(ih)
+aA_CTRL(ih) = aA_OPS(ih)
+
+---- define a process for the complete behaviour of all instances of Alarm
+A_CTRLS = ||| ih : Alarm_INSTANCES @ A_create?_!ih -> A_CTRL(ih)
+aA_CTRLS = union(
+	{A_create.caller.ih | caller <- INSTANCE, ih <- Alarm_INSTANCES},
+	Union({aA_CTRL(ih) | ih <- Alarm_INSTANCES})
+)
+
+
+{- processes for the Door class -}
+---- define a process modelling the availability of operations of an instance
+---- (including D_delete, but not D_create)
+D_OPS(ih) = ([] op : Union({ {| D_get_isOpen.caller.ih | caller <- INSTANCE |},
+                      {| D_set_isOpen.caller.ih | caller <- INSTANCE |},
+                      {| D_get_isLocked.caller.ih | caller <- INSTANCE |},
+                      {| D_set_isLocked.caller.ih | caller <- INSTANCE |} }) @ op -> D_OPS(ih))
+                      []
+                      (D_delete?_!ih -> STOP)
+aD_OPS(ih) = Union({ {| D_get_isOpen.caller.ih | caller <- INSTANCE |},
+                      {| D_set_isOpen.caller.ih | caller <- INSTANCE |},
+                      {| D_get_isLocked.caller.ih | caller <- INSTANCE |},
+                      {| D_set_isLocked.caller.ih | caller <- INSTANCE |}, {| D_delete.caller.ih | caller <- INSTANCE |} })
+		
+---- define a process for the complete behaviour of an instance of Door (excluding D_create)
+D_CTRL(ih) = D_OPS(ih)
+aD_CTRL(ih) = aD_OPS(ih)
+
+---- define a process for the complete behaviour of all instances of Door
+D_CTRLS = ||| ih : Door_INSTANCES @ D_create?_!ih -> D_CTRL(ih)
+aD_CTRLS = union(
+	{D_create.caller.ih | caller <- INSTANCE, ih <- Door_INSTANCES},
+	Union({aD_CTRL(ih) | ih <- Door_INSTANCES})
+)
+
+
+{- processes for the Door_Controller class -}
+---- define a process for the behaviour of the state chart for Door_Controller instances
+DC_SCTRL(dc) =
+let
+	--  OpenAndLockedKO processes
+	DC_OpenAndLockedKO_ENTRY = 
+		nav_R3_from_AEnd_DC!dc!dc?myAlarm?myAlarm_success ->
+		A_set_isAlarming!dc!myAlarm!true ->
+		nav_R1_from_AEnd_DC!dc!dc?myDoor?myDoor_success ->
+		D_set_isOpen!dc!myDoor!true ->
+		D_set_isLocked!dc!myDoor!true ->
+		generate!dc!dc!DC2_closeDoorSignal ->
+		DC_OpenAndLockedKO_STATE
+	DC_OpenAndLockedKO_STATE = 
+		(remove!dc?_!DC6_clearAlarmSignal -> DC_OpenAndLockedOK_ENTRY) -- transition
+		[]
+		(remove!dc?_!DC2_closeDoorSignal -> DC_ClosedAndLocked_ENTRY) -- transition
+		[]
+		(remove!dc?_!DC1_unlockLatchSignal -> DC_OpenAndUnlocked_ENTRY) -- transition
+		[]
+		-- signal(s) ignored
+		([] s : {|DC3_openDoorSignal,
+			  DC4_lockLatchSignal|} @ remove!dc?_!s -> msg.dc.ignored -> DC_OpenAndLockedKO_STATE)
+
+	--  OpenAndUnlocked processes
+	DC_OpenAndUnlocked_ENTRY = 
+		nav_R3_from_AEnd_DC!dc!dc?myAlarm?myAlarm_success ->
+		A_set_isAlarming!dc!myAlarm!false ->
+		nav_R1_from_AEnd_DC!dc!dc?myDoor?myDoor_success ->
+		D_set_isOpen!dc!myDoor!true ->
+		D_set_isLocked!dc!myDoor!false ->
+		nav_R2_from_AEnd_DC!dc!dc?attachedUsers?attachedUsers_success ->
+		FOR_14_ID28(attachedUsers) -- for-loop (id=28, line=14)
+	FOR_14_ID28({}) = -- for-loop (id=28, line=14) base case; perform post loop processing
+		FOR_14_ID28_POST
+	FOR_14_ID28(attachedUsers) = -- for-loop (id=28, line=14) iterates over non-empty set
+		|~| attachedUser : attachedUsers @ -- arbitrary element, attachedUser chosen
+		generate!attachedUser!dc!U3_doorIsOpenSignal ->
+		FOR_14_ID28(diff(attachedUsers,{attachedUser})) -- remove attachedUser and recurse
+	FOR_14_ID28_POST = -- post for-loop (id=28, line=14) process
+		DC_OpenAndUnlocked_STATE
+	DC_OpenAndUnlocked_STATE = 
+		(remove!dc?_!DC2_closeDoorSignal -> DC_ClosedAndUnlocked_ENTRY) -- transition
+		[]
+		(remove!dc?_!DC4_lockLatchSignal -> DC_OpenAndLockedOK_ENTRY) -- transition
+		[]
+		(remove!dc?_!DC1_unlockLatchSignal -> DC_OpenAndUnlocked_ENTRY) -- transition
+		[]
+		-- signal(s) ignored
+		([] s : {|DC3_openDoorSignal|} @ remove!dc?_!s -> msg.dc.ignored -> DC_OpenAndUnlocked_STATE)
+
+	--  ClosedAndLocked processes
+	DC_ClosedAndLocked_ENTRY = 
+		nav_R3_from_AEnd_DC!dc!dc?myAlarm?myAlarm_success ->
+		A_set_isAlarming!dc!myAlarm!false ->
+		nav_R1_from_AEnd_DC!dc!dc?myDoor?myDoor_success ->
+		D_set_isOpen!dc!myDoor!false ->
+		D_set_isLocked!dc!myDoor!true ->
+		DC_ClosedAndLocked_STATE
+	DC_ClosedAndLocked_STATE = 
+		(remove!dc?_!DC3_openDoorSignal -> DC_OpenAndLockedOK_ENTRY) -- transition
+		[]
+		(remove!dc?_!DC1_unlockLatchSignal -> DC_ClosedAndUnlocked_ENTRY) -- transition
+		[]
+		-- signal(s) ignored
+		([] s : {|DC2_closeDoorSignal,
+			  DC4_lockLatchSignal|} @ remove!dc?_!s -> msg.dc.ignored -> DC_ClosedAndLocked_STATE)
+
+	--  ClosedAndUnlocked processes
+	DC_ClosedAndUnlocked_ENTRY = 
+		nav_R1_from_AEnd_DC!dc!dc?myDoor?myDoor_success ->
+		D_set_isOpen!dc!myDoor!false ->
+		D_set_isLocked!dc!myDoor!false ->
+		lv_bool!dc!DC_ClosedAndUnlocked_EntryAction?lockTimeoutExceeded:{false} ->
+		(if ( (lockTimeoutExceeded == true) ) then -- (id=13, line=7)
+			IF_7_ID13_TRUE		
+		else 
+			IF_7_ID13_FALSE)
+	IF_7_ID13_TRUE = -- if (id=13, line=7) condition is true
+		generate!dc!dc!DC4_lockLatchSignal ->
+		IF_7_ID13_POST
+	IF_7_ID13_FALSE = -- if (id=13, line=7) condition is false
+		IF_7_ID13_POST
+	IF_7_ID13_POST = -- post if (id=13, line=7) processing
+		nav_R5_from_BEnd_DC!dc!dc?up?up_success ->
+		generate!up!dc!UP14_unlockingDoorCompleteSignal ->
+		DC_ClosedAndUnlocked_STATE
+	DC_ClosedAndUnlocked_STATE = 
+		(remove!dc?_!DC3_openDoorSignal -> DC_OpenAndUnlocked_ENTRY) -- transition
+		[]
+		(remove!dc?_!DC4_lockLatchSignal -> DC_ClosedAndLocked_ENTRY) -- transition
+		[]
+		-- signal(s) ignored
+		([] s : {|DC2_closeDoorSignal,
+			  DC1_unlockLatchSignal|} @ remove!dc?_!s -> msg.dc.ignored -> DC_ClosedAndUnlocked_STATE)
+
+	--  OpenAndLockedOK processes
+	DC_OpenAndLockedOK_ENTRY = 
+		nav_R3_from_AEnd_DC!dc!dc?myAlarm?myAlarm_success ->
+		A_set_isAlarming!dc!myAlarm!false ->
+		nav_R1_from_AEnd_DC!dc!dc?myDoor?myDoor_success ->
+		D_set_isOpen!dc!myDoor!true ->
+		D_set_isLocked!dc!myDoor!true ->
+		lv_bool!dc!DC_OpenAndLockedOK_EntryAction?latchTimeoutExceeded:{false} ->
+		(if ( (latchTimeoutExceeded == true) ) then -- (id=7, line=15)
+			IF_15_ID7_TRUE		
+		else 
+			IF_15_ID7_FALSE)
+	IF_15_ID7_TRUE = -- if (id=7, line=15) condition is true
+		generate!dc!dc!DC5_timeoutSignal ->
+		IF_15_ID7_POST
+	IF_15_ID7_FALSE = -- if (id=7, line=15) condition is false
+		IF_15_ID7_POST
+	IF_15_ID7_POST = -- post if (id=7, line=15) processing
+		DC_OpenAndLockedOK_STATE
+	DC_OpenAndLockedOK_STATE = 
+		(remove!dc?_!DC5_timeoutSignal -> DC_OpenAndLockedKO_ENTRY) -- transition
+		[]
+		(remove!dc?_!DC2_closeDoorSignal -> DC_ClosedAndLocked_ENTRY) -- transition
+		[]
+		(remove!dc?_!DC1_unlockLatchSignal -> DC_OpenAndUnlocked_ENTRY) -- transition
+		[]
+		-- signal(s) ignored
+		([] s : {|DC3_openDoorSignal,
+			  DC4_lockLatchSignal|} @ remove!dc?_!s -> msg.dc.ignored -> DC_OpenAndLockedOK_STATE)
+
+within DC_ClosedAndLocked_STATE
+
+
+-- Alphabet for the state chart of the Door_Controller class
+aDC_SCTRL(dc) = Union({
+	{ nav_R3_from_AEnd_DC.dc.dc.dest.b0 | dest <- Alarm_INSTANCES, b0 <- Bool },
+	{ A_set_isAlarming.dc.myAlarm.true | myAlarm <- Alarm_INSTANCES },
+	{ nav_R1_from_AEnd_DC.dc.dc.dest.b0 | dest <- Door_INSTANCES, b0 <- Bool },
+	{ D_set_isOpen.dc.myDoor.true | myDoor <- Door_INSTANCES },
+	{ D_set_isLocked.dc.myDoor.true | myDoor <- Door_INSTANCES },
+	{ generate.dc.dc.DC2_closeDoorSignal },
+	{| remove.dc.s.DC6_clearAlarmSignal | s <- INSTANCE |},
+	{| remove.dc.s.DC2_closeDoorSignal | s <- INSTANCE |},
+	{| remove.dc.s.DC1_unlockLatchSignal | s <- INSTANCE |},
+	{| remove.dc.s.DC3_openDoorSignal | s <- INSTANCE |},
+	{| remove.dc.s.DC4_lockLatchSignal | s <- INSTANCE |},
+	{ msg.dc.ignored },
+	{ nav_R3_from_AEnd_DC.dc.dc.dest.b0 | dest <- Alarm_INSTANCES, b0 <- Bool },
+	{ A_set_isAlarming.dc.myAlarm.false | myAlarm <- Alarm_INSTANCES },
+	{ nav_R1_from_AEnd_DC.dc.dc.dest.b0 | dest <- Door_INSTANCES, b0 <- Bool },
+	{ D_set_isOpen.dc.myDoor.true | myDoor <- Door_INSTANCES },
+	{ D_set_isLocked.dc.myDoor.false | myDoor <- Door_INSTANCES },
+	{ nav_R2_from_AEnd_DC.dc.dc.dest.b0 | dest <- Set(User_INSTANCES), b0 <- Bool },
+	{ generate.attachedUser.dc.U3_doorIsOpenSignal | attachedUser <- User_INSTANCES },
+	{| remove.dc.s.DC2_closeDoorSignal | s <- INSTANCE |},
+	{| remove.dc.s.DC4_lockLatchSignal | s <- INSTANCE |},
+	{| remove.dc.s.DC1_unlockLatchSignal | s <- INSTANCE |},
+	{| remove.dc.s.DC3_openDoorSignal | s <- INSTANCE |},
+	{ msg.dc.ignored },
+	{ nav_R3_from_AEnd_DC.dc.dc.dest.b0 | dest <- Alarm_INSTANCES, b0 <- Bool },
+	{ A_set_isAlarming.dc.myAlarm.false | myAlarm <- Alarm_INSTANCES },
+	{ nav_R1_from_AEnd_DC.dc.dc.dest.b0 | dest <- Door_INSTANCES, b0 <- Bool },
+	{ D_set_isOpen.dc.myDoor.false | myDoor <- Door_INSTANCES },
+	{ D_set_isLocked.dc.myDoor.true | myDoor <- Door_INSTANCES },
+	{| remove.dc.s.DC3_openDoorSignal | s <- INSTANCE |},
+	{| remove.dc.s.DC1_unlockLatchSignal | s <- INSTANCE |},
+	{| remove.dc.s.DC2_closeDoorSignal | s <- INSTANCE |},
+	{| remove.dc.s.DC4_lockLatchSignal | s <- INSTANCE |},
+	{ msg.dc.ignored },
+	{ nav_R1_from_AEnd_DC.dc.dc.dest.b0 | dest <- Door_INSTANCES, b0 <- Bool },
+	{ D_set_isOpen.dc.myDoor.false | myDoor <- Door_INSTANCES },
+	{ D_set_isLocked.dc.myDoor.false | myDoor <- Door_INSTANCES },
+	{ lv_bool.dc.DC_ClosedAndUnlocked_EntryAction.false },
+	{ generate.dc.dc.DC4_lockLatchSignal },
+	{ nav_R5_from_BEnd_DC.dc.dc.dest.b0 | dest <- User_Panel_INSTANCES, b0 <- Bool },
+	{ generate.up.dc.UP14_unlockingDoorCompleteSignal | up <- User_Panel_INSTANCES },
+	{| remove.dc.s.DC3_openDoorSignal | s <- INSTANCE |},
+	{| remove.dc.s.DC4_lockLatchSignal | s <- INSTANCE |},
+	{| remove.dc.s.DC2_closeDoorSignal | s <- INSTANCE |},
+	{| remove.dc.s.DC1_unlockLatchSignal | s <- INSTANCE |},
+	{ msg.dc.ignored },
+	{ nav_R3_from_AEnd_DC.dc.dc.dest.b0 | dest <- Alarm_INSTANCES, b0 <- Bool },
+	{ A_set_isAlarming.dc.myAlarm.false | myAlarm <- Alarm_INSTANCES },
+	{ nav_R1_from_AEnd_DC.dc.dc.dest.b0 | dest <- Door_INSTANCES, b0 <- Bool },
+	{ D_set_isOpen.dc.myDoor.true | myDoor <- Door_INSTANCES },
+	{ D_set_isLocked.dc.myDoor.true | myDoor <- Door_INSTANCES },
+	{ lv_bool.dc.DC_OpenAndLockedOK_EntryAction.false },
+	{ generate.dc.dc.DC5_timeoutSignal },
+	{| remove.dc.s.DC5_timeoutSignal | s <- INSTANCE |},
+	{| remove.dc.s.DC2_closeDoorSignal | s <- INSTANCE |},
+	{| remove.dc.s.DC1_unlockLatchSignal | s <- INSTANCE |},
+	{| remove.dc.s.DC3_openDoorSignal | s <- INSTANCE |},
+	{| remove.dc.s.DC4_lockLatchSignal | s <- INSTANCE |},
+	{ msg.dc.ignored } })
+
+---- define a process modelling the availability of operations of an instance
+---- (including DC_delete, but not DC_create)
+DC_OPS(ih) = DC_delete?_!ih -> STOP
+aDC_OPS(ih) = {| DC_delete.caller.ih | caller <- INSTANCE |}
+
+---- define a process for the complete behaviour of an instance of Door_Controller (excluding DC_create)
+DC_CTRL(ih) = (DC_SCTRL(ih) /\ (DC_delete?_!ih -> STOP)) [|{|DC_delete.caller.ih | caller <- INSTANCE |}|] DC_OPS(ih)
+aDC_CTRL(ih) = Union({
+	aDC_SCTRL(ih),
+	aDC_OPS(ih)
+})
+
+---- define a process for the complete behaviour of all instances of Door_Controller
+DC_CTRLS = ||| ih : Door_Controller_INSTANCES @ DC_create?_!ih -> DC_CTRL(ih)
+aDC_CTRLS = union(
+	{DC_create.caller.ih | caller <- INSTANCE, ih <- Door_Controller_INSTANCES},
+	Union({aDC_CTRL(ih) | ih <- Door_Controller_INSTANCES})
+)
+
+
+{- processes for the TIS_Main class -}
+---- define a process modelling the availability of operations of an instance
+---- (including TIS_delete, but not TIS_create)
+TIS_OPS(ih) = TIS_delete?_!ih -> STOP
+aTIS_OPS(ih) = {| TIS_delete.caller.ih | caller <- INSTANCE |}
+
+---- define a process for the complete behaviour of an instance of TIS_Main (excluding TIS_create)
+TIS_CTRL(ih) = TIS_OPS(ih)
+aTIS_CTRL(ih) = aTIS_OPS(ih)
+
+---- define a process for the complete behaviour of all instances of TIS_Main
+TIS_CTRLS = ||| ih : TIS_Main_INSTANCES @ TIS_create?_!ih -> TIS_CTRL(ih)
+aTIS_CTRLS = union(
+	{TIS_create.caller.ih | caller <- INSTANCE, ih <- TIS_Main_INSTANCES},
+	Union({aTIS_CTRL(ih) | ih <- TIS_Main_INSTANCES})
+)
+
+
+{- processes for the User class -}
+---- define a process for the behaviour of the state chart for User instances
+U_SCTRL(u) =
+let
+	--  EntryPermittedDoorUnlocked processes
+	U_EntryPermittedDoorUnlocked_ENTRY = 
+		nav_R2_from_BEnd_U!u!u?dc?dc_success ->
+		generate!dc!u!DC3_openDoorSignal ->
+		U_EntryPermittedDoorUnlocked_STATE
+	U_EntryPermittedDoorUnlocked_STATE = 
+		(remove!u?_!U3_doorIsOpenSignal -> U_In_ENTRY) -- transition
+
+	--  RequestingEntry processes
+	U_RequestingEntry_ENTRY = 
+		nav_R4_from_AEnd_U!u!u?userPanel?userPanel_success ->
+		generate!userPanel!u!UP3_readUserTokenSignal ->
+		lv_bool!u!U_RequestingEntry_EntryAction?userChoosesToEnter:{true} ->
+		(if ( (userChoosesToEnter == false) ) then -- (id=43, line=6)
+			IF_6_ID43_TRUE		
+		else 
+			IF_6_ID43_FALSE)
+	IF_6_ID43_TRUE = -- if (id=43, line=6) condition is true
+		generate!u!u!U6_userRefusesEntrySignal ->
+		IF_6_ID43_POST
+	IF_6_ID43_FALSE = -- if (id=43, line=6) condition is false
+		IF_6_ID43_POST
+	IF_6_ID43_POST = -- post if (id=43, line=6) processing
+		U_RequestingEntry_STATE
+	U_RequestingEntry_STATE = 
+		(remove!u?_!U8_doorUnlockedSignal -> U_EntryPermittedDoorUnlocked_ENTRY) -- transition
+		[]
+		(remove!u?_!U6_userRefusesEntrySignal -> U_Out_ENTRY) -- transition
+		[]
+		(remove!u?_!U5_entryDeniedSignal -> U_Out_ENTRY) -- transition
+		[]
+		-- signal(s) cannot happen
+		([] s : {|U3_doorIsOpenSignal|} @ remove!u?_!s -> msg.u.cannot_happen -> U_RequestingEntry_STATE)
+
+	--  Out processes
+	U_Out_ENTRY = 
+		U_default_set_isIn!u!u!false ->
+		U_Out_STATE
+	U_Out_STATE = 
+		(remove!u?_!U4_requestEntrySignal -> U_RequestingEntry_ENTRY) -- transition
+		[]
+		-- signal(s) ignored
+		([] s : {|U8_doorUnlockedSignal,
+			  U7_canEnterSignal,
+			  U6_userRefusesEntrySignal,
+			  U5_entryDeniedSignal,
+			  U2_exitSignal,
+			  U1_requestExitSignal|} @ remove!u?_!s -> msg.u.ignored -> U_Out_STATE)
+		[]
+		-- signal(s) cannot happen
+		([] s : {|U3_doorIsOpenSignal|} @ remove!u?_!s -> msg.u.cannot_happen -> U_Out_STATE)
+
+	--  RequestingExit processes
+	U_RequestingExit_ENTRY = 
+		U_RequestingExit_STATE
+	U_RequestingExit_STATE = 
+		(remove!u?_!U2_exitSignal -> U_Out_ENTRY) -- transition
+		[]
+		-- signal(s) cannot happen
+		([] s : {|U3_doorIsOpenSignal|} @ remove!u?_!s -> msg.u.cannot_happen -> U_RequestingExit_STATE)
+
+	--  In processes
+	U_In_ENTRY = 
+		U_default_set_isIn!u!u!true ->
+		nav_R2_from_BEnd_U!u!u?dc?dc_success ->
+		generate!dc!u!DC2_closeDoorSignal ->
+		U_In_STATE
+	U_In_STATE = 
+		(remove!u?_!U1_requestExitSignal -> U_RequestingExit_ENTRY) -- transition
+		[]
+		-- signal(s) ignored
+		([] s : {|U3_doorIsOpenSignal|} @ remove!u?_!s -> msg.u.ignored -> U_In_STATE)
+
+within U_Out_STATE
+
+
+-- Alphabet for the state chart of the User class
+aU_SCTRL(u) = Union({
+	{ nav_R2_from_BEnd_U.u.u.dest.b0 | dest <- Door_Controller_INSTANCES, b0 <- Bool },
+	{ generate.dc.u.DC3_openDoorSignal | dc <- Door_Controller_INSTANCES },
+	{| remove.u.s.U3_doorIsOpenSignal | s <- INSTANCE |},
+	{ nav_R4_from_AEnd_U.u.u.dest.b0 | dest <- User_Panel_INSTANCES, b0 <- Bool },
+	{ generate.userPanel.u.UP3_readUserTokenSignal | userPanel <- User_Panel_INSTANCES },
+	{ lv_bool.u.U_RequestingEntry_EntryAction.true },
+	{ generate.u.u.U6_userRefusesEntrySignal },
+	{| remove.u.s.U8_doorUnlockedSignal | s <- INSTANCE |},
+	{| remove.u.s.U6_userRefusesEntrySignal | s <- INSTANCE |},
+	{| remove.u.s.U5_entryDeniedSignal | s <- INSTANCE |},
+	{| remove.u.s.U3_doorIsOpenSignal | s <- INSTANCE |},
+	{ msg.u.cannot_happen },
+	{ U_default_set_isIn.u.u.false },
+	{| remove.u.s.U4_requestEntrySignal | s <- INSTANCE |},
+	{| remove.u.s.U8_doorUnlockedSignal | s <- INSTANCE |},
+	{| remove.u.s.U7_canEnterSignal | s <- INSTANCE |},
+	{| remove.u.s.U6_userRefusesEntrySignal | s <- INSTANCE |},
+	{| remove.u.s.U5_entryDeniedSignal | s <- INSTANCE |},
+	{| remove.u.s.U2_exitSignal | s <- INSTANCE |},
+	{| remove.u.s.U1_requestExitSignal | s <- INSTANCE |},
+	{ msg.u.ignored },
+	{| remove.u.s.U3_doorIsOpenSignal | s <- INSTANCE |},
+	{ msg.u.cannot_happen },
+	{| remove.u.s.U2_exitSignal | s <- INSTANCE |},
+	{| remove.u.s.U3_doorIsOpenSignal | s <- INSTANCE |},
+	{ msg.u.cannot_happen },
+	{ U_default_set_isIn.u.u.true },
+	{ nav_R2_from_BEnd_U.u.u.dest.b0 | dest <- Door_Controller_INSTANCES, b0 <- Bool },
+	{ generate.dc.u.DC2_closeDoorSignal | dc <- Door_Controller_INSTANCES },
+	{| remove.u.s.U1_requestExitSignal | s <- INSTANCE |},
+	{| remove.u.s.U3_doorIsOpenSignal | s <- INSTANCE |},
+	{ msg.u.ignored } })
+
+---- define a process modelling the availability of operations of an instance
+---- (including U_delete, but not U_create)
+U_OPS(ih) = ([] op : Union({ {| U_get_isIn.caller.ih | caller <- INSTANCE |},
+                      {| U_set_isIn.caller.ih | caller <- INSTANCE |} }) @ op -> U_OPS(ih))
+                      []
+                      (U_delete?_!ih -> STOP)
+aU_OPS(ih) = Union({ {| U_get_isIn.caller.ih | caller <- INSTANCE |},
+                      {| U_set_isIn.caller.ih | caller <- INSTANCE |}, {| U_delete.caller.ih | caller <- INSTANCE |} })
+		
+---- define a process for the complete behaviour of an instance of User (excluding U_create)
+U_CTRL(ih) = (U_SCTRL(ih) /\ (U_delete?_!ih -> STOP)) [|{|U_delete.caller.ih | caller <- INSTANCE |}|] U_OPS(ih)
+aU_CTRL(ih) = Union({
+	aU_SCTRL(ih),
+	aU_OPS(ih)
+})
+
+---- define a process for the complete behaviour of all instances of User
+U_CTRLS = ||| ih : User_INSTANCES @ U_create?_!ih -> U_CTRL(ih)
+aU_CTRLS = union(
+	{U_create.caller.ih | caller <- INSTANCE, ih <- User_INSTANCES},
+	Union({aU_CTRL(ih) | ih <- User_INSTANCES})
+)
+
+
+{- processes for the User_Panel class -}
+---- define a process for the behaviour of the state chart for User_Panel instances
+UP_SCTRL(up) =
+let
+	--  DoorUnlocked processes
+	UP_DoorUnlocked_ENTRY = 
+		nav_R4_from_BEnd_UP!up!up?attachedUsers?attachedUsers_success ->
+		FOR_5_ID60(attachedUsers) -- for-loop (id=60, line=5)
+	FOR_5_ID60({}) = -- for-loop (id=60, line=5) base case; perform post loop processing
+		FOR_5_ID60_POST
+	FOR_5_ID60(attachedUsers) = -- for-loop (id=60, line=5) iterates over non-empty set
+		|~| attachedUser : attachedUsers @ -- arbitrary element, attachedUser chosen
+		generate!attachedUser!up!U8_doorUnlockedSignal ->
+		FOR_5_ID60(diff(attachedUsers,{attachedUser})) -- remove attachedUser and recurse
+	FOR_5_ID60_POST = -- post for-loop (id=60, line=5) process
+		generate!up!up!UP13_resetSignal ->
+		UP_DoorUnlocked_STATE
+	UP_DoorUnlocked_STATE = 
+		(remove!up?_!UP13_resetSignal -> UP_Quiescent_ENTRY) -- transition
+
+	--  UnlockingDoor processes
+	UP_UnlockingDoor_ENTRY = 
+		nav_R5_from_AEnd_UP!up!up?dc?dc_success ->
+		generate!dc!up!DC1_unlockLatchSignal ->
+		UP_UnlockingDoor_STATE
+	UP_UnlockingDoor_STATE = 
+		(remove!up?_!UP14_unlockingDoorCompleteSignal -> UP_DoorUnlocked_ENTRY) -- transition
+
+	--  WaitingRemoveTokenFail processes
+	UP_WaitingRemoveTokenFail_ENTRY = 
+		generate!up!up!UP10_FailedAccessTokenRemovedSignal ->
+		UP_WaitingRemoveTokenFail_STATE
+	UP_WaitingRemoveTokenFail_STATE = 
+		(remove!up?_!UP10_FailedAccessTokenRemovedSignal -> UP_Quiescent_ENTRY) -- transition
+
+	--  WaitingUpdateToken processes
+	UP_WaitingUpdateToken_ENTRY = 
+		generate!up!up!UP7_writeUserTokenOKSignal ->
+		UP_WaitingUpdateToken_STATE
+	UP_WaitingUpdateToken_STATE = 
+		(remove!up?_!UP8_writeUserTokenFailedSignal -> UP_WaitingEntry_ENTRY) -- transition
+		[]
+		(remove!up?_!UP7_writeUserTokenOKSignal -> UP_WaitingEntry_ENTRY) -- transition
+
+	--  GotFinger processes
+	UP_GotFinger_ENTRY = 
+		generate!up!up!UP6_validateFingerOKSignal ->
+		UP_GotFinger_STATE
+	UP_GotFinger_STATE = 
+		(remove!up?_!UP6_validateFingerOKSignal -> UP_WaitingUpdateToken_ENTRY) -- transition
+
+	--  WaitingFinger processes
+	UP_WaitingFinger_ENTRY = 
+		generate!up!up!UP4_readFingerOKSignal ->
+		UP_WaitingFinger_STATE
+	UP_WaitingFinger_STATE = 
+		(remove!up?_!UP4_readFingerOKSignal -> UP_GotFinger_ENTRY) -- transition
+
+	--  GotUserToken processes
+	UP_GotUserToken_ENTRY = 
+		generate!up!up!UP5_bioCheckRequiredSignal ->
+		UP_GotUserToken_STATE
+	UP_GotUserToken_STATE = 
+		(remove!up?_!UP5_bioCheckRequiredSignal -> UP_WaitingFinger_ENTRY) -- transition
+		[]
+		(remove!up?_!UP2_bioCheckNotRequiredSignal -> UP_WaitingEntry_ENTRY) -- transition
+
+	--  WaitingRemoveTokenSuccess processes
+	UP_WaitingRemoveTokenSuccess_ENTRY = 
+		generate!up!up!UP11_unlockDoorSignal ->
+		UP_WaitingRemoveTokenSuccess_STATE
+	UP_WaitingRemoveTokenSuccess_STATE = 
+		(remove!up?_!UP11_unlockDoorSignal -> UP_UnlockingDoor_ENTRY) -- transition
+
+	--  WaitingEntry processes
+	UP_WaitingEntry_ENTRY = 
+		lv_bool!up!UP_WaitingEntry_EntryAction?entryAuthorised:{true} ->
+		(if ( (entryAuthorised == true) ) then -- (id=48, line=3)
+			IF_3_ID48_TRUE		
+		else 
+			IF_3_ID48_FALSE)
+	IF_3_ID48_TRUE = -- if (id=48, line=3) condition is true
+		generate!up!up!UP1_entryOKSignal ->
+		IF_3_ID48_POST
+	IF_3_ID48_FALSE = -- if (id=48, line=3) condition is false
+		generate!up!up!UP9_EntryNotAllowedSignal ->
+		IF_3_ID48_POST
+	IF_3_ID48_POST = -- post if (id=48, line=3) processing
+		UP_WaitingEntry_STATE
+	UP_WaitingEntry_STATE = 
+		(remove!up?_!UP9_EntryNotAllowedSignal -> UP_WaitingRemoveTokenFail_ENTRY) -- transition
+		[]
+		(remove!up?_!UP1_entryOKSignal -> UP_WaitingRemoveTokenSuccess_ENTRY) -- transition
+
+	--  Quiescent processes
+	UP_Quiescent_ENTRY = 
+		UP_Quiescent_STATE
+	UP_Quiescent_STATE = 
+		(remove!up?_!UP3_readUserTokenSignal -> UP_GotUserToken_ENTRY) -- transition
+		[]
+		-- signal(s) ignored
+		([] s : {|UP14_unlockingDoorCompleteSignal|} @ remove!up?_!s -> msg.up.ignored -> UP_Quiescent_STATE)
+
+within UP_Quiescent_STATE
+
+
+-- Alphabet for the state chart of the User_Panel class
+aUP_SCTRL(up) = Union({
+	{ nav_R4_from_BEnd_UP.up.up.dest.b0 | dest <- Set(User_INSTANCES), b0 <- Bool },
+	{ generate.attachedUser.up.U8_doorUnlockedSignal | attachedUser <- User_INSTANCES },
+	{ generate.up.up.UP13_resetSignal },
+	{| remove.up.s.UP13_resetSignal | s <- INSTANCE |},
+	{ nav_R5_from_AEnd_UP.up.up.dest.b0 | dest <- Door_Controller_INSTANCES, b0 <- Bool },
+	{ generate.dc.up.DC1_unlockLatchSignal | dc <- Door_Controller_INSTANCES },
+	{| remove.up.s.UP14_unlockingDoorCompleteSignal | s <- INSTANCE |},
+	{ generate.up.up.UP10_FailedAccessTokenRemovedSignal },
+	{| remove.up.s.UP10_FailedAccessTokenRemovedSignal | s <- INSTANCE |},
+	{ generate.up.up.UP7_writeUserTokenOKSignal },
+	{| remove.up.s.UP8_writeUserTokenFailedSignal | s <- INSTANCE |},
+	{| remove.up.s.UP7_writeUserTokenOKSignal | s <- INSTANCE |},
+	{ generate.up.up.UP6_validateFingerOKSignal },
+	{| remove.up.s.UP6_validateFingerOKSignal | s <- INSTANCE |},
+	{ generate.up.up.UP4_readFingerOKSignal },
+	{| remove.up.s.UP4_readFingerOKSignal | s <- INSTANCE |},
+	{ generate.up.up.UP5_bioCheckRequiredSignal },
+	{| remove.up.s.UP5_bioCheckRequiredSignal | s <- INSTANCE |},
+	{| remove.up.s.UP2_bioCheckNotRequiredSignal | s <- INSTANCE |},
+	{ generate.up.up.UP11_unlockDoorSignal },
+	{| remove.up.s.UP11_unlockDoorSignal | s <- INSTANCE |},
+	{ lv_bool.up.UP_WaitingEntry_EntryAction.true },
+	{ generate.up.up.UP1_entryOKSignal },
+	{ generate.up.up.UP9_EntryNotAllowedSignal },
+	{| remove.up.s.UP9_EntryNotAllowedSignal | s <- INSTANCE |},
+	{| remove.up.s.UP1_entryOKSignal | s <- INSTANCE |},
+	{| remove.up.s.UP3_readUserTokenSignal | s <- INSTANCE |},
+	{| remove.up.s.UP14_unlockingDoorCompleteSignal | s <- INSTANCE |},
+	{ msg.up.ignored } })
+
+---- define a process modelling the availability of operations of an instance
+---- (including UP_delete, but not UP_create)
+UP_OPS(ih) = UP_delete?_!ih -> STOP
+aUP_OPS(ih) = {| UP_delete.caller.ih | caller <- INSTANCE |}
+
+---- define a process for the complete behaviour of an instance of User_Panel (excluding UP_create)
+UP_CTRL(ih) = (UP_SCTRL(ih) /\ (UP_delete?_!ih -> STOP)) [|{|UP_delete.caller.ih | caller <- INSTANCE |}|] UP_OPS(ih)
+aUP_CTRL(ih) = Union({
+	aUP_SCTRL(ih),
+	aUP_OPS(ih)
+})
+
+---- define a process for the complete behaviour of all instances of User_Panel
+UP_CTRLS = ||| ih : User_Panel_INSTANCES @ UP_create?_!ih -> UP_CTRL(ih)
+aUP_CTRLS = union(
+	{UP_create.caller.ih | caller <- INSTANCE, ih <- User_Panel_INSTANCES},
+	Union({aUP_CTRL(ih) | ih <- User_Panel_INSTANCES})
+)
+
+
+------------------------------------- xUML Initialisations -------------------------------------
+---- define processes representing initialisation procedures
+
+{- initialisation segment: init_1User -}
+INIT_SEG1_init_1User(ext0) =
+		U_create!ext0?user ->
+		U_set_isIn!ext0!user!false ->
+		D_create!ext0?door ->
+		D_set_isOpen!ext0!door!false ->
+		D_set_isLocked!ext0!door!false ->
+		A_create!ext0?alarm ->
+		A_set_isAlarming!ext0!alarm!false ->
+		UP_create!ext0?up ->
+		link_R4!ext0!user!up ->
+		DC_create!ext0?dc ->
+		link_R2!ext0!dc!user ->
+		link_R1!ext0!dc!door ->
+		link_R3!ext0!dc!alarm ->
+		link_R5!ext0!up!dc ->
+		generate!user!ext0!U4_requestEntrySignal ->
+		SKIP -- process terminates
+
+-- Alphabet for the initialisation segment init_1User
+aINIT_SEG1_init_1User(ext0) = Union({
+	{ U_create.ext0.u | u <- User_INSTANCES },
+	{ U_set_isIn.ext0.user.false | user <- User_INSTANCES },
+	{ D_create.ext0.d | d <- Door_INSTANCES },
+	{ D_set_isOpen.ext0.door.false | door <- Door_INSTANCES },
+	{ D_set_isLocked.ext0.door.false | door <- Door_INSTANCES },
+	{ A_create.ext0.a | a <- Alarm_INSTANCES },
+	{ A_set_isAlarming.ext0.alarm.false | alarm <- Alarm_INSTANCES },
+	{ UP_create.ext0.up | up <- User_Panel_INSTANCES },
+	{ link_R4.ext0.user.up | user <- User_INSTANCES, up <- User_Panel_INSTANCES },
+	{ DC_create.ext0.dc | dc <- Door_Controller_INSTANCES },
+	{ link_R2.ext0.dc.user | dc <- Door_Controller_INSTANCES, user <- User_INSTANCES },
+	{ link_R1.ext0.dc.door | dc <- Door_Controller_INSTANCES, door <- Door_INSTANCES },
+	{ link_R3.ext0.dc.alarm | dc <- Door_Controller_INSTANCES, alarm <- Alarm_INSTANCES },
+	{ link_R5.ext0.up.dc | up <- User_Panel_INSTANCES, dc <- Door_Controller_INSTANCES },
+	{ generate.user.ext0.U4_requestEntrySignal | user <- User_INSTANCES } })
+
+{- initialisation segment: init_2Users -}
+INIT_SEG2_init_2Users(ext0) =
+		U_create!ext0?user1 ->
+		U_set_isIn!ext0!user1!false ->
+		U_create!ext0?user2 ->
+		U_set_isIn!ext0!user2!false ->
+		D_create!ext0?door ->
+		D_set_isOpen!ext0!door!false ->
+		D_set_isLocked!ext0!door!false ->
+		A_create!ext0?alarm ->
+		A_set_isAlarming!ext0!alarm!false ->
+		UP_create!ext0?up ->
+		link_R4!ext0!user1!up ->
+		link_R4!ext0!user2!up ->
+		DC_create!ext0?dc ->
+		link_R2!ext0!dc!user1 ->
+		link_R2!ext0!dc!user2 ->
+		link_R1!ext0!dc!door ->
+		link_R3!ext0!dc!alarm ->
+		link_R5!ext0!up!dc ->
+		generate!user1!ext0!U4_requestEntrySignal ->
+		SKIP -- process terminates
+
+-- Alphabet for the initialisation segment init_2Users
+aINIT_SEG2_init_2Users(ext0) = Union({
+	{ U_create.ext0.u | u <- User_INSTANCES },
+	{ U_set_isIn.ext0.user1.false | user1 <- User_INSTANCES },
+	{ U_create.ext0.u | u <- User_INSTANCES },
+	{ U_set_isIn.ext0.user2.false | user2 <- User_INSTANCES },
+	{ D_create.ext0.d | d <- Door_INSTANCES },
+	{ D_set_isOpen.ext0.door.false | door <- Door_INSTANCES },
+	{ D_set_isLocked.ext0.door.false | door <- Door_INSTANCES },
+	{ A_create.ext0.a | a <- Alarm_INSTANCES },
+	{ A_set_isAlarming.ext0.alarm.false | alarm <- Alarm_INSTANCES },
+	{ UP_create.ext0.up | up <- User_Panel_INSTANCES },
+	{ link_R4.ext0.user1.up | user1 <- User_INSTANCES, up <- User_Panel_INSTANCES },
+	{ link_R4.ext0.user2.up | user2 <- User_INSTANCES, up <- User_Panel_INSTANCES },
+	{ DC_create.ext0.dc | dc <- Door_Controller_INSTANCES },
+	{ link_R2.ext0.dc.user1 | dc <- Door_Controller_INSTANCES, user1 <- User_INSTANCES },
+	{ link_R2.ext0.dc.user2 | dc <- Door_Controller_INSTANCES, user2 <- User_INSTANCES },
+	{ link_R1.ext0.dc.door | dc <- Door_Controller_INSTANCES, door <- Door_INSTANCES },
+	{ link_R3.ext0.dc.alarm | dc <- Door_Controller_INSTANCES, alarm <- Alarm_INSTANCES },
+	{ link_R5.ext0.up.dc | up <- User_Panel_INSTANCES, dc <- Door_Controller_INSTANCES },
+	{ generate.user1.ext0.U4_requestEntrySignal | user1 <- User_INSTANCES } })
+
+------------------------------------- xUML Test Methods -------------------------------------
+---- define processes representing the test methods
+
+------------------------------------- External Signals -------------------------------------
+---- define process representing the externally generated signals
+
+channel externalGenerate : INSTANCE.INSTANCE.SIGNALS
+
+-- the set of instance handles that receive externally generated signals
+-- (used when renaming the externalGenerate channel)
+ExternalSignals_CTRL_target_INSTANCES = Union({
+	Door_Controller_INSTANCES,
+	User_INSTANCES,
+	User_Panel_INSTANCES})
+
+ExternalSignals_CTRL = 
+	([] eih : SystemB_External_INSTANCES @ ([] ih : Door_Controller_INSTANCES @ externalGenerate!ih!eih!DC6_clearAlarmSignal -> ExternalSignals_CTRL))
+	[]
+	([] eih : SystemB_External_INSTANCES @ ([] ih : User_INSTANCES @ externalGenerate!ih!eih!U1_requestExitSignal -> ExternalSignals_CTRL))
+	[]
+	([] eih : SystemB_External_INSTANCES @ ([] ih : User_INSTANCES @ externalGenerate!ih!eih!U2_exitSignal -> ExternalSignals_CTRL))
+	[]
+	([] eih : SystemB_External_INSTANCES @ ([] ih : User_INSTANCES @ externalGenerate!ih!eih!U4_requestEntrySignal -> ExternalSignals_CTRL))
+	[]
+	([] eih : SystemB_External_INSTANCES @ ([] ih : User_INSTANCES @ externalGenerate!ih!eih!U5_entryDeniedSignal -> ExternalSignals_CTRL))
+	[]
+	([] eih : SystemB_External_INSTANCES @ ([] ih : User_INSTANCES @ externalGenerate!ih!eih!U7_canEnterSignal -> ExternalSignals_CTRL))
+	[]
+	([] eih : SystemB_External_INSTANCES @ ([] ih : User_Panel_INSTANCES @ externalGenerate!ih!eih!UP2_bioCheckNotRequiredSignal -> ExternalSignals_CTRL))
+	[]
+	([] eih : SystemB_External_INSTANCES @ ([] ih : User_Panel_INSTANCES @ externalGenerate!ih!eih!UP8_writeUserTokenFailedSignal -> ExternalSignals_CTRL))
+	[]
+	([] eih : SystemB_External_INSTANCES @ ([] ih : User_Panel_INSTANCES @ externalGenerate!ih!eih!UP12_unlockedDoorSignal -> ExternalSignals_CTRL))
+aExternalSignals_CTRL = Union({
+	{ externalGenerate.ih.eih.DC6_clearAlarmSignal | ih <- Door_Controller_INSTANCES, eih <- SystemB_External_INSTANCES },
+	{ externalGenerate.ih.eih.U1_requestExitSignal | ih <- User_INSTANCES, eih <- SystemB_External_INSTANCES },
+	{ externalGenerate.ih.eih.U2_exitSignal | ih <- User_INSTANCES, eih <- SystemB_External_INSTANCES },
+	{ externalGenerate.ih.eih.U4_requestEntrySignal | ih <- User_INSTANCES, eih <- SystemB_External_INSTANCES },
+	{ externalGenerate.ih.eih.U5_entryDeniedSignal | ih <- User_INSTANCES, eih <- SystemB_External_INSTANCES },
+	{ externalGenerate.ih.eih.U7_canEnterSignal | ih <- User_INSTANCES, eih <- SystemB_External_INSTANCES },
+	{ externalGenerate.ih.eih.UP2_bioCheckNotRequiredSignal | ih <- User_Panel_INSTANCES, eih <- SystemB_External_INSTANCES },
+	{ externalGenerate.ih.eih.UP8_writeUserTokenFailedSignal | ih <- User_Panel_INSTANCES, eih <- SystemB_External_INSTANCES },
+	{ externalGenerate.ih.eih.UP12_unlockedDoorSignal | ih <- User_Panel_INSTANCES, eih <- SystemB_External_INSTANCES }})
+
+
+------------------------------------- Signal Queues -------------------------------------
+
+{- A queue of signals is maintained for pairs of 
+   instance handles (i,j), where i is the owner of the
+   signal queue, and j is the generator of the signal 
+-}
+CAPACITY = 2
+       
+SQ(i,<>) = remove!i?j:{x|x <- INSTANCE, x != i}?_ -> SQ(i,<>) -- allows signals
+           []                                                 -- to be removed
+           generate!i!i?s -> SQ(i,<s>)                        -- from non-s-g-q
+
+SQ(i,S) = remove!i!i!head(S) -> SQ(i,tail(S))                 -- blocks signals
+          []                                                  -- being removed
+          #S < CAPACITY & generate!i!i?s -> SQ(i,S^<s>)       -- from non-s-g-q
+
+Q(i,j,<>) = remove!i!i?_ -> Q(i,j,<>)                         -- allows signals
+            []                                                -- to be removed
+            generate!i!j?s -> Q(i,j,<s>)                      -- from s-g-q
+
+Q(i,j,S) = remove!i!i?_ -> Q(i,j,S)                           -- allows signals
+           []                                                 -- to be removed
+           remove!i!j!head(S) -> Q(i,j,tail(S))               -- from s-g-q
+           []
+           #S < CAPACITY & generate!i!j?s -> Q(i,j,S^<s>)
+	   
+-- define alphabet of available generate and remove events for the signal queues for an instance i
+aSignalQueue(i) = Union({
+	{generate.i.j.k | j <- INSTANCE, k <- signalsOf(classOf(i))}, -- any instance may generate a valid signal to i
+	{remove.i.j.k | j <- INSTANCE, k <- signalsOf(classOf(i))}    -- remove a valid signal from an object
+})
+	   
+-- define signal queues that, through synchronisation on create/delete, exist only for the lifetime of an instance
+A_SignalQueues = 
+  ||| i : Alarm_INSTANCES @ A_create?_!i -> ((SQ(i,<>) [|{|remove.i|}|] (||| j : diff(INSTANCE,{i}) @ Q(i,j,<>)))
+  /\ (A_delete?_!i -> STOP))
+aA_SignalQueues = 
+  union(
+    {|A_create, A_delete|},
+    Union({ aSignalQueue(i) | i <- Alarm_INSTANCES }))
+  
+D_SignalQueues = 
+  ||| i : Door_INSTANCES @ D_create?_!i -> ((SQ(i,<>) [|{|remove.i|}|] (||| j : diff(INSTANCE,{i}) @ Q(i,j,<>)))
+  /\ (D_delete?_!i -> STOP))
+aD_SignalQueues = 
+  union(
+    {|D_create, D_delete|},
+    Union({ aSignalQueue(i) | i <- Door_INSTANCES }))
+  
+DC_SignalQueues = 
+  ||| i : Door_Controller_INSTANCES @ DC_create?_!i -> ((SQ(i,<>) [|{|remove.i|}|] (||| j : diff(INSTANCE,{i}) @ Q(i,j,<>)))
+  /\ (DC_delete?_!i -> STOP))
+aDC_SignalQueues = 
+  union(
+    {|DC_create, DC_delete|},
+    Union({ aSignalQueue(i) | i <- Door_Controller_INSTANCES }))
+  
+TIS_SignalQueues = 
+  ||| i : TIS_Main_INSTANCES @ TIS_create?_!i -> ((SQ(i,<>) [|{|remove.i|}|] (||| j : diff(INSTANCE,{i}) @ Q(i,j,<>)))
+  /\ (TIS_delete?_!i -> STOP))
+aTIS_SignalQueues = 
+  union(
+    {|TIS_create, TIS_delete|},
+    Union({ aSignalQueue(i) | i <- TIS_Main_INSTANCES }))
+  
+U_SignalQueues = 
+  ||| i : User_INSTANCES @ U_create?_!i -> ((SQ(i,<>) [|{|remove.i|}|] (||| j : diff(INSTANCE,{i}) @ Q(i,j,<>)))
+  /\ (U_delete?_!i -> STOP))
+aU_SignalQueues = 
+  union(
+    {|U_create, U_delete|},
+    Union({ aSignalQueue(i) | i <- User_INSTANCES }))
+  
+UP_SignalQueues = 
+  ||| i : User_Panel_INSTANCES @ UP_create?_!i -> ((SQ(i,<>) [|{|remove.i|}|] (||| j : diff(INSTANCE,{i}) @ Q(i,j,<>)))
+  /\ (UP_delete?_!i -> STOP))
+aUP_SignalQueues = 
+  union(
+    {|UP_create, UP_delete|},
+    Union({ aSignalQueue(i) | i <- User_Panel_INSTANCES }))
+  
+-- define the composition of the controlled signal queues
+CSignalQueues = 
+	A_SignalQueues |||
+	D_SignalQueues |||
+	DC_SignalQueues |||
+	TIS_SignalQueues |||
+	U_SignalQueues |||
+	UP_SignalQueues
+aCSignalQueues = Union({
+	aA_SignalQueues,
+	aD_SignalQueues,
+	aDC_SignalQueues,
+	aTIS_SignalQueues,
+	aU_SignalQueues,
+	aUP_SignalQueues
+})
+
+{- A version of the signal queues with an extra report event that occurs when a
+   queue is empty; to enable one to establish non-deterministic signal processing
+-}
+channel report : INSTANCE.INSTANCE
+ND_SQ(i,<>) = remove!i?j:{x|x <- INSTANCE, x != i}?_ -> ND_SQ(i,<>) -- allows signals
+           []                                                       -- to be removed
+           generate!i!i?s -> ND_SQ(i,<s>)                           -- from non-s-g-q
+ND_SQ(i,S) = remove!i!i!head(S) -> ND_SQ(i,tail(S))                 -- blocks signals
+          []                                                        -- being removed
+          #S < CAPACITY & generate!i!i?s -> ND_SQ(i,S^<s>)       -- from non-s-g-q
+ND_Q(i,j,<>) = remove!i!i?_ -> ND_Q(i,j,<>)                         -- allows signals
+            []                                                -- to be removed
+            generate!i!j?s -> ND_Q(i,j,<s>)                      -- from s-g-q
+	    []
+            report!i!j -> ND_Q(i,j,<>)
+ND_Q(i,j,S) = remove!i!i?_ -> ND_Q(i,j,S)                           -- allows signals
+           []                                                 -- to be removed
+           remove!i!j!head(S) -> ND_Q(i,j,tail(S))               -- from s-g-q
+           []
+           #S < CAPACITY & generate!i!j?s -> ND_Q(i,j,S^<s>)
+ND_A_SignalQueues = 
+  ||| i : Alarm_INSTANCES @ A_create?_!i -> ((ND_SQ(i,<>) [|{|remove.i|}|] (||| j : diff(INSTANCE,{i}) @ ND_Q(i,j,<>)))
+  /\ (A_delete?_!i -> STOP))
+aND_A_SignalQueues = Union({
+    {|A_create, A_delete|},
+    Union({ aSignalQueue(i) | i <- Alarm_INSTANCES }),
+    {|report.i | i <- Alarm_INSTANCES|}
+})
+  
+ND_D_SignalQueues = 
+  ||| i : Door_INSTANCES @ D_create?_!i -> ((ND_SQ(i,<>) [|{|remove.i|}|] (||| j : diff(INSTANCE,{i}) @ ND_Q(i,j,<>)))
+  /\ (D_delete?_!i -> STOP))
+aND_D_SignalQueues = Union({
+    {|D_create, D_delete|},
+    Union({ aSignalQueue(i) | i <- Door_INSTANCES }),
+    {|report.i | i <- Door_INSTANCES|}
+})
+  
+ND_DC_SignalQueues = 
+  ||| i : Door_Controller_INSTANCES @ DC_create?_!i -> ((ND_SQ(i,<>) [|{|remove.i|}|] (||| j : diff(INSTANCE,{i}) @ ND_Q(i,j,<>)))
+  /\ (DC_delete?_!i -> STOP))
+aND_DC_SignalQueues = Union({
+    {|DC_create, DC_delete|},
+    Union({ aSignalQueue(i) | i <- Door_Controller_INSTANCES }),
+    {|report.i | i <- Door_Controller_INSTANCES|}
+})
+  
+ND_TIS_SignalQueues = 
+  ||| i : TIS_Main_INSTANCES @ TIS_create?_!i -> ((ND_SQ(i,<>) [|{|remove.i|}|] (||| j : diff(INSTANCE,{i}) @ ND_Q(i,j,<>)))
+  /\ (TIS_delete?_!i -> STOP))
+aND_TIS_SignalQueues = Union({
+    {|TIS_create, TIS_delete|},
+    Union({ aSignalQueue(i) | i <- TIS_Main_INSTANCES }),
+    {|report.i | i <- TIS_Main_INSTANCES|}
+})
+  
+ND_U_SignalQueues = 
+  ||| i : User_INSTANCES @ U_create?_!i -> ((ND_SQ(i,<>) [|{|remove.i|}|] (||| j : diff(INSTANCE,{i}) @ ND_Q(i,j,<>)))
+  /\ (U_delete?_!i -> STOP))
+aND_U_SignalQueues = Union({
+    {|U_create, U_delete|},
+    Union({ aSignalQueue(i) | i <- User_INSTANCES }),
+    {|report.i | i <- User_INSTANCES|}
+})
+  
+ND_UP_SignalQueues = 
+  ||| i : User_Panel_INSTANCES @ UP_create?_!i -> ((ND_SQ(i,<>) [|{|remove.i|}|] (||| j : diff(INSTANCE,{i}) @ ND_Q(i,j,<>)))
+  /\ (UP_delete?_!i -> STOP))
+aND_UP_SignalQueues = Union({
+    {|UP_create, UP_delete|},
+    Union({ aSignalQueue(i) | i <- User_Panel_INSTANCES }),
+    {|report.i | i <- User_Panel_INSTANCES|}
+})
+  
+-- define the composition of the ND signal queues
+ND_CSignalQueues = 
+	ND_A_SignalQueues |||
+	ND_D_SignalQueues |||
+	ND_DC_SignalQueues |||
+	ND_TIS_SignalQueues |||
+	ND_U_SignalQueues |||
+	ND_UP_SignalQueues
+aND_CSignalQueues = Union({
+	aND_A_SignalQueues,
+	aND_D_SignalQueues,
+	aND_DC_SignalQueues,
+	aND_TIS_SignalQueues,
+	aND_U_SignalQueues,
+	aND_UP_SignalQueues
+})
+
+--------------------------- *Begin* defining processes involving multiplicity templates -----------------------------------------
+{- define multiplicity templates for all associations and all classes involved -}
+
+	
+{- multiplicity template for the (A end) Door_Controller class of R1 -}
+AEnd_DC_R1_MT(ih) =
+let
+	AEnd_DC_R1_MT_1 = 
+		DC_create?_!ih -> AEnd_DC_R1_MT_2
+	AEnd_DC_R1_MT_2 = 
+		(link_R1?_!ih?b -> AEnd_DC_R1_MT_3({b}))
+		[] 
+		(nav_R1_from_AEnd_DC?_!ih?_!false -> AEnd_DC_R1_MT_2)
+	AEnd_DC_R1_MT_3({}) = 
+		(DC_delete?_!ih -> AEnd_DC_R1_MT_1) 
+		[]
+		(link_R1?_!ih?b -> AEnd_DC_R1_MT_3({b}))
+		[]
+		(nav_R1_from_AEnd_DC?_!ih?_!false -> AEnd_DC_R1_MT_3({}))
+	AEnd_DC_R1_MT_3(S) = 
+		(unlink_R1?_!ih?b:S -> AEnd_DC_R1_MT_3(diff(S,{b}))) 
+		[]
+		(nav_R1_from_AEnd_DC?_!ih?b:S!true -> AEnd_DC_R1_MT_3(S))
+within AEnd_DC_R1_MT_1
+
+AEnd_DC_R1_MTS = ||| ih : Door_Controller_INSTANCES @ AEnd_DC_R1_MT(ih)
+aAEnd_DC_R1_MTS = {| DC_create, DC_delete, nav_R1_from_AEnd_DC, link_R1, unlink_R1 |}
+
+{- multiplicity template for the (B end) Door class of R1 -}
+BEnd_D_R1_MT(ih) =
+let
+	BEnd_D_R1_MT_1 = 
+		D_create?_!ih -> BEnd_D_R1_MT_2
+	BEnd_D_R1_MT_2 = 
+		(link_R1?_?a!ih -> BEnd_D_R1_MT_3({a}))
+		[] 
+		(nav_R1_from_BEnd_D?_!ih?_!false -> BEnd_D_R1_MT_2)
+	BEnd_D_R1_MT_3({}) = 
+		(D_delete?_!ih -> BEnd_D_R1_MT_1) 
+		[]
+		(link_R1?_?a!ih -> BEnd_D_R1_MT_3({a}))
+		[]
+		(nav_R1_from_BEnd_D?_!ih?_!false -> BEnd_D_R1_MT_3({}))
+	BEnd_D_R1_MT_3(S) = 
+		(unlink_R1?_?a:S!ih -> BEnd_D_R1_MT_3(diff(S,{a}))) 
+		[]
+		(nav_R1_from_BEnd_D?_!ih?b:S!true -> BEnd_D_R1_MT_3(S))
+within BEnd_D_R1_MT_1
+
+BEnd_D_R1_MTS = ||| ih : Door_INSTANCES @ BEnd_D_R1_MT(ih)
+aBEnd_D_R1_MTS = {| D_create, D_delete, nav_R1_from_BEnd_D, link_R1, unlink_R1 |}
+	
+{- multiplicity template for the (A end) Door_Controller class of R2 -}
+AEnd_DC_R2_MT(ih) =
+let
+	AEnd_DC_R2_MT_1 = 
+		DC_create?_!ih -> AEnd_DC_R2_MT_2
+	AEnd_DC_R2_MT_2 = 
+		(link_R2?_!ih?b -> AEnd_DC_R2_MT_3({b}))
+		[] 
+		(nav_R2_from_AEnd_DC?_!ih?_!false -> AEnd_DC_R2_MT_2)
+	AEnd_DC_R2_MT_3({}) = 
+		(DC_delete?_!ih -> AEnd_DC_R2_MT_1) 
+		[]
+		(link_R2?_!ih?b -> AEnd_DC_R2_MT_3({b}))
+		[]
+		(nav_R2_from_AEnd_DC?_!ih?_!false -> AEnd_DC_R2_MT_3({}))
+	AEnd_DC_R2_MT_3(S) = 
+		(unlink_R2?_!ih?b:S -> AEnd_DC_R2_MT_3(diff(S,{b}))) 
+		[]
+		(link_R2?_!ih?b -> AEnd_DC_R2_MT_3(union(S,{b}))) 
+		[]
+		(nav_R2_from_AEnd_DC?_!ih!S!true -> AEnd_DC_R2_MT_3(S))
+within AEnd_DC_R2_MT_1
+
+AEnd_DC_R2_MTS = ||| ih : Door_Controller_INSTANCES @ AEnd_DC_R2_MT(ih)
+aAEnd_DC_R2_MTS = {| DC_create, DC_delete, nav_R2_from_AEnd_DC, link_R2, unlink_R2 |}
+
+{- multiplicity template for the (B end) User class of R2 -}
+BEnd_U_R2_MT(ih) =
+let
+	BEnd_U_R2_MT_1 = 
+		U_create?_!ih -> BEnd_U_R2_MT_2
+	BEnd_U_R2_MT_2 = 
+		(link_R2?_?a!ih -> BEnd_U_R2_MT_3({a}))
+		[] 
+		(nav_R2_from_BEnd_U?_!ih?_!false -> BEnd_U_R2_MT_2)
+	BEnd_U_R2_MT_3({}) = 
+		(U_delete?_!ih -> BEnd_U_R2_MT_1) 
+		[]
+		(link_R2?_?a!ih -> BEnd_U_R2_MT_3({a}))
+		[]
+		(nav_R2_from_BEnd_U?_!ih?_!false -> BEnd_U_R2_MT_3({}))
+	BEnd_U_R2_MT_3(S) = 
+		(unlink_R2?_?a:S!ih -> BEnd_U_R2_MT_3(diff(S,{a}))) 
+		[]
+		(nav_R2_from_BEnd_U?_!ih?b:S!true -> BEnd_U_R2_MT_3(S))
+within BEnd_U_R2_MT_1
+
+BEnd_U_R2_MTS = ||| ih : User_INSTANCES @ BEnd_U_R2_MT(ih)
+aBEnd_U_R2_MTS = {| U_create, U_delete, nav_R2_from_BEnd_U, link_R2, unlink_R2 |}
+	
+{- multiplicity template for the (A end) Door_Controller class of R3 -}
+AEnd_DC_R3_MT(ih) =
+let
+	AEnd_DC_R3_MT_1 = 
+		DC_create?_!ih -> AEnd_DC_R3_MT_2
+	AEnd_DC_R3_MT_2 = 
+		(link_R3?_!ih?b -> AEnd_DC_R3_MT_3({b}))
+		[] 
+		(nav_R3_from_AEnd_DC?_!ih?_!false -> AEnd_DC_R3_MT_2)
+	AEnd_DC_R3_MT_3({}) = 
+		(DC_delete?_!ih -> AEnd_DC_R3_MT_1) 
+		[]
+		(link_R3?_!ih?b -> AEnd_DC_R3_MT_3({b}))
+		[]
+		(nav_R3_from_AEnd_DC?_!ih?_!false -> AEnd_DC_R3_MT_3({}))
+	AEnd_DC_R3_MT_3(S) = 
+		(unlink_R3?_!ih?b:S -> AEnd_DC_R3_MT_3(diff(S,{b}))) 
+		[]
+		(nav_R3_from_AEnd_DC?_!ih?b:S!true -> AEnd_DC_R3_MT_3(S))
+within AEnd_DC_R3_MT_1
+
+AEnd_DC_R3_MTS = ||| ih : Door_Controller_INSTANCES @ AEnd_DC_R3_MT(ih)
+aAEnd_DC_R3_MTS = {| DC_create, DC_delete, nav_R3_from_AEnd_DC, link_R3, unlink_R3 |}
+
+{- multiplicity template for the (B end) Alarm class of R3 -}
+BEnd_A_R3_MT(ih) =
+let
+	BEnd_A_R3_MT_1 = 
+		A_create?_!ih -> BEnd_A_R3_MT_2
+	BEnd_A_R3_MT_2 = 
+		(link_R3?_?a!ih -> BEnd_A_R3_MT_3({a}))
+		[] 
+		(nav_R3_from_BEnd_A?_!ih?_!false -> BEnd_A_R3_MT_2)
+	BEnd_A_R3_MT_3({}) = 
+		(A_delete?_!ih -> BEnd_A_R3_MT_1) 
+		[]
+		(link_R3?_?a!ih -> BEnd_A_R3_MT_3({a}))
+		[]
+		(nav_R3_from_BEnd_A?_!ih?_!false -> BEnd_A_R3_MT_3({}))
+	BEnd_A_R3_MT_3(S) = 
+		(unlink_R3?_?a:S!ih -> BEnd_A_R3_MT_3(diff(S,{a}))) 
+		[]
+		(nav_R3_from_BEnd_A?_!ih?b:S!true -> BEnd_A_R3_MT_3(S))
+within BEnd_A_R3_MT_1
+
+BEnd_A_R3_MTS = ||| ih : Alarm_INSTANCES @ BEnd_A_R3_MT(ih)
+aBEnd_A_R3_MTS = {| A_create, A_delete, nav_R3_from_BEnd_A, link_R3, unlink_R3 |}
+	
+{- multiplicity template for the (A end) User class of R4 -}
+AEnd_U_R4_MT(ih) =
+let
+	AEnd_U_R4_MT_1 = 
+		U_create?_!ih -> AEnd_U_R4_MT_2
+	AEnd_U_R4_MT_2 = 
+		(link_R4?_!ih?b -> AEnd_U_R4_MT_3({b}))
+		[] 
+		(nav_R4_from_AEnd_U?_!ih?_!false -> AEnd_U_R4_MT_2)
+	AEnd_U_R4_MT_3({}) = 
+		(U_delete?_!ih -> AEnd_U_R4_MT_1) 
+		[]
+		(link_R4?_!ih?b -> AEnd_U_R4_MT_3({b}))
+		[]
+		(nav_R4_from_AEnd_U?_!ih?_!false -> AEnd_U_R4_MT_3({}))
+	AEnd_U_R4_MT_3(S) = 
+		(unlink_R4?_!ih?b:S -> AEnd_U_R4_MT_3(diff(S,{b}))) 
+		[]
+		(nav_R4_from_AEnd_U?_!ih?b:S!true -> AEnd_U_R4_MT_3(S))
+within AEnd_U_R4_MT_1
+
+AEnd_U_R4_MTS = ||| ih : User_INSTANCES @ AEnd_U_R4_MT(ih)
+aAEnd_U_R4_MTS = {| U_create, U_delete, nav_R4_from_AEnd_U, link_R4, unlink_R4 |}
+
+{- multiplicity template for the (B end) User_Panel class of R4 -}
+BEnd_UP_R4_MT(ih) =
+let
+	BEnd_UP_R4_MT_1 = 
+		UP_create?_!ih -> BEnd_UP_R4_MT_2
+	BEnd_UP_R4_MT_2 = 
+		(link_R4?_?a!ih -> BEnd_UP_R4_MT_3({a}))
+		[] 
+		(nav_R4_from_BEnd_UP?_!ih?_!false -> BEnd_UP_R4_MT_2)
+	BEnd_UP_R4_MT_3({}) = 
+		(UP_delete?_!ih -> BEnd_UP_R4_MT_1) 
+		[]
+		(link_R4?_?a!ih -> BEnd_UP_R4_MT_3({a}))
+		[]
+		(nav_R4_from_BEnd_UP?_!ih?_!false -> BEnd_UP_R4_MT_3({}))
+	BEnd_UP_R4_MT_3(S) = 
+		(unlink_R4?_?a:S!ih -> BEnd_UP_R4_MT_3(diff(S,{a}))) 
+		[]
+		(link_R4?_?a!ih -> BEnd_UP_R4_MT_3(union(S,{a}))) 
+		[]
+		(nav_R4_from_BEnd_UP?_!ih!S!true -> BEnd_UP_R4_MT_3(S))
+within BEnd_UP_R4_MT_1
+
+BEnd_UP_R4_MTS = ||| ih : User_Panel_INSTANCES @ BEnd_UP_R4_MT(ih)
+aBEnd_UP_R4_MTS = {| UP_create, UP_delete, nav_R4_from_BEnd_UP, link_R4, unlink_R4 |}
+	
+{- multiplicity template for the (A end) User_Panel class of R5 -}
+AEnd_UP_R5_MT(ih) =
+let
+	AEnd_UP_R5_MT_1 = 
+		UP_create?_!ih -> AEnd_UP_R5_MT_2
+	AEnd_UP_R5_MT_2 = 
+		(link_R5?_!ih?b -> AEnd_UP_R5_MT_3({b}))
+		[] 
+		(nav_R5_from_AEnd_UP?_!ih?_!false -> AEnd_UP_R5_MT_2)
+	AEnd_UP_R5_MT_3({}) = 
+		(UP_delete?_!ih -> AEnd_UP_R5_MT_1) 
+		[]
+		(link_R5?_!ih?b -> AEnd_UP_R5_MT_3({b}))
+		[]
+		(nav_R5_from_AEnd_UP?_!ih?_!false -> AEnd_UP_R5_MT_3({}))
+	AEnd_UP_R5_MT_3(S) = 
+		(unlink_R5?_!ih?b:S -> AEnd_UP_R5_MT_3(diff(S,{b}))) 
+		[]
+		(nav_R5_from_AEnd_UP?_!ih?b:S!true -> AEnd_UP_R5_MT_3(S))
+within AEnd_UP_R5_MT_1
+
+AEnd_UP_R5_MTS = ||| ih : User_Panel_INSTANCES @ AEnd_UP_R5_MT(ih)
+aAEnd_UP_R5_MTS = {| UP_create, UP_delete, nav_R5_from_AEnd_UP, link_R5, unlink_R5 |}
+
+{- multiplicity template for the (B end) Door_Controller class of R5 -}
+BEnd_DC_R5_MT(ih) =
+let
+	BEnd_DC_R5_MT_1 = 
+		DC_create?_!ih -> BEnd_DC_R5_MT_2
+	BEnd_DC_R5_MT_2 = 
+		(link_R5?_?a!ih -> BEnd_DC_R5_MT_3({a}))
+		[] 
+		(nav_R5_from_BEnd_DC?_!ih?_!false -> BEnd_DC_R5_MT_2)
+	BEnd_DC_R5_MT_3({}) = 
+		(DC_delete?_!ih -> BEnd_DC_R5_MT_1) 
+		[]
+		(link_R5?_?a!ih -> BEnd_DC_R5_MT_3({a}))
+		[]
+		(nav_R5_from_BEnd_DC?_!ih?_!false -> BEnd_DC_R5_MT_3({}))
+	BEnd_DC_R5_MT_3(S) = 
+		(unlink_R5?_?a:S!ih -> BEnd_DC_R5_MT_3(diff(S,{a}))) 
+		[]
+		(nav_R5_from_BEnd_DC?_!ih?b:S!true -> BEnd_DC_R5_MT_3(S))
+within BEnd_DC_R5_MT_1
+
+BEnd_DC_R5_MTS = ||| ih : Door_Controller_INSTANCES @ BEnd_DC_R5_MT(ih)
+aBEnd_DC_R5_MTS = {| DC_create, DC_delete, nav_R5_from_BEnd_DC, link_R5, unlink_R5 |}
+	
+{- multiplicity template for the (A end) TIS_Main class of R6 -}
+AEnd_TIS_R6_MT(ih) =
+let
+	AEnd_TIS_R6_MT_1 = 
+		TIS_create?_!ih -> AEnd_TIS_R6_MT_2
+	AEnd_TIS_R6_MT_2 = 
+		(link_R6?_!ih?b -> AEnd_TIS_R6_MT_3({b}))
+		[] 
+		(nav_R6_from_AEnd_TIS?_!ih?_!false -> AEnd_TIS_R6_MT_2)
+	AEnd_TIS_R6_MT_3({}) = 
+		(TIS_delete?_!ih -> AEnd_TIS_R6_MT_1) 
+		[]
+		(link_R6?_!ih?b -> AEnd_TIS_R6_MT_3({b}))
+		[]
+		(nav_R6_from_AEnd_TIS?_!ih?_!false -> AEnd_TIS_R6_MT_3({}))
+	AEnd_TIS_R6_MT_3(S) = 
+		(unlink_R6?_!ih?b:S -> AEnd_TIS_R6_MT_3(diff(S,{b}))) 
+		[]
+		(nav_R6_from_AEnd_TIS?_!ih?b:S!true -> AEnd_TIS_R6_MT_3(S))
+within AEnd_TIS_R6_MT_1
+
+AEnd_TIS_R6_MTS = ||| ih : TIS_Main_INSTANCES @ AEnd_TIS_R6_MT(ih)
+aAEnd_TIS_R6_MTS = {| TIS_create, TIS_delete, nav_R6_from_AEnd_TIS, link_R6, unlink_R6 |}
+
+{- multiplicity template for the (B end) Door_Controller class of R6 -}
+BEnd_DC_R6_MT(ih) =
+let
+	BEnd_DC_R6_MT_1 = 
+		DC_create?_!ih -> BEnd_DC_R6_MT_2
+	BEnd_DC_R6_MT_2 = 
+		(link_R6?_?a!ih -> BEnd_DC_R6_MT_3({a}))
+		[] 
+		(nav_R6_from_BEnd_DC?_!ih?_!false -> BEnd_DC_R6_MT_2)
+	BEnd_DC_R6_MT_3({}) = 
+		(DC_delete?_!ih -> BEnd_DC_R6_MT_1) 
+		[]
+		(link_R6?_?a!ih -> BEnd_DC_R6_MT_3({a}))
+		[]
+		(nav_R6_from_BEnd_DC?_!ih?_!false -> BEnd_DC_R6_MT_3({}))
+	BEnd_DC_R6_MT_3(S) = 
+		(unlink_R6?_?a:S!ih -> BEnd_DC_R6_MT_3(diff(S,{a}))) 
+		[]
+		(nav_R6_from_BEnd_DC?_!ih?b:S!true -> BEnd_DC_R6_MT_3(S))
+within BEnd_DC_R6_MT_1
+
+BEnd_DC_R6_MTS = ||| ih : Door_Controller_INSTANCES @ BEnd_DC_R6_MT(ih)
+aBEnd_DC_R6_MTS = {| DC_create, DC_delete, nav_R6_from_BEnd_DC, link_R6, unlink_R6 |}
+	
+{- multiplicity template for the (A end) User_Panel class of R7 -}
+AEnd_UP_R7_MT(ih) =
+let
+	AEnd_UP_R7_MT_1 = 
+		UP_create?_!ih -> AEnd_UP_R7_MT_2
+	AEnd_UP_R7_MT_2 = 
+		(link_R7?_!ih?b -> AEnd_UP_R7_MT_3({b}))
+		[] 
+		(nav_R7_from_AEnd_UP?_!ih?_!false -> AEnd_UP_R7_MT_2)
+	AEnd_UP_R7_MT_3({}) = 
+		(UP_delete?_!ih -> AEnd_UP_R7_MT_1) 
+		[]
+		(link_R7?_!ih?b -> AEnd_UP_R7_MT_3({b}))
+		[]
+		(nav_R7_from_AEnd_UP?_!ih?_!false -> AEnd_UP_R7_MT_3({}))
+	AEnd_UP_R7_MT_3(S) = 
+		(unlink_R7?_!ih?b:S -> AEnd_UP_R7_MT_3(diff(S,{b}))) 
+		[]
+		(nav_R7_from_AEnd_UP?_!ih?b:S!true -> AEnd_UP_R7_MT_3(S))
+within AEnd_UP_R7_MT_1
+
+AEnd_UP_R7_MTS = ||| ih : User_Panel_INSTANCES @ AEnd_UP_R7_MT(ih)
+aAEnd_UP_R7_MTS = {| UP_create, UP_delete, nav_R7_from_AEnd_UP, link_R7, unlink_R7 |}
+
+{- multiplicity template for the (B end) TIS_Main class of R7 -}
+BEnd_TIS_R7_MT(ih) =
+let
+	BEnd_TIS_R7_MT_1 = 
+		TIS_create?_!ih -> BEnd_TIS_R7_MT_2
+	BEnd_TIS_R7_MT_2 = 
+		(link_R7?_?a!ih -> BEnd_TIS_R7_MT_3({a}))
+		[] 
+		(nav_R7_from_BEnd_TIS?_!ih?_!false -> BEnd_TIS_R7_MT_2)
+	BEnd_TIS_R7_MT_3({}) = 
+		(TIS_delete?_!ih -> BEnd_TIS_R7_MT_1) 
+		[]
+		(link_R7?_?a!ih -> BEnd_TIS_R7_MT_3({a}))
+		[]
+		(nav_R7_from_BEnd_TIS?_!ih?_!false -> BEnd_TIS_R7_MT_3({}))
+	BEnd_TIS_R7_MT_3(S) = 
+		(unlink_R7?_?a:S!ih -> BEnd_TIS_R7_MT_3(diff(S,{a}))) 
+		[]
+		(nav_R7_from_BEnd_TIS?_!ih?b:S!true -> BEnd_TIS_R7_MT_3(S))
+within BEnd_TIS_R7_MT_1
+
+BEnd_TIS_R7_MTS = ||| ih : TIS_Main_INSTANCES @ BEnd_TIS_R7_MT(ih)
+aBEnd_TIS_R7_MTS = {| TIS_create, TIS_delete, nav_R7_from_BEnd_TIS, link_R7, unlink_R7 |}
+
+{- parallel composition of Alarm instances with association multiplicity templates, if they exist -}
+A_CTRLS_MTS = (A_CTRLS [aA_CTRLS || aBEnd_A_R3_MTS] BEnd_A_R3_MTS)
+aA_CTRLS_MTS = union(aA_CTRLS, aBEnd_A_R3_MTS)
+
+{- parallel composition of Door instances with association multiplicity templates, if they exist -}
+D_CTRLS_MTS = (D_CTRLS [aD_CTRLS || aBEnd_D_R1_MTS] BEnd_D_R1_MTS)
+aD_CTRLS_MTS = union(aD_CTRLS, aBEnd_D_R1_MTS)
+
+{- parallel composition of Door_Controller instances with association multiplicity templates, if they exist -}
+DC_CTRLS_MTS = (((((DC_CTRLS [aDC_CTRLS || aAEnd_DC_R1_MTS] AEnd_DC_R1_MTS) [union(aDC_CTRLS, aAEnd_DC_R1_MTS) || aAEnd_DC_R2_MTS] AEnd_DC_R2_MTS) [union(union(aDC_CTRLS, aAEnd_DC_R1_MTS), aAEnd_DC_R2_MTS) || aAEnd_DC_R3_MTS] AEnd_DC_R3_MTS) [union(union(union(aDC_CTRLS, aAEnd_DC_R1_MTS), aAEnd_DC_R2_MTS), aAEnd_DC_R3_MTS) || aBEnd_DC_R5_MTS] BEnd_DC_R5_MTS) [union(union(union(union(aDC_CTRLS, aAEnd_DC_R1_MTS), aAEnd_DC_R2_MTS), aAEnd_DC_R3_MTS), aBEnd_DC_R5_MTS) || aBEnd_DC_R6_MTS] BEnd_DC_R6_MTS)
+aDC_CTRLS_MTS = union(union(union(union(union(aDC_CTRLS, aAEnd_DC_R1_MTS), aAEnd_DC_R2_MTS), aAEnd_DC_R3_MTS), aBEnd_DC_R5_MTS), aBEnd_DC_R6_MTS)
+
+{- parallel composition of TIS_Main instances with association multiplicity templates, if they exist -}
+TIS_CTRLS_MTS = ((TIS_CTRLS [aTIS_CTRLS || aAEnd_TIS_R6_MTS] AEnd_TIS_R6_MTS) [union(aTIS_CTRLS, aAEnd_TIS_R6_MTS) || aBEnd_TIS_R7_MTS] BEnd_TIS_R7_MTS)
+aTIS_CTRLS_MTS = union(union(aTIS_CTRLS, aAEnd_TIS_R6_MTS), aBEnd_TIS_R7_MTS)
+
+{- parallel composition of User instances with association multiplicity templates, if they exist -}
+U_CTRLS_MTS = ((U_CTRLS [aU_CTRLS || aBEnd_U_R2_MTS] BEnd_U_R2_MTS) [union(aU_CTRLS, aBEnd_U_R2_MTS) || aAEnd_U_R4_MTS] AEnd_U_R4_MTS)
+aU_CTRLS_MTS = union(union(aU_CTRLS, aBEnd_U_R2_MTS), aAEnd_U_R4_MTS)
+
+{- parallel composition of User_Panel instances with association multiplicity templates, if they exist -}
+UP_CTRLS_MTS = (((UP_CTRLS [aUP_CTRLS || aBEnd_UP_R4_MTS] BEnd_UP_R4_MTS) [union(aUP_CTRLS, aBEnd_UP_R4_MTS) || aAEnd_UP_R5_MTS] AEnd_UP_R5_MTS) [union(union(aUP_CTRLS, aBEnd_UP_R4_MTS), aAEnd_UP_R5_MTS) || aAEnd_UP_R7_MTS] AEnd_UP_R7_MTS)
+aUP_CTRLS_MTS = union(union(union(aUP_CTRLS, aBEnd_UP_R4_MTS), aAEnd_UP_R5_MTS), aAEnd_UP_R7_MTS)
+
+{- parallel composition of controllers and multiplicity templates for all instances of all classes -}
+CTRLS_MTS = (((((A_CTRLS_MTS [aA_CTRLS_MTS || aD_CTRLS_MTS] D_CTRLS_MTS) [union(aA_CTRLS_MTS, aD_CTRLS_MTS) || aDC_CTRLS_MTS] DC_CTRLS_MTS) [union(union(aA_CTRLS_MTS, aD_CTRLS_MTS), aDC_CTRLS_MTS) || aTIS_CTRLS_MTS] TIS_CTRLS_MTS) [union(union(union(aA_CTRLS_MTS, aD_CTRLS_MTS), aDC_CTRLS_MTS), aTIS_CTRLS_MTS) || aU_CTRLS_MTS] U_CTRLS_MTS) [union(union(union(union(aA_CTRLS_MTS, aD_CTRLS_MTS), aDC_CTRLS_MTS), aTIS_CTRLS_MTS), aU_CTRLS_MTS) || aUP_CTRLS_MTS] UP_CTRLS_MTS)
+aCTRLS_MTS = union(union(union(union(union(aA_CTRLS_MTS, aD_CTRLS_MTS), aDC_CTRLS_MTS), aTIS_CTRLS_MTS), aU_CTRLS_MTS), aUP_CTRLS_MTS)
+--------------------------- *End* defining  processes involving multiplicity templates -----------------------------------------
+
+------------------------------------- System Composition -------------------------------------
+---- Please uncomment the appropriate lines to define a system composition for checking/animation
+
+-- Class controllers
+CLASS_CTRLS = 
+	-- A_CTRLS ||| D_CTRLS ||| DC_CTRLS ||| TIS_CTRLS ||| U_CTRLS ||| UP_CTRLS 
+	CTRLS_MTS
+	-- (((((A_CTRLS [Union({aA_CTRLS}) || aUP_CTRLS] UP_CTRLS) [Union({aA_CTRLS, aUP_CTRLS}) || aD_CTRLS] D_CTRLS) [Union({aA_CTRLS, aUP_CTRLS, aD_CTRLS}) || aU_CTRLS] U_CTRLS) [Union({aA_CTRLS, aUP_CTRLS, aD_CTRLS, aU_CTRLS}) || aDC_CTRLS] DC_CTRLS) [Union({aA_CTRLS, aUP_CTRLS, aD_CTRLS, aU_CTRLS, aDC_CTRLS}) || aTIS_CTRLS] TIS_CTRLS)
+aCLASS_CTRLS =
+	-- Union({aA_CTRLS, aD_CTRLS, aDC_CTRLS, aTIS_CTRLS, aU_CTRLS, aUP_CTRLS})
+	aCTRLS_MTS
+	-- Union({aA_CTRLS, aUP_CTRLS, aD_CTRLS, aU_CTRLS, aDC_CTRLS, aTIS_CTRLS})
+	
+-- System initialisation
+INIT =
+	INIT_SEG1_init_1User(ext0)
+	-- INIT_SEG2_init_2Users(ext0)
+	-- SKIP
+aINIT = 
+	aINIT_SEG1_init_1User(ext0)
+	-- aINIT_SEG2_init_2Users(ext0)
+	-- {}
+
+-- Test method
+TM = 
+	SKIP
+aTM = 
+	{}
+
+-- System execution sequence, e.g., initialisation followed by a test method
+TS =
+	INIT ; TM
+aTS =
+	union(aINIT, aTM)
+	
+TS_CTRL = 
+	TS 
+	[aTS || {|A_create.ext0, D_create.ext0, DC_create.ext0, TIS_create.ext0, U_create.ext0, UP_create.ext0|}]
+	((||| i : Alarm_INSTANCES @ A_create!ext0!i -> STOP) |||
+	(||| i : Door_INSTANCES @ D_create!ext0!i -> STOP) |||
+	(||| i : Door_Controller_INSTANCES @ DC_create!ext0!i -> STOP) |||
+	(||| i : TIS_Main_INSTANCES @ TIS_create!ext0!i -> STOP) |||
+	(||| i : User_INSTANCES @ U_create!ext0!i -> STOP) |||
+	(||| i : User_Panel_INSTANCES @ UP_create!ext0!i -> STOP))
+aTS_CTRL = 
+	{|A_create.ext0, D_create.ext0, DC_create.ext0, TIS_create.ext0, U_create.ext0, UP_create.ext0|}
+
+-- The system
+SYSTEM_Qs = CSignalQueues
+aSYSTEM_Qs = diff(aCSignalQueues, diff({|generate, remove|}, union(aCLASS_CTRLS, aTS)))
+SYSTEM =
+	(CLASS_CTRLS 
+	 [|diff(inter(aCLASS_CTRLS, aTS), Qevents)|]
+	 TS)
+	   [union(aCLASS_CTRLS, aTS) || aSYSTEM_Qs] 	
+	   SYSTEM_Qs
+aSYSTEM = Union({
+	aCLASS_CTRLS,
+	aTS,
+	aSYSTEM_Qs})
+
+-- The system that uses the ND signal queues
+ND_SYSTEM_Qs = ND_CSignalQueues
+aND_SYSTEM_Qs = diff(aND_CSignalQueues, diff({|generate, remove|}, union(aCLASS_CTRLS, aTS)))
+ND_SYSTEM =
+	(CLASS_CTRLS 
+	 [|diff(inter(aCLASS_CTRLS, aTS), Qevents)|]
+	 TS)
+	   [union(aCLASS_CTRLS, aTS) || aND_SYSTEM_Qs]
+	   ND_SYSTEM_Qs
+aND_SYSTEM = Union({
+	aCLASS_CTRLS,
+	aTS,
+	aND_CSignalQueues})
+
+-- A system version, which can be probed by signals generated from outside the model
+SYSTEM_PROBE_Qs = CSignalQueues [[generate <- generate, generate.i.j <- externalGenerate.i.j | i <- ExternalSignals_CTRL_target_INSTANCES, j <- SystemB_External_INSTANCES]]
+aSYSTEM_PROBE_Qs = 
+	diff(Union({
+		aCSignalQueues,
+		aExternalSignals_CTRL}),
+		diff({|generate, remove|}, union(aCLASS_CTRLS, aTS)))
+SYSTEM_PROBE =
+	((CLASS_CTRLS 
+	 [|diff(inter(aCLASS_CTRLS, aTS), Qevents)|]
+	 TS)
+	   [union(aCLASS_CTRLS, aTS) || aSYSTEM_PROBE_Qs] 	
+	   SYSTEM_PROBE_Qs)
+	     [Union({aCLASS_CTRLS, aTS, aSYSTEM_PROBE_Qs}) || aExternalSignals_CTRL]
+	     ExternalSignals_CTRL
+aSYSTEM_PROBE = Union({
+	aCLASS_CTRLS,
+	aTS,
+	aSYSTEM_PROBE_Qs,
+	aExternalSignals_CTRL})
+
+-- A system version, with ND signal queues, which can be probed by signals generated from outside the model
+ND_SYSTEM_PROBE_Qs = ND_CSignalQueues [[generate <- generate, generate.i.j <- externalGenerate.i.j | i <- ExternalSignals_CTRL_target_INSTANCES, j <- SystemB_External_INSTANCES]]
+aND_SYSTEM_PROBE_Qs = 
+	diff(Union({
+		aND_CSignalQueues,
+		aExternalSignals_CTRL}),
+		diff({|generate, remove|}, union(aCLASS_CTRLS, aTS))) -- NEW: aExternalSignals_CTRL
+ND_SYSTEM_PROBE =
+	((CLASS_CTRLS 
+	 [|diff(inter(aCLASS_CTRLS, aTS), Qevents)|]
+	 TS)
+	   [union(aCLASS_CTRLS, aTS) || aND_SYSTEM_PROBE_Qs]
+	   ND_SYSTEM_PROBE_Qs)
+	     [Union({aCLASS_CTRLS, aTS, aND_SYSTEM_PROBE_Qs}) || aExternalSignals_CTRL]
+	     ExternalSignals_CTRL
+aND_SYSTEM_PROBE = Union({
+	aCLASS_CTRLS,
+	aTS,
+	aND_SYSTEM_PROBE_Qs,
+	aExternalSignals_CTRL})
+
+------------------------------------- Specifications -------------------------------------
+
+-- A specification that always allows any system event, except msg.ih.cannot_happen
+No_Cannot_Happens_SPEC = 
+	[] s : diff(aSYSTEM, {msg.ih.cannot_happen | ih <- INSTANCE}) 
+		@ s -> No_Cannot_Happens_SPEC
+
+---- Process suite to establish determinancy during signal processing
+Non_Det_SPEC = Report_SPECS ||| myChaos(Union({aSignalQueue(i) | i <- diff(INSTANCE, SystemB_External_INSTANCES)})) ||| myChaos(IDEM)
+
+Report_SPEC(i) = 
+	|~| j : diff(INSTANCE,{i}) 
+		@ ([] k : diff(INSTANCE,{i,j}) 
+			@ report.i.k -> Report_SPEC(i))
+Report_SPECS = ||| i : diff(INSTANCE, SystemB_External_INSTANCES) @ Report_SPEC(i)
+
+IDEM = {report.i.i | i <- diff(INSTANCE, SystemB_External_INSTANCES)}
+myChaos(AA) = STOP |~| (|~| x : AA @ x -> myChaos(AA))
+
+ND_SPEC1(i) = 
+	generate.i?x -> ND_SPEC1(i)
+	[]
+	remove.i?x -> ND_SPEC2(i,x)
+ND_SPEC2(i,x) = 
+	remove.i.x -> ND_SPEC2(i,x)
+	[]
+	generate.i?y -> ND_SPEC1(i)
+ND_SPEC = 
+	||| i : diff(INSTANCE, SystemB_External_INSTANCES) @ ND_SPEC1(i)
+
+
+
+------------------------------------- Assertions -------------------------------------
+
+-- xUML initialisation and test method is valid
+{- assert SYSTEM [T= TS_CTRL
+
+-- xUML 'Cannot Happen' signal effects never occur
+assert No_Cannot_Happens_SPEC [T= SYSTEM
+assert No_Cannot_Happens_SPEC [T= SYSTEM_PROBE
+
+-- the system exhibits deteministic signal processing
+assert Non_Det_SPEC [F= ND_SYSTEM
+assert Non_Det_SPEC [F= ND_SYSTEM_PROBE
+assert ND_SPEC [T= (SYSTEM \ diff(aSYSTEM, Qevents))
+
+-- the system is deadlock free
+assert SYSTEM :[deadlock free]
+assert SYSTEM_PROBE :[deadlock free]
+
+-}
+
+transparent diamond
+compress(P) = diamond(P)
+
+--SYS_INIT_ONLY = SYSTEM \ diff(aSYSTEM, aINIT)
+
+--assert compress(SYS_INIT_ONLY) [T= INIT
+--assert INIT [F= SYS_INIT_ONLY
+
+
+-- leads to FDR message: ``Should not have built a mediumparcombinable from unsimple left''
+-- Contact Phil Armstrong about this -- what does it mean?
+--assert No_Cannot_Happens_SPEC [T= SYS_INIT_ONLY
+
+assert No_Cannot_Happens_SPEC [T= SYSTEM
+--  Loading... done
+-- Took 84(8+0) seconds
+-- Should not have built a mediumparcombinable from unsimple left
+
+--assert INIT [T= SYS_INIT_ONLY [union(aSYSTEM,aINIT)||union(aSYSTEM,aINIT)] INIT
+
+{-
+remove multiplicy processes
+signal queues
+send script to marc fontaine to see if type checks quickly.
+-}
