@@ -151,9 +151,6 @@ Tokens
 	blank			= blank*;
 	nl				= eol;
 
-
-Ignored Tokens
-	blank;
 	
 Productions
 
