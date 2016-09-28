@@ -1,0 +1,170 @@
+-- abp.csp
+
+-- Alternating bit protocol.
+
+-- Bill Roscoe, August 1992
+-- FDR2 version, June 1996
+-- Version for chapter 4 of "Understanding Concurrent Systems", 2010
+
+-- The alternating bit protocol provides the most standard of all protocol
+-- examples, and is while it is too simple for practical purposes, its
+-- analysis contains much that remains relevant in realistic examples.
+
+-- You will find a number of other versions of this protocol in this
+-- collection of example files: at least in chapters 5, 8, 12 and 14
+-- and Chapter 15 of UCS.
+
+-- See also swp.csp (sliding window protocol).
+
+-- CHANNELS and DATA TYPES
+-- left and right are the external input and output, which we set to
+-- one-bit.  a and b carry a tag and a data value.
+-- c and d carry an acknowledgement tag.  In this protocol tags are bits.
+
+DATA = {0,1}  -- in a data-independent program, where nothing is done to
+              -- or conditional on data, this is sufficient to establish
+              -- correctness
+TAG = {0,1}   -- the alternating bits.
+
+channel left,right:DATA
+channel a,b:TAG.DATA
+channel c,d:TAG
+
+
+-- The protocol is designed to work in the presence of lossy and duplicating
+-- channels.
+
+-- Here are channels that can do this arbitrarily
+
+C(ic,oc) = ic?x -> (C(ic,oc) |~| C'(ic,oc,x))
+
+C'(ic,oc,x) = oc!x -> (C(ic,oc) |~| C'(ic,oc,x))
+
+
+-- We specify here channels which must transmit one out of any L=3 values, but 
+-- any definition would work provided it maintains order and does not lose
+-- an infinite sequence of values.  The only difference would evidence itself
+-- in the size of the state-space!
+
+L = 3
+
+BE(ic,oc,n) = ic?tag?data -> (if (n==0) then (oc!tag!data -> BE(ic,oc,L-1))
+                       else ((oc!tag!data -> BE(ic,oc,L-1)) |~|  BE(ic,oc,n-1)))
+
+
+-- Increasing L makes this definition less deterministic.  
+
+-- Here are versions with events to control when errors occur:
+
+channel loss, dup
+
+CE(ic,oc) = ic?x -> (loss -> CE(ic,oc) [] CE'(ic,oc,x))
+
+CE'(ic,oc,x) = oc!x -> (CE(ic,oc) [] dup -> CE'(ic,oc,x))
+
+--&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+
+-- The implementation of the protocol consists of a sender process and
+-- receiver process, linked by channels such as those above.
+
+-- The sender process is parameterised by the current value it tries to send
+-- out, which may be null in which case it does not try to send it,  but
+-- instead accepts a new one from channel left.
+
+Null=99  -- any value not in DATA
+
+SEND(v,bit) = (if (v == Null) then 
+                (left?x -> SEND(x,(1-bit))) else 
+                (a!bit!v -> SEND(v,bit)))
+              [](d?ack ->(if (ack==bit) then SEND(Null,bit) 
+                        else SEND(v,bit)))
+
+-- Initially the data value is Null & bit=1 so the first value input gets bit=0.
+
+SND = SEND(Null,1)
+
+-- The basic part of the receiver takes in messages, sends acknowledgements,
+-- and transmits messages to the environment.  REC(b) is a process that
+-- will always accept a message or send an acknowledgement, save that it
+-- will not do so when it has a pending message to transmit to
+-- the environment.  
+
+REC(bit) = b?tag?data -> (if (tag==bit) then right!data -> REC(1-bit)
+                                      else REC(bit))
+           [] (c!(1-bit) -> REC(bit))
+               
+-- The first message to be output has tag 0, and there is no pending
+-- message.
+
+RCV = REC(0)
+
+-- The following version avoids infinite traces without externally visible
+-- progress
+
+REC2(bit) = b?tag?data -> 
+            (if (tag==bit) then right!data ->  c!(1-bit) -> REC2(1-bit)
+                           else  c!(1-bit) -> REC2(bit))
+               
+RCV2 = REC2(0)
+
+--%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+-- Putting it together
+
+SystemC =  SND [|{|a,d|}|]((C(a,b)|||C(c,d))[|{|b,c|}|] RCV)
+SystemBE =  SND [|{|a,d|}|]((BE(a,b,L-1)|||BE(c,d,L-1))[|{|b,c|}|] RCV)
+SystemCE =  SND [|{|a,d|}|]((CE(a,b)|||CE(c,d))[|{|b,c|}|] RCV)
+SystemC2 =  SND [|{|a,d|}|]((C(a,b)|||C(c,d))[|{|b,c|}|] RCV2)
+SystemBE2 =  SND [|{|a,d|}|]((BE(a,b,L-1)|||BE(c,d,L-1))[|{|b,c|}|] RCV2)
+SystemCE2 =  SND [|{|a,d|}|]((CE(a,b)|||CE(c,d))[|{|b,c|}|] RCV2)
+
+--%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+-- Specifications
+
+-- The ABP behaves like the one-place buffer
+
+COPY = left?x -> right!x -> COPY
+
+-- All the above specifications have a lot of extra events, so
+-- we can modify the specification to ignore these
+
+Spec = COPY ||| CHAOS(diff(Events,{|left,right|}))
+
+-- and all of the implementations satisfy it:
+
+assert Spec [T= SystemC
+assert Spec [T= SystemBE
+assert Spec [T= SystemCE
+assert Spec [T= SystemC2
+assert Spec [T= SystemBE2
+assert Spec [T= SystemCE2
+
+--%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+-- For Chapters 5 and 6
+
+-- We want to hide {|a,b,c,d|} in the above as internal actions
+
+-- The difference between the two receivers is shown by the following
+-- checks for divergence:
+
+assert not SystemBE\{|a,b,c,d|} :[divergence free]
+assert SystemBE2\{|a,b,c,d|} :[divergence free]
+assert not SystemCE\{|a,b,c,d|} :[divergence free]
+assert SystemCE2\{|a,b,c,d|} :[divergence free]
+
+-- Since in SystemCE we have not hidden {loss,dup} and so divergence
+-- means that this can happen in the absence of errors.
+
+-- We can show directly that SystemBE2 satisfies COPY in the
+-- failures divergences model:
+
+assert COPY [FD= SystemBE2\{|a,b,c,d|}
+
+-- and lazily abstract the errors in the controlled error model:
+
+LAbs(P,X) = (P[|X|]CHAOS(X))\X
+
+assert COPY [F= LAbs(SystemCE2\{|a,b,c,d|},{loss,dup})

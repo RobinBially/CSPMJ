@@ -51,33 +51,34 @@ def download(address,target) {
     }
 }
 
-task downloadCSPMFrontend(type: Copy) {
 
-    new File('build/classes/main').mkdirs()
-    println "Building cspmf-tool"
+task downloadCSPMFrontend << {
+    def platform =  System.getProperty('os.name').toLowerCase()
+    def arch = System.getProperty('os.arch').toLowerCase()
 
-    inputs.dir(new File('build/classes/main'))
+    def libName = 'cspmf'
+    def osPref = ''
+    def archPref = ''
+    
+    if (platform.contains('mac')) {
+        osPref += 'darwin-'
+    } else if (platform.contains('linux')) {
+        osPref += 'linux-'
+    } else {
+        osPref += 'windows'
+        libName += '.exe'
+    }
 
-    def dst_directory = "build/classes/main/cspmf"
-    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-        download("https://www3.hhu.de/stups/downloads/cspmf/cspmf-windows.exe",dst_directory + ".exe")
-    } else if (Os.isFamily(Os.FAMILY_MAC)) {
-        download("https://www3.hhu.de/stups/downloads/cspmf/cspmf-leopard64",dst_directory)
-        exec {
-          executable "chmod"
-          args "+x","$dst_directory"
-        }
-    } else if (Os.isFamily(Os.FAMILY_UNIX)) {
-        def is64bit = (System.getProperty("os.arch").indexOf("64") != -1)
-        if((System.getProperty("os.arch").indexOf("64") != -1)) {
-            download("https://www3.hhu.de/stups/downloads/cspmf/cspmf-linux64",dst_directory)
-        } else {
-            download("https://www3.hhu.de/stups/downloads/cspmf/cspmf-linux32",dst_directory)
-        }
-        exec {
-          executable "chmod"
-          args "+x","$dst_directory"
-        }
+    if(arch.contains('64')) {
+        archPref += '64'
+    } else {
+        archPref += '32'
+    }
+
+    if(platform.contains('windows')) {
+        download('https://www3.hhu.de/stups/downloads/cspmf/'+osPref+'/'+libName,'build/classes/main/' + libName)
+    } else {
+        download('https://www3.hhu.de/stups/downloads/cspmf/'+osPref+archPref+'/'+libName,'build/classes/main/' + libName)        
     }
 }
 

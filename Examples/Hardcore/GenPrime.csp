@@ -1,0 +1,24 @@
+-- 
+channel out,comm:{0..99999}
+
+
+-- MAIN =  Gen(9999,7) [| {| comm |} |] Gen(9999,29) 
+-- counter example found after 20 ms with probcli on MacIntel 2.33 Ghz
+
+MAIN =  Gen(9999,7) [| {| comm |} |] Gen(9998,29)  -- counter example found after 410 ms (9824)
+-- FDR takes 50 seconds on same computer (but PPC binary)
+
+
+
+Gen(x,d) = out!x -> if x < d then Gen(x,d) else Gen(x-d,d) 
+           []
+           comm.x -> STOP
+           
+-- a faulty version: x can become negative
+GenErr(x,d) = out!x -> if x<0 then GenErr(x,d) else GenErr(x-d,d) 
+           []
+           comm.x -> GenErr(x,d)  -- no deadlock
+           
+-- MAIN =  GenErr(9999,7) [| {| comm |} |] GenErr(9998,29) 
+-- on MacIntel with probcli: Model Checking Time: 34850 ms to find counter example (length 398)
+-- If we remove the error in channel declaration: Model Checking Time: 371490 ms to visit all states

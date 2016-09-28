@@ -1,0 +1,2 @@
+A(x) = let B = x
+			x = 1 within {1|x<-{2}}
