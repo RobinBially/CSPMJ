@@ -76,9 +76,9 @@ task downloadCSPMFrontend << {
     }
 
     if(platform.contains('windows')) {
-        download('https://www3.hhu.de/stups/downloads/cspmf/'+osPref+'/'+libName,'build/classes/main/' + libName)
+        download('https://www3.hhu.de/stups/downloads/cspmf/'+osPref+'/'+libName, libName)
     } else {
-        download('https://www3.hhu.de/stups/downloads/cspmf/'+osPref+archPref+'/'+libName,'build/classes/main/' + libName)        
+        download('https://www3.hhu.de/stups/downloads/cspmf/'+osPref+archPref+'/'+libName, libName)        
     }
 }
 

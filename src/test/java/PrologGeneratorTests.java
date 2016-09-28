@@ -1342,25 +1342,25 @@ public class PrologGeneratorTests
 
 		if(ostype  == OsCheck.OSType.Windows)
 		{							
-			PrintWriter writer = new PrintWriter("build\\classes\\main\\cspmfIN.temp", "UTF-8");
+			PrintWriter writer = new PrintWriter("cspmfIN.temp", "UTF-8");
 			writer.println(input);
 			writer.close();	
-			p = Runtime.getRuntime().exec("build\\classes\\main\\cspmf.exe translate build\\classes\\main\\cspmfIN.temp --prologOutNormalised=build\\classes\\main\\cspmfOUT.temp");
+			p = Runtime.getRuntime().exec("cspmf.exe translate cspmfIN.temp --prologOutNormalised=cspmfOUT.temp");
 			p.waitFor();			
-			output = getStringFromFile("build\\classes\\main\\cspmfOUT.temp");				
-			Files.delete(Paths.get("build\\classes\\main\\cspmfOUT.temp"));
-			Files.delete(Paths.get("build\\classes\\main\\cspmfIN.temp"));			
+			output = getStringFromFile("cspmfOUT.temp");				
+			Files.delete(Paths.get("cspmfOUT.temp"));
+			Files.delete(Paths.get("cspmfIN.temp"));			
 		}
 		else if(ostype == OsCheck.OSType.MacOS || ostype == OsCheck.OSType.Linux32 || ostype == OsCheck.OSType.Linux64)
 		{
-			PrintWriter writer = new PrintWriter("build/classes/main/cspmfIN.temp", "UTF-8");
+			PrintWriter writer = new PrintWriter("cspmfIN.temp", "UTF-8");
 			writer.println(input);
 			writer.close();
-			p = Runtime.getRuntime().exec("build/classes/main/cspmf translate build/classes/main/cspmfIN.temp --prologOutNormalised=build/classes/main/cspmfOUT.temp");
+			p = Runtime.getRuntime().exec("cspmf translate cspmfIN.temp --prologOutNormalised=cspmfOUT.temp");
 			p.waitFor();
-			output = getStringFromFile("build/classes/main/cspmfOUT.temp");		
-			Files.delete(Paths.get("build/classes/main/cspmfOUT.temp"));
-			Files.delete(Paths.get("build/classes/main/cspmfIN.temp"));
+			output = getStringFromFile("cspmfOUT.temp");		
+			Files.delete(Paths.get("cspmfOUT.temp"));
+			Files.delete(Paths.get("cspmfIN.temp"));
 		}
 		else
 		{
