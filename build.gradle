@@ -59,7 +59,7 @@ task downloadCSPMFrontend << {
     def libName = 'cspmf'
     def osPref = ''
     def archPref = ''
-    
+
     if (platform.contains('mac')) {
         osPref += 'darwin-'
     } else if (platform.contains('linux')) {
@@ -76,10 +76,11 @@ task downloadCSPMFrontend << {
     }
 
     if(platform.contains('windows')) {
-        download('https://www3.hhu.de/stups/downloads/cspmf/'+osPref+'/'+libName,'build/classes/main/' + libName)
+        download('https://www3.hhu.de/stups/downloads/cspmf/'+osPref+'/'+libName, libName)
     } else {
-        download('https://www3.hhu.de/stups/downloads/cspmf/'+osPref+archPref+'/'+libName,'build/classes/main/' + libName)        
+        download('https://www3.hhu.de/stups/downloads/cspmf/'+osPref+archPref+'/'+libName, libName)
     }
+
 }
 
 task genLtlParser(type:JavaExec) {
@@ -118,7 +119,7 @@ jar {
     from 'bin'
     include '**/*.class'
     include '**.*.class'
-    exclude '**.*.scc' 
+    exclude '**.*.scc'
     from 'build/temp'
     include '**/*.dat'
     from sourceSets.main.toString()
@@ -127,7 +128,21 @@ jar {
 }
 
 compileJava {
- dependsOn = ['genLtlParser','genCtlParser','genCSPMparser', 'downloadCSPMFrontend']
+   dependsOn = ['genLtlParser','genCtlParser','genCSPMparser', 'downloadCSPMFrontend']
+
+   def platform =  System.getProperty('os.name').toLowerCase()
+   def libName = 'cspmf'
+
+   if(platform.contains('windows')) {
+       libName += '.exe'
+   }
+
+   copy {
+      from libName
+      into 'build/classes/main/'
+      fileMode 0755
+   }
+
 }
 
 sourceSets.test.runtimeClasspath += files(sourceSets.main.java.srcDirs)
