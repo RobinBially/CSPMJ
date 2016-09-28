@@ -97,7 +97,7 @@ public class PerformanceTest
 			for(int i=0;i<iterations;i++)
 			{	
 				startTime = System.nanoTime(); 
-				p = Runtime.getRuntime().exec("build\\classes\\main\\cspmf.exe translate "+filepath+" --prologOut=src\\test\\java\\cspmfOUT.temp");				
+				p = Runtime.getRuntime().exec("cspmf.exe translate "+filepath+" --prologOut=cspmfOUT.temp");				
 				p.waitFor();
 				endTime = System.nanoTime();
 				elapsedTime = endTime - startTime;
@@ -105,7 +105,7 @@ public class PerformanceTest
 				average.add(elapsedTime);				
 			}
 			elapsedTime = getAverage();
-			Files.delete(Paths.get("src\\test\\java\\cspmfOUT.temp"));		
+			Files.delete(Paths.get("cspmfOUT.temp"));		
 	}
 	
 	public void cspmjCompile(String filepath) throws Exception
@@ -113,28 +113,15 @@ public class PerformanceTest
 		for(int i=0;i<iterations;i++)
 		{	
 			startTime = System.nanoTime(); 
-			//p = Runtime.getRuntime().exec("java -jar build\\libs\\cspmj.jar -parse "+filepath+" --prologOut=build\\libs\\cspmjOUT.temp");
-			//p = Runtime.getRuntime().exec("java -cp build/classes/main CSPMparser -parse "+filepath+" --prologOut=build\\libs\\cspmjOUT.temp");
-			//p.waitFor();
-			CSPMparser cspmj = new CSPMparser(filepath,"build\\libs\\cspmjOUT.temp");
+			CSPMparser cspmj = new CSPMparser(filepath,"cspmjOUT.temp");
 			endTime = System.nanoTime();
 			elapsedTime = endTime - startTime;
 			p.destroy();
 			average.add(elapsedTime);
 		}
 			elapsedTime = getAverage();
-			Files.delete(Paths.get("build\\libs\\cspmjOUT.temp.pl"));
+			Files.delete(Paths.get("cspmjOUT.temp.pl"));
 	}	
-	
-	// public void parseAll() throws Exception
-	// {
-		// startTime = System.nanoTime(); 
-		// //p = Runtime.getRuntime().exec("java -jar build\\libs\\cspmj.jar -parseAll");
-		// p.waitFor();
-		// endTime = System.nanoTime();
-		// elapsedTime = endTime - startTime;
-		// p.destroy();
-	// }
 	
 	public String getPath()
 	{
