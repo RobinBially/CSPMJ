@@ -17,7 +17,7 @@ build/
 .gradle/
 
 # Test results
-PerformanceTest.txt
+src/performance/java/PerformanceResult.txt
 
 # Prolog Files
 *.csp.pl
