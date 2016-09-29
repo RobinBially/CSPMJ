@@ -238,7 +238,7 @@ public class CSPMparser
 					pw.print(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
 					+newline+":- dynamic module/4."
 					+newline+"'parserVersionStr'('"+versionString+"')."
-					+newline+"'parseResult'('parseError',"+cmpe.getMessage()+","+cmpe.getTokenLine()+","+cmpe.getTokenColumn()+").");
+					+newline+"'parseResult'('parseError',"+cmpe.getMessage()+","+cmpe.getTokenLine()+","+cmpe.getTokenColumn()+",0).");
 					pw.close();
 				}
 				catch(Exception pwe){}
@@ -256,7 +256,7 @@ public class CSPMparser
 					pw.print(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
 					+newline+":- dynamic module/4."
 					+newline+"'parserVersionStr'('"+versionString+"')."
-					+newline+"'parseResult'('lexingError',"+le.getMessage()+",0,0).");
+					+newline+"'parseResult'('lexingError',"+le.getMessage()+",0,0,0).");
 					pw.close();					
 				}
 				catch(Exception pwe){}
@@ -275,7 +275,7 @@ public class CSPMparser
 					pw.print(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
 					+newline+":- dynamic module/4."
 					+newline+"'parserVersionStr'('"+versionString+"')."
-					+newline+"'parseResult'('renamingError',"+re.getText()+").");
+					+newline+"'parseResult'('renamingError',"+re.getText()+",0).");
 					pw.close();
 				}
 				catch(Exception pwe){}
@@ -293,7 +293,7 @@ public class CSPMparser
 					pw.print(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
 					+newline+":- dynamic module/4."
 					+newline+"'parserVersionStr'('"+versionString+"')."
-					+newline+"'parseResult'('noPatternError',"+npe.getText()+").");
+					+newline+"'parseResult'('noPatternError',"+npe.getText()+",0).");
 					pw.close();
 				}
 				catch(Exception pwe){}
@@ -311,7 +311,7 @@ public class CSPMparser
 					pw.print(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
 					+newline+":- dynamic module/4."
 					+newline+"'parserVersionStr'('"+versionString+"')."
-					+newline+"'parseResult'("+uie.getText()+").");
+					+newline+"'parseResult'("+uie.getText()+",0).");
 					pw.close();
 				}
 				catch(Exception pwe){}
@@ -329,7 +329,7 @@ public class CSPMparser
 					pw.print(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
 					+newline+":- dynamic module/4."
 					+newline+"'parserVersionStr'('"+versionString+"')."
-					+newline+"'parseResult'('substitutionError',"+tse.getMessage()+").");
+					+newline+"'parseResult'('substitutionError',"+tse.getMessage()+",0).");
 					pw.close();
 				}
 				catch(Exception pwe){}
@@ -347,7 +347,7 @@ public class CSPMparser
 					pw.print(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
 					+newline+":- dynamic module/4."
 					+newline+"'parserVersionStr'('"+versionString+"')."
-					+newline+"'parseResult'('includeError',"+ife.getText()+","+ife.getLine()+","+ife.getColumn()+").");
+					+newline+"'parseResult'('includeError',"+ife.getText()+","+ife.getLine()+","+ife.getColumn()+",0).");
 					pw.close();
 				}
 				catch(Exception pwe){}
@@ -365,7 +365,7 @@ public class CSPMparser
 					pw.print(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
 					+newline+":- dynamic module/4."
 					+newline+"'parserVersionStr'('"+versionString+"')."
-					+newline+"'parseResult'('treeLogicError',"+tle.getText()+").");
+					+newline+"'parseResult'('treeLogicError',"+tle.getText()+",0).");
 					pw.close();
 				}
 				catch(Exception pwe){}
@@ -383,7 +383,7 @@ public class CSPMparser
 					pw.print(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
 					+newline+":- dynamic module/4."
 					+newline+"'parserVersionStr'('"+versionString+"')."
-					+newline+"'parseResult'('ioException','"+io.getMessage()+"',0,0).");
+					+newline+"'parseResult'('ioException','"+io.getMessage()+"',0,0,0).");
 					pw.close();
 				}
 				catch(Exception pwe){}
@@ -403,7 +403,7 @@ public class CSPMparser
 			writer.println(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
 			+newline+":- dynamic module/4."
 			+newline+"'parserVersionStr'('"+versionString+"')."
-			+newline+"'parseResult'('ok','',0,0)."
+			+newline+"'parseResult'('ok','',0,0,0)."
 			+newline+":- dynamic channel/2, bindval/3, agent/3."
 			+newline+":- dynamic agent_curry/3, symbol/4."
 			+newline+":- dynamic dataTypeDef/2, subTypeDef/2, nameType/2."
