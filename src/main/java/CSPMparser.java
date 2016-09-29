@@ -413,7 +413,7 @@ public class CSPMparser
 			+newline+":- dynamic comment/2."
 			+newline+":- dynamic assertBool/1, assertRef/5, assertTauPrio/6."
 			+newline+":- dynamic assertModelCheckExt/4, assertModelCheck/3."
-			+newline+":- dynamic assertHasTrace/3, assertHasTraceExt/4"
+			+newline+":- dynamic assertHasTrace/3, assertHasTraceExt/4."
 			+newline+":- dynamic assertLtl/4, assertCtl/4."
 			+newline+"'parserVersionNum'(["+versionNum+"])."
 			+newline+"'parserVersionStr'('"+versionString+"').");	
