@@ -174,7 +174,7 @@ public class CSPMparser
 	TriangleSubstitutionException,IncludeFileException,LexerException,IOException,TreeLogicException
 	{
 		if(outputFile.equals(""))
-		outputFile = inputFile;
+		outputFile = inputFile+".pl";
 		else if(outputFile.startsWith("--prologOut="))
 		outputFile = outputFile.substring(12,outputFile.length()); // --prologOut= must disappear
 
@@ -398,7 +398,7 @@ public class CSPMparser
 		try
 		{
 			PrintWriter writer;
-			writer = new PrintWriter(outputFile+".pl", "UTF-8");
+			writer = new PrintWriter(outputFile, "UTF-8");
 			
 			writer.println(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
 			+newline+":- dynamic module/4."
