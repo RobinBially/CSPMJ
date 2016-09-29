@@ -234,7 +234,7 @@ public class CSPMparser
 				try
 				{
 					CSPMparserException cmpe = new CSPMparserException(e.getToken(),e.getLocalizedMessage());
-					PrintWriter pw = new PrintWriter(outputFile+".pl", "UTF-8");
+					PrintWriter pw = new PrintWriter(outputFile, "UTF-8");
 					pw.print(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
 					+newline+":- dynamic module/4."
 					+newline+"'parserVersionStr'('"+versionString+"')."
@@ -252,7 +252,7 @@ public class CSPMparser
 			{
 				try
 				{
-					PrintWriter pw = new PrintWriter(outputFile+".pl", "UTF-8");
+					PrintWriter pw = new PrintWriter(outputFile, "UTF-8");
 					pw.print(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
 					+newline+":- dynamic module/4."
 					+newline+"'parserVersionStr'('"+versionString+"')."
@@ -271,7 +271,7 @@ public class CSPMparser
 				try
 				{
 					System.out.println("test "+outputFile);
-					PrintWriter pw = new PrintWriter(outputFile+".pl", "UTF-8");				
+					PrintWriter pw = new PrintWriter(outputFile, "UTF-8");				
 					pw.print(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
 					+newline+":- dynamic module/4."
 					+newline+"'parserVersionStr'('"+versionString+"')."
@@ -289,7 +289,7 @@ public class CSPMparser
 			{
 				try
 				{
-					PrintWriter pw = new PrintWriter(outputFile+".pl", "UTF-8");
+					PrintWriter pw = new PrintWriter(outputFile, "UTF-8");
 					pw.print(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
 					+newline+":- dynamic module/4."
 					+newline+"'parserVersionStr'('"+versionString+"')."
@@ -307,7 +307,7 @@ public class CSPMparser
 			{
 				try
 				{
-					PrintWriter pw = new PrintWriter(outputFile+".pl", "UTF-8");
+					PrintWriter pw = new PrintWriter(outputFile, "UTF-8");
 					pw.print(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
 					+newline+":- dynamic module/4."
 					+newline+"'parserVersionStr'('"+versionString+"')."
@@ -325,7 +325,7 @@ public class CSPMparser
 			{
 				try
 				{
-					PrintWriter pw = new PrintWriter(outputFile+".pl", "UTF-8");
+					PrintWriter pw = new PrintWriter(outputFile, "UTF-8");
 					pw.print(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
 					+newline+":- dynamic module/4."
 					+newline+"'parserVersionStr'('"+versionString+"')."
@@ -343,7 +343,7 @@ public class CSPMparser
 			{
 				try
 				{
-					PrintWriter pw = new PrintWriter(outputFile+".pl", "UTF-8");
+					PrintWriter pw = new PrintWriter(outputFile, "UTF-8");
 					pw.print(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
 					+newline+":- dynamic module/4."
 					+newline+"'parserVersionStr'('"+versionString+"')."
@@ -361,7 +361,7 @@ public class CSPMparser
 			{
 				try
 				{
-					PrintWriter pw = new PrintWriter(outputFile+".pl", "UTF-8");
+					PrintWriter pw = new PrintWriter(outputFile, "UTF-8");
 					pw.print(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
 					+newline+":- dynamic module/4."
 					+newline+"'parserVersionStr'('"+versionString+"')."
@@ -379,7 +379,7 @@ public class CSPMparser
 			{
 				try
 				{
-					PrintWriter pw = new PrintWriter(outputFile+".pl", "UTF-8");
+					PrintWriter pw = new PrintWriter(outputFile, "UTF-8");
 					pw.print(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
 					+newline+":- dynamic module/4."
 					+newline+"'parserVersionStr'('"+versionString+"')."
