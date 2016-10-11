@@ -238,7 +238,7 @@ public class CSPMparser
 					pw.print(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
 					+newline+":- dynamic module/4."
 					+newline+"'parserVersionStr'('"+versionString+"')."
-					+newline+"'parseResult'('parseError',"+cmpe.getMessage()+","+cmpe.getTokenLine()+","+cmpe.getTokenColumn()+",0).");
+					+newline+"'parseResult'('parseError','"+cmpe.getMessage()+"',"+cmpe.getTokenLine()+","+cmpe.getTokenColumn()+",0).");
 					pw.close();
 				}
 				catch(Exception pwe){}
@@ -256,7 +256,7 @@ public class CSPMparser
 					pw.print(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
 					+newline+":- dynamic module/4."
 					+newline+"'parserVersionStr'('"+versionString+"')."
-					+newline+"'parseResult'('lexingError',"+le.getMessage()+",0,0,0).");
+					+newline+"'parseResult'('lexingError','"+le.getMessage()+"',0,0,0).");
 					pw.close();					
 				}
 				catch(Exception pwe){}

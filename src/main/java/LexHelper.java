@@ -16,7 +16,7 @@ public class LexHelper extends Lexer
 	private Token lastNoNewlineToken = null;
 	private Token lastNewline = null;
 	private Token saveToken = null;
-    private boolean useFilter = true;
+    private boolean useFilter = true; //Do not use the filter when running filterWrap() wich uses filter()
 	
 	public LexHelper(final PushbackReader in) 
 	{
@@ -27,7 +27,11 @@ public class LexHelper extends Lexer
 	protected void filter() throws LexerException, IOException 
 	{
 		if(useFilter)
-		{	
+		{
+			if(token instanceof TIdentifier)
+			{
+				token.setText(token.getText().replace("'","\\'"));
+			}			
 			if(token instanceof TDet || token instanceof TDlFree || token instanceof TDivFree)
 			{
 				inAssertion = true;

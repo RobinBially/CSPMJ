@@ -29,7 +29,7 @@ public class CommentInfo
 			startColumn = sc;
 			offset = o;
 			len = l;
-			comment = c;
+			comment = c.replace("'","\\'");
 			isMultilineComment = ml;
 			formula = "";
 			pragmaComment = "";
@@ -69,9 +69,10 @@ public class CommentInfo
 				formula = matcher.group(1);
 				pragmaComment = matcher.group(2);
 			}
-						
-			return false;
-			
+									
+			pragmaComment = pragmaComment.replace("'","\\'");
+			formula = formula.replace("'","\\'");	
+			return false;			
 	}
 
 }
