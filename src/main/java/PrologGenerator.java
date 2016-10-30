@@ -793,15 +793,15 @@ public class PrologGenerator extends DepthFirstAdapter
             node.getFalse().apply(this);
         }
         outAFalsePattern(node);
-    }	
-//***************************************************************************************************************************************************	
+    }
+//***************************************************************************************************************************************************
 //Expressions Right Side
 
     @Override
     public void caseAHideExp(AHideExp node)
     {
         inAHideExp(node);
-		p.openTerm("\\");
+		p.openTerm("\\\\");
         if(node.getProc1() != null)
         {
             node.getProc1().apply(this);
