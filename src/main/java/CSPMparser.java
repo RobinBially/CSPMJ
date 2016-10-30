@@ -235,16 +235,17 @@ public class CSPMparser
 				{
 					CSPMparserException cmpe = new CSPMparserException(e.getToken(),e.getLocalizedMessage());
 					PrintWriter pw = new PrintWriter(outputFile, "UTF-8");
+					String errMessage = CommentInfo.escapeChars(cmpe.getMessage());
 					pw.print(":- dynamic parserVersionNum/1, parserVersionStr/1, parseResult/5."
 					+newline+":- dynamic module/4."
 					+newline+"'parserVersionStr'('"+versionString+"')."
-					+newline+"'parseResult'('parseError','"+cmpe.getMessage()+"',"+cmpe.getTokenLine()+","+cmpe.getTokenColumn()+",0).");
+					+newline+"'parseResult'('parseError','"+errMessage+"',"+cmpe.getTokenLine()+","+cmpe.getTokenColumn()+",0).");
 					pw.close();
 				}
 				catch(Exception pwe){}
 			}
 			throw new CSPMparserException(e.getToken(),e.getLocalizedMessage());
-		} 			
+		}
 		catch(LexerException le)
 		{
 			System.out.println("A LexerException was thrown.");
