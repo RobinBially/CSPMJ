@@ -1147,7 +1147,7 @@ public class PrologGeneratorTests
 				+newline+"t = [1<->2] true @ true"
 				+newline+"u = [+1+] true @ true"
 				,
-				"'bindval'('J','\\'('int'(1),'int'(2),'src_span_operator'('no_loc_info_available','no_loc_info_available')),'no_loc_info_available')."
+				"'bindval'('J','\\\\'('int'(1),'int'(2),'src_span_operator'('no_loc_info_available','no_loc_info_available')),'no_loc_info_available')."
 				+newline+"'bindval'('K','|||'('int'(1),'int'(2),'src_span_operator'('no_loc_info_available','no_loc_info_available')),'no_loc_info_available')."
 				+newline+"'bindval'('L','exception'('int'(3),'int'(2),'int'(4),'no_loc_info_available'),'no_loc_info_available')."
 				+newline+"'bindval'('M','sharing'('int'(3),'int'(2),'int'(4),'no_loc_info_available'),'no_loc_info_available')."
