@@ -547,6 +547,7 @@ public class PrologGeneratorTests
 						+newline+"{-# assert_ctl \"formula\" #-}"
 						+newline+"{-# assert_ctl \"formula\" \"comment\" #-}"
 						+newline+"-- This is a line comment"
+						+newline
 					,
 						"'pragma'('assert_ltl \"formula\"')."
 						+newline+"'pragma'('assert_ltl \"formula\" \"comment"+newlineEscape+"with newline\"')."
@@ -557,10 +558,10 @@ public class PrologGeneratorTests
 						+newline+"'comment'('pragmaComment'('{-# assert_ltl \"formula\" \"comment"+newlineEscape+"with newline\" #-}'),'no_loc_info_available')."
 						+newline+"'comment'('pragmaComment'('{-# assert_ctl \"formula\" #-}'),'no_loc_info_available')."
 						+newline+"'comment'('pragmaComment'('{-# assert_ctl \"formula\" \"comment\" #-}'),'no_loc_info_available')."
-						+newline+"'comment'('lineComment'('-- This is a line comment','no_loc_info_available'))."
+						+newline+"'comment'('lineComment'('-- This is a line comment"+newlineEscape+"','no_loc_info_available'))."
 					);
 	}
-	
+
 	@Test
 	public void PatternsInComprehensions() throws Exception  //
 	{
